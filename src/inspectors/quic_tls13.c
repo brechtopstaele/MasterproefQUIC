@@ -86,7 +86,7 @@ void tls13_parse_quic_transport_params(pfwl_state_t *state, const unsigned char 
 	size_t		pointer = 0;
 	size_t 		TLVlen 	= 0;
 	for (pointer = 0; pointer <len; pointer += TLVlen) {
-		size_t		TLVtype = 0;
+		uint64_t	TLVtype = 0;
 		pointer += quic_get_variable_len(data, pointer, &TLVtype);
 		TLVlen = data[pointer];
 		pointer++;

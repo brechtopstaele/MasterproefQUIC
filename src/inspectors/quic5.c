@@ -55,7 +55,7 @@ typedef struct {
 	uint32_t version;
 	size_t packet_number;
 	size_t packet_number_len;
-	size_t payload_len;
+	uint64_t payload_len;
 	
 	unsigned char *decrypted_payload;
 	size_t decrypted_payload_len;
@@ -437,7 +437,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			memcpy(quic_info.src_conn_id, &app_data[quic_info.header_len], quic_info.src_conn_id_len);
 			quic_info.header_len = quic_info.header_len + quic_info.src_conn_id_len; /* source connection id length */ 	
 
-			size_t token_len = 0;
+			uint64_t token_len = 0;
 			quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &token_len);
 			quic_info.header_len += token_len;
 
@@ -464,7 +464,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			//unsigned int 	frame_type 		= quic_info.decrypted_payload[0];
 			//unsigned int 	offset 			= quic_info.decrypted_payload[1];
 	
-			size_t  crypto_data_size = 0;	
+			uint64_t  crypto_data_size = 0;	
 			//size_t	crypto_data_len	= quic_get_variable_len(quic_info.decrypted_payload, 2, &crypto_data_size);
 			quic_get_variable_len(quic_info.decrypted_payload, 2, &crypto_data_size);
 			/* According to wireshark chlo_start could also be quic_info.decrypted_payload + 2 (frame_type || offset) + crypto_data_len */
