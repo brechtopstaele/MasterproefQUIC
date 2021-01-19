@@ -180,7 +180,7 @@ uint8_t check_jsonrpc(pfwl_state_t *state, const unsigned char *app_data,
   if(!ok || !d->IsObject()){ 
     debug_print("%s\n", "It is not json-RPC");
     if(PFWL_DEBUG_DISS_JSONRPC)
-      fprintf(stderr, "JSON parse error: %s (%lu)\n", GetParseError_En(ok.Code()), ok.Offset());
+      fprintf(stderr, "JSON parse error: %s (%zu)\n", GetParseError_En(ok.Code()), ok.Offset());
     // Check if JSON over HTTP
     const unsigned char* http_body;
     size_t http_body_length;
@@ -192,7 +192,7 @@ uint8_t check_jsonrpc(pfwl_state_t *state, const unsigned char *app_data,
       if(!ok){
         debug_print("%s\n", "It is not json-RPC");
         if(PFWL_DEBUG_DISS_JSONRPC)
-          fprintf(stderr, "JSON parse error: %s (%lu)\n", GetParseError_En(ok.Code()), ok.Offset());
+          fprintf(stderr, "JSON parse error: %s (%zu)\n", GetParseError_En(ok.Code()), ok.Offset());
         return PFWL_PROTOCOL_NO_MATCHES;
       }
     }break;

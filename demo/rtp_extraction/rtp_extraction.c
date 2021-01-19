@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <inttypes.h>
 
 int main(int argc, char** argv){
 
@@ -82,19 +83,19 @@ int main(int argc, char** argv){
         int64_t extracted_value;
       if(r.l7.protocol == PFWL_PROTO_L7_RTP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTP_PTYPE, &extracted_value)){
-          printf("Payload Type detected: %li\n", extracted_value);
+          printf("Payload Type detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTP_SEQNUM, &extracted_value)){
-          printf("Sequence Number detected: %li\n", extracted_value);
+          printf("Sequence Number detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTP_TIMESTP, &extracted_value)){
-          printf("Timestamp detected: %li\n", extracted_value);
+          printf("Timestamp detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTP_SSRC, &extracted_value)){
-          printf("Syncronization Source Identifier detected: %li\n", extracted_value);
+          printf("Syncronization Source Identifier detected: %" PRId64 "\n", extracted_value);
       }
     }
   }

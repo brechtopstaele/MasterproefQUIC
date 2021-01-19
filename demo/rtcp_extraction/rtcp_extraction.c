@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <inttypes.h>
 
 int main(int argc, char** argv){
 
@@ -89,93 +90,93 @@ int main(int argc, char** argv){
       /* ************************ */
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_SSRC, &extracted_value)){
-          printf("Sender SSRC: %li\n", extracted_value);
+          printf("Sender SSRC: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_TIME_MSW, &extracted_value)){
-          printf("NTP Timestamp MSW detected: %li\n", extracted_value);
+          printf("NTP Timestamp MSW detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_TIME_LSW, &extracted_value)){
-          printf("NTP Timestamp LSW detected: %li\n", extracted_value);
+          printf("NTP Timestamp LSW detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_TIME_RTP, &extracted_value)){
-          printf("RTP Timestamp detected: %li\n", extracted_value);
+          printf("RTP Timestamp detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_PKT_COUNT, &extracted_value)){
-          printf("Packet Count detected: %li\n", extracted_value);
+          printf("Packet Count detected: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_OCT_COUNT, &extracted_value)){
-          printf("Octet detected: %li\n", extracted_value);
+          printf("Octet detected: %" PRId64 "\n", extracted_value);
       }
       /* If RC block is present */
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_ID, &extracted_value)){
           printf("Sender Report count -->");
-          printf("\n\t Identifier: %li\n", extracted_value);
+          printf("\n\t Identifier: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_FLCNPL, &extracted_value)){
-          printf("\n\t SSRC content (Fraction Lost + Cumulative Num Pkt) : %li\n", extracted_value);
+          printf("\n\t SSRC content (Fraction Lost + Cumulative Num Pkt) : %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_EXT_SEQN_RCV, &extracted_value)){
-          printf("\n\t Ext High Seq Num: %li\n", extracted_value);
+          printf("\n\t Ext High Seq Num: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_INT_JITTER, &extracted_value)){
-          printf("\n\t Inter Jitter: %li\n", extracted_value);
+          printf("\n\t Inter Jitter: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_LSR, &extracted_value)){
-          printf("\n\t Last SR timestamp: %li\n", extracted_value);
+          printf("\n\t Last SR timestamp: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_DELAY_LSR, &extracted_value)){
-          printf("\n\t Delay since SR timestamp: %li\n\n", extracted_value);
+          printf("\n\t Delay since SR timestamp: %" PRId64 "\n\n", extracted_value);
       }
       /* ************************** */
       /*** RECEIVER fields output ***/
       /* ************************** */
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_SSRC, &extracted_value)){
-          printf("Sender SSRC: %li\n", extracted_value);
+          printf("Sender SSRC: %" PRId64 "\n", extracted_value);
       }
       /* If RC block is present */
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_ID, &extracted_value)){
           printf("Receiver Report count -->");
-          printf("\n\t Identifier: %li\n", extracted_value);
+          printf("\n\t Identifier: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_FLCNPL, &extracted_value)){
-          printf("\n\t SSRC content (Fraction Lost + Cumulative Num Pkt) : %li\n", extracted_value);
+          printf("\n\t SSRC content (Fraction Lost + Cumulative Num Pkt) : %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_EXT_SEQN_RCV, &extracted_value)){
-          printf("\n\t Ext High Seq Num: %li\n", extracted_value);
+          printf("\n\t Ext High Seq Num: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_INT_JITTER, &extracted_value)){
-          printf("\n\t Inter Jitter: %li\n", extracted_value);
+          printf("\n\t Inter Jitter: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_LSR, &extracted_value)){
-          printf("\n\t Last SR timestamp: %li\n", extracted_value);
+          printf("\n\t Last SR timestamp: %" PRId64 "\n", extracted_value);
       }
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_RECEIVER_DELAY_LSR, &extracted_value)){
-          printf("\n\t Delay since SR timestamp: %li\n\n", extracted_value);
+          printf("\n\t Delay since SR timestamp: %" PRId64 "\n\n", extracted_value);
       }
       /* ************************************ */
       /*** SOURCE DESCRIPTION fields output ***/
       /* ************************************ */
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&
          !pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SDES_CSRC, &extracted_value)){
-          printf("\n\t CSRC (Identifier): %li\n", extracted_value);
+          printf("\n\t CSRC (Identifier): %" PRId64 "\n", extracted_value);
       }
 
       if(r.l7.protocol == PFWL_PROTO_L7_RTCP &&

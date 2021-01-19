@@ -185,7 +185,7 @@ static inline pfwl_flow_t* get_next_expiring_flow(uint32_t now, pfwl_timestamp_u
   while(info.expiration_buckets[i]->empty()){
     i = (i + 1) % PFWL_FLOW_TABLE_MAX_IDLE_TIME;
   }
-  debug_print("Next expiring flow in bucket %lu\n", i);
+  debug_print("Next expiring flow in bucket %zd\n", i);
   return *(info.expiration_buckets[i]->begin());  
 }
 
@@ -459,7 +459,7 @@ static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
     uint32_t bucket_id = get_bucket_by_timestamp(bucket_timestamp, unit);
     std::unordered_set<pfwl_flow_t*>* bucket = db->partitions[partition_id].expiration_buckets[bucket_id];
     bucket->erase(to_delete);
-    debug_print("[flow_table.c]: Removing flow %ld from bucket %u\n", to_delete->info.id, bucket_id);
+    debug_print("[flow_table.c]: Removing flow %" PRIu64 " from bucket %u\n", to_delete->info.id, bucket_id);
   }
 
   // Delete flow
@@ -731,12 +731,12 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
 
   // check if the expiration bucket id has changed and move the flow, if necessary
   uint32_t bucket_id = get_bucket_by_timestamp(get_last_timestamp(iterator), unit);
-  debug_print("[flow_table.c]: Adding flow %ld to bucket %u\n", finfo->id, bucket_id);
+  debug_print("[flow_table.c]: Adding flow %" PRIu64 " to bucket %u\n", finfo->id, bucket_id);
   partition.expiration_buckets[bucket_id]->insert(iterator);
   if(!new_flow){
     if(old_bucket_id != bucket_id){
       partition.expiration_buckets[old_bucket_id]->erase(iterator);
-      debug_print("[flow_table.c]: Removing flow %ld from bucket %u\n", finfo->id, old_bucket_id);
+      debug_print("[flow_table.c]: Removing flow %" PRIu64 " from bucket %u\n", finfo->id, old_bucket_id);
     }
   }
 
