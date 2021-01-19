@@ -87,11 +87,12 @@ static void pfwl_field_mmap_tags_add_internal(std::map<std::string, pfwl_field_m
 }
 
 static void* pfwl_field_tags_load_L7(pfwl_field_id_t field, const char* fileName){
-  void* db = NULL;
+  pfwl_field_matching_db_t* db_s = NULL;
+  std::map<std::string, pfwl_field_matching_db_t>* db_m = NULL;
   if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_STRING){
-    db = new pfwl_field_matching_db_t;
+    db_s = new pfwl_field_matching_db_t;
   }else if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_MMAP){
-    db = new std::map<std::string, pfwl_field_matching_db_t>;
+    db_m = new std::map<std::string, pfwl_field_matching_db_t>;
   }
 
   if(fileName){
@@ -101,7 +102,8 @@ static void* pfwl_field_tags_load_L7(pfwl_field_id_t field, const char* fileName
     d.ParseStream(isw);
 
     if (d.HasParseError()){
-      delete db;
+      delete db_s;
+      delete db_m;
       return NULL;
     }
 
@@ -112,14 +114,19 @@ static void* pfwl_field_tags_load_L7(pfwl_field_id_t field, const char* fileName
         const Value& matchingType = (*itr)["matchingType"];
         const Value& tag = (*itr)["tag"];
         if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_STRING){
-          pfwl_field_string_tags_add_internal(static_cast<pfwl_field_matching_db_t*>(db), stringToMatch.GetString(), getFieldMatchingType(matchingType.GetString()), tag.GetString());
+          pfwl_field_string_tags_add_internal(db_s, stringToMatch.GetString(), getFieldMatchingType(matchingType.GetString()), tag.GetString());
         }else if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_MMAP){
           const Value& key = (*itr)["key"];
-          pfwl_field_mmap_tags_add_internal(static_cast<std::map<std::string, pfwl_field_matching_db_t>*>(db), key.GetString(), stringToMatch.GetString(), getFieldMatchingType(matchingType.GetString()), tag.GetString());
+          pfwl_field_mmap_tags_add_internal(db_m, key.GetString(), stringToMatch.GetString(), getFieldMatchingType(matchingType.GetString()), tag.GetString());
         }
     }
   }
-  return db;
+  if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_STRING){
+    return db_s;
+  }else if(pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_MMAP){
+    return db_m;
+  }
+  return NULL;
 }
 
 
