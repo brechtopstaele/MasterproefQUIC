@@ -110,6 +110,7 @@ typedef enum {
       fprintf(stdout, fmt, __VA_ARGS__);                                       \
   } while (0)
 
+/*
 static size_t convert_length_connection(size_t len){
   switch(len){
     case 0x0C:
@@ -124,6 +125,7 @@ static size_t convert_length_connection(size_t len){
       return 0;
   }
 }
+*/
 
 static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const size_t ver_len) {
 	size_t len = 0;

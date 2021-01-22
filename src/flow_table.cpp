@@ -531,7 +531,7 @@ void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
   mc_pfwl_flow_table_delete_flow(db, 0, to_delete, unit);
 }
 
-static double get_max_idle_time(pfwl_timestamp_unit_t unit){
+__attribute__((unused)) static double get_max_idle_time(pfwl_timestamp_unit_t unit){
   return convert_time(PFWL_FLOW_TABLE_MAX_IDLE_TIME, unit);
 }
 
