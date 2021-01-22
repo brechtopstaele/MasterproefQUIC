@@ -30,6 +30,7 @@
 #include "../external/rapidjson/document.h"
 #include "../external/rapidjson/error/en.h"
 
+#include <cstdio>
 #include <iostream>
 #include "../external/rapidjson/stringbuffer.h"
 #include "../external/rapidjson/writer.h"
