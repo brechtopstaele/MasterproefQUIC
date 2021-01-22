@@ -437,6 +437,6 @@ pfwl_protocol_l4_t pfwl_get_L4_protocol_id(const char *const name){
 }
 
 
-const char **const pfwl_get_L4_protocols_names(){
+const char ** pfwl_get_L4_protocols_names(){
   return pfwl_l4_protocols_names;
 }

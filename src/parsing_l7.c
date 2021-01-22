@@ -558,7 +558,7 @@ pfwl_protocol_l7_t pfwl_get_L7_protocol_id(const char *const string) {
 
 static const char *protocols_strings[PFWL_PROTO_L7_NUM];
 
-const char **const pfwl_get_L7_protocols_names() {
+const char ** pfwl_get_L7_protocols_names() {
   size_t i;
   for (i = 0; i < (size_t) PFWL_PROTO_L7_NUM; i++) {
     protocols_strings[i] = protocols_descriptors[i].name;

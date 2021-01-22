@@ -393,6 +393,6 @@ pfwl_protocol_l3_t pfwl_get_L3_protocol_id(const char *const name){
 }
 
 
-const char **const pfwl_get_L3_protocols_names(){
+const char ** pfwl_get_L3_protocols_names(){
   return pfwl_l3_protocols_names;
 }

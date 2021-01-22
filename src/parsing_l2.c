@@ -479,6 +479,6 @@ pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name){
   return PFWL_PROTO_L2_NUM;
 }
 
-const char **const pfwl_get_L2_protocols_names(){
+const char ** pfwl_get_L2_protocols_names(){
   return pfwl_l2_protocols_names;
 }
