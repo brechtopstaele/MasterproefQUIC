@@ -392,8 +392,8 @@ public:
  **/
 class ProtocolL7{
 private:
-  const pfwl_protocol_l7_t _protocol;
-  const std::string _name;
+  pfwl_protocol_l7_t _protocol;
+  std::string _name;
 public:
   /**
    * Copy constructor
