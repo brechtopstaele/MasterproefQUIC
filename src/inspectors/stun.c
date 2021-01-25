@@ -50,9 +50,7 @@ struct stun_header {
 #endif
   uint16_t msg_len;
   uint32_t magic_cookie;
-  uint32_t transaction_id_0;
-  uint32_t transaction_id_1;
-  uint32_t transaction_id_2;
+  uint8_t transaction_id[12];
 } __attribute__((packed));
 
 uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data,
@@ -85,12 +83,15 @@ uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data,
             // IPv6
             addr_len = 16;
             struct in6_addr in;
-            memcpy(in.__in6_u.__u6_addr8, app_data + offset + 8, 16);
+            memcpy(in.s6_addr, app_data + offset + 8, 16);
             if(type == STUN_XOR_MAPPED_ADDRESS){
-              in.__in6_u.__u6_addr32[0] ^= STUN_MAGIC_COOKIE;
-              in.__in6_u.__u6_addr32[1] ^= stun_packet->transaction_id_0;
-              in.__in6_u.__u6_addr32[2] ^= stun_packet->transaction_id_1;
-              in.__in6_u.__u6_addr32[3] ^= stun_packet->transaction_id_2;
+              in.s6_addr[0] ^= (STUN_MAGIC_COOKIE >> 24) & 0xFF;
+              in.s6_addr[1] ^= (STUN_MAGIC_COOKIE >> 16) & 0xFF;
+              in.s6_addr[2] ^= (STUN_MAGIC_COOKIE >> 8) & 0xFF;
+              in.s6_addr[3] ^= (STUN_MAGIC_COOKIE) & 0xFF;
+              for (int i = 0; i<12; i++) {
+                  in.s6_addr[4+i] ^= stun_packet->transaction_id[i];
+              }
             }
             inet_ntop(AF_INET6, &in, flow_info_private->stun_mapped_address, sizeof(flow_info_private->stun_mapped_address));
           }
