@@ -221,13 +221,11 @@ static int processExtensions(pfwl_state_t* state, pfwl_flow_info_private_t* flow
     if(extensions_next_char){
       extensions_next_char -= 1; 
     }
+    sprintf(extensions + extensions_next_char, ",");
+    state->scratchpad_next_byte += extensions_next_char + 1; // +1 for the comma
     // Comma not needed for JA3S because extensions is the lasts field.
-    if(handshake_msg_type == CLIENT_HELLO){
-      sprintf(extensions + extensions_next_char, ",");
-      state->scratchpad_next_byte += extensions_next_char + 1; // +1 for the comma
-    }else{
-      state->scratchpad_next_byte += extensions_next_char;
-      ja3_last_byte = state->scratchpad_next_byte;
+    if(handshake_msg_type != CLIENT_HELLO){
+      ja3_last_byte = state->scratchpad_next_byte - 1;
     }
 #if PFWL_DEBUG_SSL
     printf("Extensions: %s\n", extensions);
@@ -262,7 +260,7 @@ static int processExtensions(pfwl_state_t* state, pfwl_flow_info_private_t* flow
       printf("SPAD: %s\n", state->scratchpad);
 #endif    
       pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_ELLIPTIC_CURVES, (const unsigned char*) curves, curves_next_char);
-    }else if(handshake_msg_type == CLIENT_HELLO){
+    }else {
       sprintf(state->scratchpad + state->scratchpad_next_byte, ",");
       state->scratchpad_next_byte += 1;
     }
@@ -288,6 +286,7 @@ static int processExtensions(pfwl_state_t* state, pfwl_flow_info_private_t* flow
       if(points_next_char){
         points_next_char -= 1; 
       }
+      points[points_next_char] = '\0';
       state->scratchpad_next_byte += points_next_char;
 #if PFWL_DEBUG_SSL
       printf("CurvesPointFmt: %s\n", points);
