@@ -166,6 +166,7 @@ TEST(SSLTest, JA3){
             curvesFoundSer = true;
           }
           if(!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SSL_ELLIPTIC_CURVES_POINT_FMTS, &field)){
+            EXPECT_EQ(strncmp((const char*) field.value, "0", field.length), 0);
             curvesPointsFoundSer = true;
           }
           if(!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SSL_JA3, &field)){            
@@ -187,7 +188,7 @@ TEST(SSLTest, JA3){
   EXPECT_TRUE(ciphersFoundSer);
   EXPECT_TRUE(extensionsFoundSer);
   EXPECT_FALSE(curvesFoundSer);
-  EXPECT_FALSE(curvesPointsFoundSer);
+  EXPECT_TRUE(curvesPointsFoundSer);
   EXPECT_TRUE(jaFoundSer);
 
   pfwl_tcp_reordering_enable(state);

@@ -206,7 +206,7 @@ static int processExtensions(pfwl_state_t* state, pfwl_flow_info_private_t* flow
       // Elliptic curves
       ellcurves_present = 1;
       ellcurves_offset = extension_offset;
-    }else if(extension_id == 11 && extension_len > 2){
+    }else if(extension_id == 11 && extension_len >= 2){
       // EllipticCurvePointFormat
       ellpoints_present = 1;
       ellpoints_offset = extension_offset;
