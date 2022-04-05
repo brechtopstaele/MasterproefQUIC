@@ -133,3 +133,18 @@ void *memdup(const uint8_t *orig, size_t len) {
 	return dest;
 }
 
+uint8_t quic_length_of_encoded_value(uint8_t value)
+{
+  switch(value >> 6) {
+  case 0:
+    return 1;
+  case 1:
+    return 2;
+  case 2:
+    return 4;
+  case 3:
+    return 8;
+  default: /* Not possible */
+    return -1;
+  }
+}

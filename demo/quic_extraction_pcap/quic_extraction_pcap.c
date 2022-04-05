@@ -109,7 +109,7 @@ int main(int argc, char** argv){
 							printf("Quic JA3: ");
 							int i;
 							for(i = 0; i < ja3.length; i++) {
-								printf("%X", ja3.value[i]);	
+								printf("%c", ja3.value[i]);
 							}
 							printf("\n");
 						} else {

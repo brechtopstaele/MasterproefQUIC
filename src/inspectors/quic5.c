@@ -100,6 +100,7 @@ typedef enum {
 	VER_DRAFT27=0xff00001b,
 	VER_DRAFT28=0xff00001c,
 	VER_DRAFT29=0xff00001d,
+	VER_ONE=0x00000001,
 } quic_version_t;
 
 #define PFWL_DEBUG_DISS_QUIC 1
@@ -156,6 +157,10 @@ static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const 
 			len = snprintf(ver, ver_len, "facebook mvfst draft-27");
 			break;
 
+		case VER_ONE:
+			len = snprintf(ver, ver_len, "1");
+			break;
+
 		default:
 			len = snprintf(ver, ver_len, "unknown");
 	}
@@ -182,7 +187,8 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
 	static const uint8_t draft22_salt[MAX_SALT_LENGTH] = { 0x7f, 0xbc, 0xdb, 0x0e, 0x7c, 0x66, 0xbb, 0xe9, 0x19, 0x3a, 0x96, 0xcd, 0x21, 0x51, 0x9e, 0xbd, 0x7a, 0x02, 0x64, 0x4a };
  	static const uint8_t draft23_salt[MAX_SALT_LENGTH] = { 0xc3, 0xee, 0xf7, 0x12, 0xc7, 0x2e, 0xbb, 0x5a, 0x11, 0xa7, 0xd2, 0x43, 0x2b, 0xb4, 0x63, 0x65, 0xbe, 0xf9, 0xf5, 0x02 };
 	static const uint8_t draft29_salt[MAX_SALT_LENGTH] = { 0xaf, 0xbf, 0xec, 0x28, 0x99, 0x93, 0xd2, 0x4c, 0x9e, 0x97, 0x86, 0xf1, 0x9c, 0x61, 0x11, 0xe0, 0x43, 0x90, 0xa8, 0x99 };
-	const uint8_t	*salt; 
+	static const uint8_t ver_one_salt[MAX_SALT_LENGTH] = { 0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17, 0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a };
+	const uint8_t	*salt;
 
 	switch (quic_info->version) {
 		case VER_Q050:
@@ -212,13 +218,18 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
 		case VER_DRAFT27:
 		case VER_DRAFT28:
 		case VER_MVFST_27:
-        	case VER_MVFST_EXP:
+		case VER_MVFST_EXP:
 			salt = draft23_salt;
 			quic_info->has_tls13_record = 1;
 			break;
 
 		case VER_DRAFT29:
 			salt = draft29_salt;
+			quic_info->has_tls13_record = 1;
+			break;
+
+		case VER_ONE:
+			salt = ver_one_salt;
 			quic_info->has_tls13_record = 1;
 			break;
 

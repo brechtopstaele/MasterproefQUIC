@@ -38,6 +38,9 @@
 #include "quic_utils.h"
 #include "quic_ssl_utils.h"
 
+#define MAX_EC 512
+#define MAX_ECPF 512
+
 /*
  *	 GREASE_TABLE Ref: 
  * 		- https://tools.ietf.org/html/draft-davidben-tls-grease-00
@@ -112,59 +115,187 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
 	state->scratchpad_next_byte += server_len;
 }
 
+static void parse_ec(const unsigned char *data, const unsigned char *data_end, uint16_t* ec, unsigned int* nbr_ec)
+{
+	//skip len
+	data += 2;
+	while (data + 1 < data_end && (*nbr_ec < MAX_EC)) {
+		uint16_t ec_value = ntohs(*((uint16_t*)data));
+		ec[*nbr_ec] = ec_value;
+		(*nbr_ec)++;
+		data += 2;
+	}
+}
+
+static void parse_ecpf(const unsigned char *data, const unsigned char *data_end, uint8_t* ecpf, unsigned int* nbr_ecpf)
+{
+	//skip len
+	data += 1;
+	while (data  < data_end && (*nbr_ecpf < MAX_ECPF)) {
+		uint8_t ecpf_value = *data;
+		ecpf[*nbr_ecpf] = ecpf_value;
+		(*nbr_ecpf)++;
+		data += 1;
+	}
+}
+
 void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
-	unsigned char *ja3_string, size_t *ja3_string_len) {
+							unsigned char *ja3_string, size_t *ja3_string_len) {
 	size_t pointer;
 	size_t TLVlen;
 
+	//list of ext10, ext11 for ja3
+	uint16_t ec[MAX_EC];
+	uint8_t ecpf[MAX_ECPF];
+
+	unsigned int nbr_ec = 0;
+	unsigned int nbr_ecpf = 0;
+
 	for (pointer = 0; pointer < len; pointer += TLVlen) {
-		size_t TLVtype = ntohs(*(uint16_t *)(&data[pointer]));
+		uint16_t TLVtype = ntohs(*(uint16_t *)(&data[pointer]));
 		pointer += 2;
 		TLVlen = ntohs(*(uint16_t *)(&data[pointer]));
 		pointer += 2;
 		//printf("TLV %02d TLV Size %02d\n", TLVtype, TLVlen);
 
 		switch(TLVtype) {
-			/* skip grease values */
-			case 0x0a0a:
-			case 0x1a1a:
-			case 0x2a2a:
-			case 0x3a3a:
-                        case 0x4a4a:
-			case 0x5a5a:
-			case 0x6a6a:
-			case 0x7a7a:
-                        case 0x8a8a:
-			case 0x9a9a:
-			case 0xaaaa:
-			case 0xbaba:
-                        case 0xcaca:
-			case 0xdada:
-			case 0xeaea:
-			case 0xfafa:
-				/* Grease values must be ignored */
-				continue;
-				break;
+		/* skip grease values */
+		case 0x0a0a:
+		case 0x1a1a:
+		case 0x2a2a:
+		case 0x3a3a:
+		case 0x4a4a:
+		case 0x5a5a:
+		case 0x6a6a:
+		case 0x7a7a:
+		case 0x8a8a:
+		case 0x9a9a:
+		case 0xaaaa:
+		case 0xbaba:
+		case 0xcaca:
+		case 0xdada:
+		case 0xeaea:
+		case 0xfafa:
+			/* Grease values must be ignored */
+			continue;
+			break;
 
 			/* Server Name */
-			case 0:
-				if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_SNI)) {
-					tls13_parse_servername(state, data + pointer, TLVlen, pkt_info, flow_info_private);
-				}
-				break;
-				/* Extension quic transport parameters */
-			case 65445:
-				tls13_parse_quic_transport_params(state, data + pointer, TLVlen, pkt_info, flow_info_private);
-				break;
-			default:
-				break;
-		}	
+		case 0:
+			if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_SNI)) {
+				tls13_parse_servername(state, data + pointer, TLVlen, pkt_info, flow_info_private);
+			}
+			break;
+			/* Extension quic transport parameters */
+		case 10:
+			parse_ec(&data[pointer], &data[pointer+TLVlen], ec, &nbr_ec);
+			break;
+		case 11:
+			parse_ecpf(&data[pointer], &data[pointer+TLVlen], ecpf, &nbr_ecpf);
+			break;
+		case 65445:
+			tls13_parse_quic_transport_params(state, data + pointer, TLVlen, pkt_info, flow_info_private);
+			break;
+		default:
+			break;
+		}
 		*ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", TLVtype);
 
 	}
 	if (len) {
 		*ja3_string_len = *ja3_string_len - 1; //remove last dash (-) from ja3_string
 	}
+
+	//add ext10
+	*ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
+	for (unsigned int i=0; i < nbr_ec; ++i) {
+		*ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ec[i]);
+	}
+	if (nbr_ec) {
+		*ja3_string_len = *ja3_string_len - 1; //remove last dash (-) from ja3_string
+	}
+
+	//add ext11
+	*ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
+	for (unsigned int i=0; i < nbr_ecpf; ++i) {
+		*ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ecpf[i]);
+	}
+	if (nbr_ecpf) {
+		*ja3_string_len = *ja3_string_len - 1; //remove last dash (-) from ja3_string
+	}
+	ja3_string[*ja3_string_len] = '\0';
+
+}
+
+//return the actual size of the encoded value
+//return zero in case of failure
+static uint8_t parse_len(const unsigned char *tls_data, const unsigned char *tls_data_end, uint64_t* value)
+{
+	//size check for the length of the encoded value
+
+	if (&tls_data[0] >= tls_data_end)
+		return 0;
+	uint8_t len_val = quic_length_of_encoded_value(tls_data[0]);
+	if (&tls_data[len_val - 1] >= tls_data_end)
+		return 0;
+
+	//can safely read actual value now
+	len_val = quic_get_variable_len(tls_data, 0, value);
+	return len_val;
+}
+
+typedef struct {
+	unsigned char * buffer;
+	size_t filled_size;
+	int done;
+} reassembled_state_t;
+
+static void validate_completely_reassembled(reassembled_state_t* reassembled_state) {
+	if (reassembled_state->filled_size >= 4) {
+		const unsigned char* b = reassembled_state->buffer;
+		uint32_t msg_len = (b[1] << 16) + (b[2] << 8) + b[3];
+		if (msg_len + 4 == reassembled_state->filled_size)
+			reassembled_state->done = 1;
+	}
+}
+
+static size_t handle_frame_00(const unsigned char *tls_data, const unsigned char *tls_data_end, reassembled_state_t* reassembled_state)
+{
+	/* frame 00 is padding, skip it */
+	return 1;
+}
+
+static size_t handle_frame_01(const unsigned char *tls_data, const unsigned char *tls_data_end, reassembled_state_t* reassembled_state)
+{
+	/* frame 01 is ping, skip it */
+	return 1;
+}
+
+static size_t handle_frame_06(const unsigned char *tls_data, const unsigned char *tls_data_end, reassembled_state_t* reassembled_state)
+{
+	/* frame 06 is tls thingy, copy the actual content */
+	uint64_t offset;
+	uint8_t off_size = parse_len(&tls_data[1], tls_data_end, &offset);
+	if (off_size == 0)
+		return 0;
+	uint64_t length;
+	uint8_t length_size = parse_len(&tls_data[1+off_size], tls_data_end, &length);
+	if (length_size == 0)
+		return 0;
+
+	//only handle in order frames
+	if (reassembled_state->filled_size != offset)
+		return 0;
+	if (&tls_data[1+off_size+length_size+length-1] >= tls_data_end)
+		return 0;
+
+	memcpy(&reassembled_state->buffer[reassembled_state->filled_size], &tls_data[1+off_size+length_size], length);
+
+	reassembled_state->filled_size += length;
+
+	validate_completely_reassembled(reassembled_state);
+
+	return 1+off_size+length_size+length;
 }
 
 uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t tls_data_length, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
@@ -174,30 +305,61 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 
 	size_t 		tls_pointer	= 0;
 
-	/* Parse TLS record header */
-	//size_t tls_record_frame_type = tls_data[tls_pointer];
-	tls_pointer++;
+	reassembled_state_t reassembled_state;
 
-	//size_t tls_record_offset     = tls_data[tls_pointer];
-	tls_pointer++;
+	reassembled_state.filled_size = 0;
+	reassembled_state.done = 0;
+	reassembled_state.buffer = calloc(1, tls_data_length);
+	if (!reassembled_state.buffer) {
+		printf("calloc failed\n");
+		goto end;
+	}
 
-	//uint16_t tls_record_len	     = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
-	tls_pointer += 2;
+	while(tls_pointer < tls_data_length) {
+		unsigned char tls_record_frame_type = tls_data[tls_pointer];
+		size_t frame_size;
+		switch(tls_record_frame_type) {
+		case 0x00:
+			frame_size = handle_frame_00(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+			break;
+		case 0x01:
+			frame_size = handle_frame_01(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+			break;
+		case 0x06:
+			frame_size = handle_frame_06(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+			break;
+		default:
+			printf("Unknown frame type %d\n", tls_record_frame_type);
+			goto end;
+			break;
+		}
+		if (frame_size == 0) {
+			printf("Parsing frame failed\n");
+			goto end;
+		}
+		tls_pointer += frame_size;
+	}
+
+	if (!reassembled_state.done)
+		goto end;
+
+	const unsigned char *proper_tls_data = reassembled_state.buffer;
+	tls_pointer = 0;
 
 	/* Parse TLS Handshake protocol */
-	size_t	handshake_type = tls_data[tls_pointer];
+	size_t	handshake_type = proper_tls_data[tls_pointer];
 	tls_pointer++;
 
-	//size_t 	length = (tls_data[tls_pointer] << 16) + (tls_data[tls_pointer+1] << 8) + tls_data[tls_pointer+2];
+	//size_t 	length = (proper_tls_data[tls_pointer] << 16) + (proper_tls_data[tls_pointer+1] << 8) + proper_tls_data[tls_pointer+2];
 	tls_pointer += 3;
 
-	uint16_t tls_version = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+	uint16_t tls_version = ntohs(*(uint16_t *)(&proper_tls_data[tls_pointer]));
 	tls_pointer += 2;
 
 	/* Build JA3 string */
 	ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
 
-	if (handshake_type == 1) { /* We only inspect client hello which has a type equal to 1 */	
+	if (handshake_type == 1) { /* We only inspect client hello which has a type equal to 1 */
 		/* skipping random data 32 bytes */
 		tls_pointer += 32;
 
@@ -205,12 +367,12 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		tls_pointer += 1;
 
 		/* Cipher suites and length */
-		uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+		uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&proper_tls_data[tls_pointer]));
 		tls_pointer += 2;
 
 		/* use content of cipher suite for building the JA3 hash */
 		for (size_t i = 0; i < cipher_suite_len; i += 2) {
-			uint16_t cipher_suite = ntohs(*(uint16_t *)(tls_data + tls_pointer + i));
+			uint16_t cipher_suite = ntohs(*(uint16_t *)(proper_tls_data + tls_pointer + i));
 			if(is_grease(cipher_suite)) {
 				continue; // skip grease value
 			}
@@ -223,33 +385,50 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		tls_pointer += cipher_suite_len;
 
 		/* compression methods length */
-		size_t compression_methods_len = tls_data[tls_pointer];
+		size_t compression_methods_len = proper_tls_data[tls_pointer];
 		tls_pointer++;
 
 		/* Skip compression methods */
 		tls_pointer += compression_methods_len;
 
 		/* Extension length */
-		uint16_t ext_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+		uint16_t ext_len = ntohs(*(uint16_t *)(&proper_tls_data[tls_pointer]));
 		tls_pointer += 2;
 
 		/* Add Extension length to the ja3 string */
-		unsigned const char *ext_data = tls_data + tls_pointer;
+		unsigned const char *ext_data = proper_tls_data + tls_pointer;
 
 		/* lets iterate over the exention list */
 		tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",,");
-	}
-	//printf("JA3 String %s\n", ja3_string);
-        char *md5sum = state->scratchpad + state->scratchpad_next_byte;
-	size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5sum);
-        
-	pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, md5sum, md5sum_len);
-        state->scratchpad_next_byte += md5sum_len;
 
+		//printf("JA3 String %s\n", ja3_string);
+
+		unsigned char md5[16];
+		size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5);
+
+		unsigned char* ja3_start = state->scratchpad + state->scratchpad_next_byte;
+
+		for(size_t n = 0; n < md5sum_len; n++){
+			sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
+			state->scratchpad_next_byte += 2;
+		}
+
+		//printf("JA3 md5 %s\n", ja3_start);
+
+		pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, ja3_start, md5sum_len*2);
+
+	}
 	//printf("JA3:");
 	//debug_print_rawfield(md5sum, 0, md5sum_len);
-	return PFWL_PROTOCOL_MATCHES;
+
+end:
+
+	free(reassembled_state.buffer);
+
+	if (reassembled_state.done)
+		return PFWL_PROTOCOL_MATCHES;
+	else
+		return PFWL_PROTOCOL_NO_MATCHES;
 }
 
 #else
