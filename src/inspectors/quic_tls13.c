@@ -32,6 +32,7 @@
 
 #ifdef HAVE_OPENSSL
 
+#include <stdbool.h>
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include "quic_tls13.h"
@@ -244,19 +245,85 @@ static uint8_t parse_len(const unsigned char *tls_data, const unsigned char *tls
 	return len_val;
 }
 
+static size_t compute_bit_buffer_size(size_t tls_data_length)
+{
+	size_t size = tls_data_length/8;
+	if (tls_data_length%8 != 0)
+		++size;
+
+	return size;
+}
+
 typedef struct {
 	unsigned char * buffer;
-	size_t filled_size;
+	unsigned char * bit_buffer;
+	size_t size;
 	int done;
 } reassembled_state_t;
 
-static void validate_completely_reassembled(reassembled_state_t* reassembled_state) {
-	if (reassembled_state->filled_size >= 4) {
+static bool reassembled_state_ctor(reassembled_state_t* reassembled_state, size_t tls_data_length)
+{
+	reassembled_state->done = 0;
+	reassembled_state->buffer = calloc(1, tls_data_length);
+	reassembled_state->bit_buffer = calloc(1, compute_bit_buffer_size(tls_data_length));
+	if (!reassembled_state->buffer || !reassembled_state->bit_buffer) {
+		printf("calloc failed\n");
+		free(reassembled_state->buffer);
+		free(reassembled_state->bit_buffer);
+		return false;
+	}
+	reassembled_state->size = tls_data_length;
+	return true;
+}
+
+static void reassembled_state_dtor(reassembled_state_t* reassembled_state)
+{
+	free(reassembled_state->buffer);
+	free(reassembled_state->bit_buffer);
+}
+
+static void reassembled_state_validate(reassembled_state_t* reassembled_state)
+{
+	if ((reassembled_state->bit_buffer[0] & 0xF) == 0xF) {
+		bool at_least_one_byte_missing = false;
 		const unsigned char* b = reassembled_state->buffer;
 		uint32_t msg_len = (b[1] << 16) + (b[2] << 8) + b[3];
-		if (msg_len + 4 == reassembled_state->filled_size)
+		for (size_t i = 4 ; i < msg_len + 4; ++i) {
+			size_t bit_idx = i/8;
+			unsigned char bit_mask = 1 << i%8;
+
+			if ((reassembled_state->bit_buffer[bit_idx] & bit_mask) == 0) {
+				at_least_one_byte_missing = true;
+				break;
+			}
+		}
+		if (!at_least_one_byte_missing)
 			reassembled_state->done = 1;
 	}
+}
+
+//range must be valid
+static void reassembled_state_update_bit_buffer(reassembled_state_t* reassembled_state, size_t to_offset, uint64_t length)
+{
+	for (size_t i = to_offset; i < to_offset + length ; ++i)
+	{
+		size_t bit_idx = i/8;
+		unsigned char bit_mask = 1 << i%8;
+		reassembled_state->bit_buffer[bit_idx] |= bit_mask;
+	}
+}
+
+static bool reassembled_state_add_data(reassembled_state_t* reassembled_state, size_t to_offset, const unsigned char* from, uint64_t length)
+{
+	//check fits into buffer
+	if (to_offset + length > reassembled_state->size)
+		return false;
+
+	memcpy(&reassembled_state->buffer[to_offset], from, length);
+	reassembled_state_update_bit_buffer(reassembled_state, to_offset, length);
+	reassembled_state_validate(reassembled_state);
+
+	return true;
 }
 
 static size_t handle_frame_00(const unsigned char *tls_data, const unsigned char *tls_data_end, reassembled_state_t* reassembled_state)
@@ -283,17 +350,11 @@ static size_t handle_frame_06(const unsigned char *tls_data, const unsigned char
 	if (length_size == 0)
 		return 0;
 
-	//only handle in order frames
-	if (reassembled_state->filled_size != offset)
-		return 0;
 	if (&tls_data[1+off_size+length_size+length-1] >= tls_data_end)
 		return 0;
 
-	memcpy(&reassembled_state->buffer[reassembled_state->filled_size], &tls_data[1+off_size+length_size], length);
-
-	reassembled_state->filled_size += length;
-
-	validate_completely_reassembled(reassembled_state);
+	if (!reassembled_state_add_data(reassembled_state, offset, &tls_data[1+off_size+length_size], length))
+		return 0;
 
 	return 1+off_size+length_size+length;
 }
@@ -304,15 +365,12 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	size_t ja3_string_len;
 
 	size_t 		tls_pointer	= 0;
+	uint8_t retval = PFWL_PROTOCOL_NO_MATCHES;
 
 	reassembled_state_t reassembled_state;
 
-	reassembled_state.filled_size = 0;
-	reassembled_state.done = 0;
-	reassembled_state.buffer = calloc(1, tls_data_length);
-	if (!reassembled_state.buffer) {
-		printf("calloc failed\n");
-		goto end;
+	if (!reassembled_state_ctor(&reassembled_state, tls_data_length)) {
+		goto end_exit;
 	}
 
 	while(tls_pointer < tls_data_length) {
@@ -421,14 +479,15 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	//printf("JA3:");
 	//debug_print_rawfield(md5sum, 0, md5sum_len);
 
-end:
-
-	free(reassembled_state.buffer);
-
 	if (reassembled_state.done)
-		return PFWL_PROTOCOL_MATCHES;
-	else
-		return PFWL_PROTOCOL_NO_MATCHES;
+		retval = PFWL_PROTOCOL_MATCHES;
+
+end:
+	reassembled_state_dtor(&reassembled_state);
+
+end_exit:
+
+	return retval;
 }
 
 #else
