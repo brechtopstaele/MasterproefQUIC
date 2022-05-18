@@ -378,6 +378,9 @@ typedef enum {
   PFWL_FIELDS_L7_SIP_RURI_URI, ///< [STRING] 
   PFWL_FIELDS_L7_SIP_TO_TAG, ///< [STRING] 
   PFWL_FIELDS_L7_SIP_FROM_TAG, ///< [STRING] 
+  PFWL_FIELDS_L7_DNS_ID, ///< [NUMBER] ID of the DNS packet
+  PFWL_FIELDS_L7_DNS_TYPE, ///< [STRING] Type of the DSN packet
+  PFWL_FIELDS_L7_DNS_QUERY_TYPE, ///< [STRING] Type of the DNS Query
   PFWL_FIELDS_L7_DNS_NAME_SRV, ///< [STRING] Server name
   PFWL_FIELDS_L7_DNS_NS_IP_1, ///< [STRING] Server name IP address
   PFWL_FIELDS_L7_DNS_NS_IP_2, ///< [STRING] Server name IP address
@@ -1116,7 +1119,7 @@ pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L2 protocol with id 'i'.
  */
-const char **pfwl_get_L2_protocols_names();
+const char **pfwl_get_L2_protocols_names(void);
 
 /**
  * Returns the string represetation of an L3 protocol.
@@ -1137,7 +1140,7 @@ pfwl_protocol_l3_t pfwl_get_L3_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L3 protocol with id 'i'.
  */
-const char **pfwl_get_L3_protocols_names();
+const char **pfwl_get_L3_protocols_names(void);
 
 /**
  * Returns the string represetation of an L4 protocol.
@@ -1158,7 +1161,7 @@ pfwl_protocol_l4_t pfwl_get_L4_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L4 protocol with id 'i'.
  */
-const char **pfwl_get_L4_protocols_names();
+const char **pfwl_get_L4_protocols_names(void);
 
 /**
  * Returns the string represetation of an L7 protocol.
@@ -1179,7 +1182,7 @@ pfwl_protocol_l7_t pfwl_get_L7_protocol_id(const char *const name);
  * @return  An array A of string, such that A[i] is the
  * string representation of the L7 protocol with id 'i'.
  */
-const char **pfwl_get_L7_protocols_names();
+const char **pfwl_get_L7_protocols_names(void);
 
 /**
  * Returns the string represetation of a protocol field.

@@ -210,13 +210,24 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
       if (is_valid)
         dns_info->Type = QUERY;
 
+      if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_ID))
+        pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
+
+      if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_TYPE))
+        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, "Query", 6);
+
       /** check accuracy type for fields parsing **/
       if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {
         // check name server field
+        const unsigned char *temp = (const unsigned char *) (pq);
+        const char *r = strchr((const char *) pq, '\0');
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NAME_SRV)) {
-          const unsigned char *temp = (const unsigned char *) (pq + 1);
-          const char *r = strchr((const char *) pq + 1, '\0');
           pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_NAME_SRV, temp, (const unsigned char *) r - temp);
+        }
+        pq += ((const unsigned char *) r - temp + 1); // end of Name
+        // check Query Type
+        if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_QUERY_TYPE)) {
+          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(*(uint16_t *) pq));
         }
       }
     }
@@ -230,12 +241,27 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
       if (is_valid)
         dns_info->Type = ANSWER;
 
+      if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_ID))
+        pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
+
+      if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_TYPE))
+        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, "Answer", 7);
+
       /** check accuracy type for fields parsing **/
       if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {
         // sfhift of Query section
         const unsigned char *temp = (const unsigned char *) (pq);
         char *r = strchr((const char *) pq, '\0');
-        pq += ((const unsigned char *) r - temp + 1) + 4; // end of Name + Type(2) + Class(2)
+        if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NAME_SRV)) {
+          pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_NAME_SRV, temp, (const unsigned char *) r - temp);
+        }
+        pq += ((const unsigned char *) r - temp + 1); // end of Name
+        // check Query Type
+        if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_QUERY_TYPE)) {
+          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(*(uint16_t *) pq));
+        }
+
+        pq += 4; // Type(2) + Class(2)
 
         // check name server IP
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NS_IP_1) && is_name_server) {
