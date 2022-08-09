@@ -1,4 +1,5 @@
 include_directories(${CMAKE_SOURCE_DIR}/include)
+set (DEMO_INSTALL_DIR share/peafowl/demo/)
 if (PCAP_FOUND)
 	link_directories(${PCAP_LIBRARY})
 	include_directories(${PCAP_INCLUDE_DIR})

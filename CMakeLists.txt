@@ -13,6 +13,7 @@ option (ENABLE_CODECOV "Enables code coverage reports" OFF)
 option (ENABLE_CLANGFORMAT "Enables clang-format formatting" OFF)
 option (ENABLE_PYTHON "Enables generation of Python code" OFF)
 option (ENABLE_C "Enables generation of C/C++ libraries" ON)
+option (ENABLE_DEMO "Install demo executables" OFF)
 
 find_package(PCAP)
 find_package(OpenSSL)
@@ -34,9 +35,9 @@ endif (ENABLE_CODECOV)
 # Library #
 ###########
 add_subdirectory(src)
-if (ENABLE_C)
+if (ENABLE_C AND ENABLE_DEMO)
     add_subdirectory(demo)
-endif (ENABLE_C)
+endif (ENABLE_C AND ENABLE_DEMO)
 
 ############
 # cppcheck #
