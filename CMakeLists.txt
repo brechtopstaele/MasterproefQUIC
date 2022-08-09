@@ -15,6 +15,8 @@ option (ENABLE_PYTHON "Enables generation of Python code" OFF)
 option (ENABLE_C "Enables generation of C/C++ libraries" ON)
 option (ENABLE_DEMO "Install demo executables" OFF)
 
+add_compile_options(-Wall -Wextra -pedantic)
+
 find_package(PCAP)
 find_package(OpenSSL)
 
