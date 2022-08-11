@@ -32,6 +32,7 @@
 #include <peafowl/tcp_stream_management.h>
 #include <peafowl/utils.h>
 
+#include <algorithm>
 #include <assert.h>
 #include <inttypes.h>
 #include <math.h>
@@ -46,14 +47,6 @@
 #if PFWL_NUMA_AWARE
 #include <numa.h>
 #endif
-
-#define MAX(x, y)                                                              \
-  ({                                                                           \
-    __typeof__(x) _x = (x);                                                    \
-    __typeof__(y) _y = (y);                                                    \
-    _x > _y ? _x : _y;                                                         \
-  })
-
 
 #define PFWL_DEBUG_FLOW_TABLE 0
 #define debug_print(fmt, ...)                                                  \
@@ -444,7 +437,7 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
 void jsonrpc_delete_parser(void* parser);
 
 static uint32_t get_last_timestamp(pfwl_flow_t* flow){
-  return MAX(flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][0],
+  return std::max(flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][0],
              flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][1]);
 }
 

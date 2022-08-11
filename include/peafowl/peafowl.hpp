@@ -1012,7 +1012,7 @@ public:
    * managed by the implementer.
    * @param info The flow information.
    */
-  virtual void onTermination(const FlowInfo& info){;}
+  virtual void onTermination(const FlowInfo&){;}
 };
 
 /**
