@@ -17,6 +17,10 @@ option (ENABLE_DEMO "Install demo executables" OFF)
 
 add_compile_options(-Wall -Wextra -pedantic)
 
+# Needed for some libc to have proper struct {tcp,udp}hdr definition
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GNU_SOURCE")
+
 find_package(PCAP)
 find_package(OpenSSL)
 
