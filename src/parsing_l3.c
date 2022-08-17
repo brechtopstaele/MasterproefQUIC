@@ -81,6 +81,8 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
   struct ip6_hdr copy_ip6_hdr;
   struct iphdr copy_ip4_hdr;
 
+  const unsigned char *ip6_hdr_ptr = NULL;
+
   if (version == PFWL_PROTO_L3_IPV4) { /** IPv4 **/
     memcpy(&copy_ip4_hdr, p_pkt, sizeof(copy_ip4_hdr));
     uint16_t tot_len = ntohs(copy_ip4_hdr.tot_len);
@@ -137,6 +139,7 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
     relative_offset = application_offset;
     next_header = copy_ip4_hdr.protocol;
   } else if (version == PFWL_PROTO_L3_IPV6) { /** IPv6 **/
+    ip6_hdr_ptr = pkt;
     memcpy(&copy_ip6_hdr, pkt, sizeof(copy_ip6_hdr));
     uint16_t tot_len =
         ntohs(copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(copy_ip6_hdr);
@@ -267,9 +270,9 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
            * reason we copy only the IPv6 header bytes.
            */
           pkt = pfwl_reordering_manage_ipv6_fragment(
-              state->ipv6_frag_state, (unsigned char *) &copy_ip6_hdr,
+              state->ipv6_frag_state, ip6_hdr_ptr,
               sizeof(struct ip6_hdr),
-              ((unsigned char *) &copy_ip6_hdr) + relative_offset +
+              ip6_hdr_ptr + relative_offset +
                   sizeof(copy_frg_hdr),
               fragment_size, offset, more_fragments, copy_frg_hdr.ip6f_ident,
               copy_frg_hdr.ip6f_nxt, current_time, tid);
@@ -307,7 +310,9 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
     case IPPROTO_IPV6: /** 6in4 and 6in6 tunneling **/
       /** The real packet is now ipv6. **/
       version = 6;
-      memcpy(&copy_ip6_hdr, pkt + application_offset, sizeof(copy_ip6_hdr));
+      ip6_hdr_ptr = pkt + application_offset;
+
+      memcpy(&copy_ip6_hdr, ip6_hdr_ptr, sizeof(copy_ip6_hdr));
 #ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
       if (unlikely(ntohs(copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) +
                        sizeof(copy_ip6_hdr) >
