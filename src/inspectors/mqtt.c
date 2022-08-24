@@ -27,43 +27,41 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-static uint8_t mqtt_validate_length(const unsigned char *app_data, size_t data_length){
+static uint8_t mqtt_validate_length(const unsigned char *app_data, size_t data_length) {
   size_t current_length = 0;
   size_t byte_idx = 1;
   uint8_t continuation = 1;
-  while(data_length > byte_idx && byte_idx <= 4){
+  while (data_length > byte_idx && byte_idx <= 4) {
     current_length = (current_length << 8) | (app_data[byte_idx] & 0x7F);
     continuation = app_data[byte_idx] & 0x80;
-    if(!continuation){
+    if (!continuation) {
       break;
     }
     byte_idx++;
   }
-  if(continuation ||
-     current_length != data_length - 1 - byte_idx){
+  if (continuation || current_length != data_length - 1 - byte_idx) {
     return 0;
   }
   return 1;
 }
 
-uint8_t check_mqtt(pfwl_state_t *state, const unsigned char *app_data,
-                      size_t data_length, pfwl_dissection_info_t *pkt_info,
-                      pfwl_flow_info_private_t *flow_info_private) {
+uint8_t check_mqtt(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   uint8_t control_hdr = app_data[0];
   uint8_t pkt_type = control_hdr >> 4;
   uint8_t len_valid = mqtt_validate_length(app_data, data_length);
-  //uint8_t flags = control_hdr | 0xF;
-  if(flow_info_private->seen_syn){
-    if(pkt_info->flow_info.statistics[PFWL_STAT_L7_PACKETS][0] == 1){
-      if(pkt_type & 0x1 && len_valid){
+  // uint8_t flags = control_hdr | 0xF;
+  if (flow_info_private->seen_syn) {
+    if (pkt_info->flow_info.statistics[PFWL_STAT_L7_PACKETS][0] == 1) {
+      if (pkt_type & 0x1 && len_valid) {
         return PFWL_PROTOCOL_MORE_DATA_NEEDED;
       }
-    }else if(pkt_info->flow_info.statistics[PFWL_STAT_L7_PACKETS][1] == 1){
-      if(pkt_type & 0x2 && len_valid){
+    } else if (pkt_info->flow_info.statistics[PFWL_STAT_L7_PACKETS][1] == 1) {
+      if (pkt_type & 0x2 && len_valid) {
         return PFWL_PROTOCOL_MATCHES;
       }
     }
-  }else if(len_valid){
+  } else if (len_valid) {
     return PFWL_PROTOCOL_MATCHES;
   }
   return PFWL_PROTOCOL_NO_MATCHES;

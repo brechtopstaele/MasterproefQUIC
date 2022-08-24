@@ -26,8 +26,7 @@
  */
 #include <peafowl/hash_functions.h>
 
-#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH ||                           \
-    PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
 
 #define FNV1A_32_INIT 0x811c9dc5
 #define FNV_32_PRIME 0x01000193
@@ -35,8 +34,7 @@
 #if !defined(__GNUC__)
 #define PFWL_HVAL_SECOND_STEP(hval) hval *= FNV_32_PRIME;
 #else
-#define PFWL_HVAL_SECOND_STEP(hval)                                            \
-  hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
+#define PFWL_HVAL_SECOND_STEP(hval) hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
 #endif
 
 #ifndef PFWL_DEBUG
@@ -51,8 +49,7 @@ inline
   uint16_t low_port, high_port;
 
   if (in->l3.addr_src.ipv4 < in->l3.addr_dst.ipv4 ||
-      (in->l3.addr_src.ipv4 == in->l3.addr_dst.ipv4 &&
-       in->l4.port_src <= in->l4.port_dst)) {
+      (in->l3.addr_src.ipv4 == in->l3.addr_dst.ipv4 && in->l4.port_src <= in->l4.port_dst)) {
     low_addr = in->l3.addr_src.ipv4;
     low_port = in->l4.port_src;
     high_addr = in->l3.addr_dst.ipv4;
@@ -101,10 +98,8 @@ inline
   return hval;
 }
 
-static void get_v6_low_high_addr_port(const pfwl_dissection_info_t *const in,
-                                      struct in6_addr *low_addr,
-                                      struct in6_addr *high_addr,
-                                      uint16_t *low_port, uint16_t *high_port) {
+static void get_v6_low_high_addr_port(const pfwl_dissection_info_t *const in, struct in6_addr *low_addr,
+                                      struct in6_addr *high_addr, uint16_t *low_port, uint16_t *high_port) {
   uint8_t i = 0;
   for (i = 0; i < 16; i++) {
     if (in->l3.addr_src.ipv6.s6_addr[i] < in->l3.addr_dst.ipv6.s6_addr[i]) {
@@ -113,8 +108,7 @@ static void get_v6_low_high_addr_port(const pfwl_dissection_info_t *const in,
       *low_port = in->l4.port_src;
       *high_port = in->l4.port_dst;
       break;
-    } else if (in->l3.addr_src.ipv6.s6_addr[i] >
-               in->l3.addr_dst.ipv6.s6_addr[i]) {
+    } else if (in->l3.addr_src.ipv6.s6_addr[i] > in->l3.addr_dst.ipv6.s6_addr[i]) {
       *high_addr = in->l3.addr_src.ipv6;
       *low_addr = in->l3.addr_dst.ipv6;
       *high_port = in->l4.port_src;
@@ -179,8 +173,7 @@ inline
 }
 #endif
 
-#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH ||                       \
-    PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
 
 //-----------------------------------------------------------------------------
 // MurmurHash3 was written by Austin Appleby, and is placed in the public
@@ -308,10 +301,10 @@ void MurmurHash3_x86_32(const void *key, int len, uint32_t seed, void *out) {
   switch (len & 3) {
   case 3:
     k1 ^= tail[2] << 16;
-	/* FALLTHROUGH */
+    /* FALLTHROUGH */
   case 2:
     k1 ^= tail[1] << 8;
-	/* FALLTHROUGH */
+    /* FALLTHROUGH */
   case 1:
     k1 ^= tail[0];
     k1 *= c1;
@@ -335,8 +328,7 @@ static void get_v4_key(const pfwl_dissection_info_t *const in, char *v4_key) {
   uint16_t lower_port = 0, higher_port = 0;
 
   if (in->l3.addr_src.ipv4 < in->l3.addr_dst.ipv4 ||
-      (in->l3.addr_src.ipv4 == in->l3.addr_dst.ipv4 &&
-       in->l4.port_src <= in->l4.port_dst)) {
+      (in->l3.addr_src.ipv4 == in->l3.addr_dst.ipv4 && in->l4.port_src <= in->l4.port_dst)) {
     lower_addr = in->l3.addr_src.ipv4;
     higher_addr = in->l3.addr_dst.ipv4;
     lower_port = in->l4.port_src;
@@ -367,8 +359,7 @@ static void get_v4_key(const pfwl_dissection_info_t *const in, char *v4_key) {
   v4_key[12] = (higher_port & 0xFF);
 }
 
-uint32_t v4_hash_murmur3(const pfwl_dissection_info_t *const in,
-                         uint32_t seed) {
+uint32_t v4_hash_murmur3(const pfwl_dissection_info_t *const in, uint32_t seed) {
   char v4_key[13];
   get_v4_key(in, v4_key);
   uint32_t result;
@@ -398,8 +389,7 @@ static void get_v6_key(const pfwl_dissection_info_t *const in, char *v6_key) {
   v6_key[36] = (high_port & 0xFF);
 }
 
-uint32_t v6_hash_murmur3(const pfwl_dissection_info_t *const in,
-                         uint32_t seed) {
+uint32_t v6_hash_murmur3(const pfwl_dissection_info_t *const in, uint32_t seed) {
   char v6_key[37];
   get_v6_key(in, v6_key);
   uint32_t result;
@@ -408,11 +398,9 @@ uint32_t v6_hash_murmur3(const pfwl_dissection_info_t *const in,
 }
 #endif
 
-#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_SIMPLE_HASH ||                        \
-    PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_SIMPLE_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
 uint32_t v4_hash_function_simple(const pfwl_dissection_info_t *const in) {
-  return in->l4.port_src + in->l4.port_dst + in->l3.addr_src.ipv4 +
-         in->l3.addr_dst.ipv4 + in->l4.protocol;
+  return in->l4.port_src + in->l4.port_dst + in->l3.addr_src.ipv4 + in->l3.addr_dst.ipv4 + in->l4.protocol;
 }
 
 uint32_t v6_hash_function_simple(const pfwl_dissection_info_t *const in) {
@@ -422,14 +410,12 @@ uint32_t v6_hash_function_simple(const pfwl_dissection_info_t *const in) {
     partsrc += in->l3.addr_src.ipv6.s6_addr[i];
     partdst += in->l3.addr_dst.ipv6.s6_addr[i];
   }
-  return in->l4.port_src + in->l4.port_dst + partsrc + partdst +
-         in->l4.protocol;
+  return in->l4.port_src + in->l4.port_dst + partsrc + partdst + in->l4.protocol;
 }
 
 #endif
 
-#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_BKDR_HASH ||                          \
-    PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_BKDR_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
 uint32_t v4_hash_function_bkdr(const pfwl_dissection_info_t *const in) {
   uint32_t seed = 131; // 31 131 1313 13131 131313 etc..
   uint32_t hash = 0;

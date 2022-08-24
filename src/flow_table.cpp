@@ -49,10 +49,10 @@
 #endif
 
 #define PFWL_DEBUG_FLOW_TABLE 0
-#define debug_print(fmt, ...)                                                  \
-  do {                                                                         \
-    if (PFWL_DEBUG_FLOW_TABLE)                                                 \
-      fprintf(stdout, fmt, __VA_ARGS__);                                       \
+#define debug_print(fmt, ...)            \
+  do {                                   \
+    if (PFWL_DEBUG_FLOW_TABLE)           \
+      fprintf(stdout, fmt, __VA_ARGS__); \
   } while (0)
 
 #define PFWL_FLOW_TABLE_MAX_IDLE_TIME 30 /** In seconds. **/
@@ -64,8 +64,7 @@ static inline pfwl_flow_t *v4_flow_alloc() {
   assert(r);
 #else
 #if PFWL_FLOW_TABLE_ALIGN_FLOWS
-  int tmp =
-      posix_memalign((void **) &r, PFWL_CACHE_LINE_SIZE, sizeof(ipv4_flow_t));
+  int tmp = posix_memalign((void **) &r, PFWL_CACHE_LINE_SIZE, sizeof(ipv4_flow_t));
   if (tmp) {
     assert("Failure on posix_memalign" == 0);
   }
@@ -85,48 +84,46 @@ static inline void pfwl_flow_free(pfwl_flow_t *flow) {
 #endif
 }
 
-static uint32_t convert_time(uint32_t time, pfwl_timestamp_unit_t unit){
-  switch(unit){
-  case PFWL_TIMESTAMP_UNIT_MICROSECONDS:{
+static uint32_t convert_time(uint32_t time, pfwl_timestamp_unit_t unit) {
+  switch (unit) {
+  case PFWL_TIMESTAMP_UNIT_MICROSECONDS: {
     return time / 1000000.0;
-  }break;
-  case PFWL_TIMESTAMP_UNIT_MILLISECONDS:{
+  } break;
+  case PFWL_TIMESTAMP_UNIT_MILLISECONDS: {
     return time / 1000.0;
-  }break;
-  case PFWL_TIMESTAMP_UNIT_SECONDS:{
+  } break;
+  case PFWL_TIMESTAMP_UNIT_SECONDS: {
     return time;
-  }break;
-  default:{
+  } break;
+  default: {
     return time;
   }
   }
 }
 
-typedef uint32_t(pfwl_fnv_hash_function)(pfwl_dissection_info_t *in,
-                                         uint8_t log);
+typedef uint32_t(pfwl_fnv_hash_function)(pfwl_dissection_info_t *in, uint8_t log);
 
 typedef struct pfwl_flow_table_partition {
-      /** This table part is in the range [lowest_index, highest_index]. **/
-    uint32_t lowest_index;
-    uint32_t highest_index;
-    uint32_t last_walk;
-    uint32_t active_flows;
-    uint32_t max_active_flows;
-    pfwl_flow_t
-        *delayed_deletion_flow; // This is a flow that received the TCP FIN but we
-                                // do not clean immediately, to give the user the
-                                // possibility to get the last data found.
-    uint64_t next_flow_id;
-    std::unordered_set<pfwl_flow_t*>* expiration_buckets[PFWL_FLOW_TABLE_MAX_IDLE_TIME];
+  /** This table part is in the range [lowest_index, highest_index]. **/
+  uint32_t lowest_index;
+  uint32_t highest_index;
+  uint32_t last_walk;
+  uint32_t active_flows;
+  uint32_t max_active_flows;
+  pfwl_flow_t *delayed_deletion_flow; // This is a flow that received the TCP FIN but we
+                                      // do not clean immediately, to give the user the
+                                      // possibility to get the last data found.
+  uint64_t next_flow_id;
+  std::unordered_set<pfwl_flow_t *> *expiration_buckets[PFWL_FLOW_TABLE_MAX_IDLE_TIME];
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
-    /**
-     * If an integer x is contained in this array, then
-     * memory_chunk_lower_bound[i] can be used.
-     **/
-    uint32_t *pool;
-    uint32_t pool_size;
-    pfwl_flow_t *memory_chunk_lower_bound;
-    pfwl_flow_t *memory_chunk_upper_bound;
+  /**
+   * If an integer x is contained in this array, then
+   * memory_chunk_lower_bound[i] can be used.
+   **/
+  uint32_t *pool;
+  uint32_t pool_size;
+  pfwl_flow_t *memory_chunk_lower_bound;
+  pfwl_flow_t *memory_chunk_upper_bound;
 #endif
   /**
    * Using padding each partition will go in a separate cache line
@@ -160,26 +157,27 @@ struct pfwl_flow_table {
 #endif
 };
 
-static inline uint32_t get_bucket_by_timestamp(uint32_t timestamp, pfwl_timestamp_unit_t unit){
+static inline uint32_t get_bucket_by_timestamp(uint32_t timestamp, pfwl_timestamp_unit_t unit) {
   return convert_time(timestamp, unit) % PFWL_FLOW_TABLE_MAX_IDLE_TIME;
 }
 
-static inline uint32_t get_bucket_expiring_id(uint32_t now, pfwl_timestamp_unit_t unit){
+static inline uint32_t get_bucket_expiring_id(uint32_t now, pfwl_timestamp_unit_t unit) {
   uint32_t r = (convert_time(now, unit) % PFWL_FLOW_TABLE_MAX_IDLE_TIME);
-  if(r == PFWL_FLOW_TABLE_MAX_IDLE_TIME - 1){
+  if (r == PFWL_FLOW_TABLE_MAX_IDLE_TIME - 1) {
     return 0;
-  }else{
+  } else {
     return r + 1;
   }
 }
 
-static inline pfwl_flow_t* get_next_expiring_flow(uint32_t now, pfwl_timestamp_unit_t unit, const pfwl_flow_table_partition_t& info){
+static inline pfwl_flow_t *get_next_expiring_flow(uint32_t now, pfwl_timestamp_unit_t unit,
+                                                  const pfwl_flow_table_partition_t &info) {
   size_t i = get_bucket_expiring_id(now, unit);
-  while(info.expiration_buckets[i]->empty()){
+  while (info.expiration_buckets[i]->empty()) {
     i = (i + 1) % PFWL_FLOW_TABLE_MAX_IDLE_TIME;
   }
   debug_print("Next expiring flow in bucket %zd\n", i);
-  return *(info.expiration_buckets[i]->begin());  
+  return *(info.expiration_buckets[i]->begin());
 }
 
 #ifndef PFWL_DEBUG
@@ -188,12 +186,10 @@ static
     uint8_t
     v4_equals(pfwl_flow_t *flow, pfwl_dissection_info_t *pkt_info) {
   return ((flow->info.addr_src.ipv4 == pkt_info->l3.addr_src.ipv4 &&
-           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_dst.ipv4 &&
-           flow->info.port_src == pkt_info->l4.port_src &&
+           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_dst.ipv4 && flow->info.port_src == pkt_info->l4.port_src &&
            flow->info.port_dst == pkt_info->l4.port_dst) ||
           (flow->info.addr_src.ipv4 == pkt_info->l3.addr_dst.ipv4 &&
-           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_src.ipv4 &&
-           flow->info.port_src == pkt_info->l4.port_dst &&
+           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_src.ipv4 && flow->info.port_src == pkt_info->l4.port_dst &&
            flow->info.port_dst == pkt_info->l4.port_src)) &&
          flow->info.protocol_l4 == pkt_info->l4.protocol;
 }
@@ -209,29 +205,21 @@ static
   uint8_t direction = 0;
 
   for (i = 0; i < 16; i++) {
-    if (direction != 2 &&
-        pkt_info->l3.addr_src.ipv6.s6_addr[i] ==
-            flow->info.addr_src.ipv6.s6_addr[i] &&
-        pkt_info->l3.addr_dst.ipv6.s6_addr[i] ==
-            flow->info.addr_dst.ipv6.s6_addr[i]) {
+    if (direction != 2 && pkt_info->l3.addr_src.ipv6.s6_addr[i] == flow->info.addr_src.ipv6.s6_addr[i] &&
+        pkt_info->l3.addr_dst.ipv6.s6_addr[i] == flow->info.addr_dst.ipv6.s6_addr[i]) {
       direction = 1;
-    } else if (direction != 1 &&
-               pkt_info->l3.addr_src.ipv6.s6_addr[i] ==
-                   flow->info.addr_dst.ipv6.s6_addr[i] &&
-               pkt_info->l3.addr_dst.ipv6.s6_addr[i] ==
-                   flow->info.addr_src.ipv6.s6_addr[i]) {
+    } else if (direction != 1 && pkt_info->l3.addr_src.ipv6.s6_addr[i] == flow->info.addr_dst.ipv6.s6_addr[i] &&
+               pkt_info->l3.addr_dst.ipv6.s6_addr[i] == flow->info.addr_src.ipv6.s6_addr[i]) {
       direction = 2;
     } else
       return 0;
   }
 
   if (direction == 1)
-    return flow->info.port_src == pkt_info->l4.port_src &&
-           flow->info.port_dst == pkt_info->l4.port_dst &&
+    return flow->info.port_src == pkt_info->l4.port_src && flow->info.port_dst == pkt_info->l4.port_dst &&
            flow->info.protocol_l4 == pkt_info->l4.protocol;
   else if (direction == 2)
-    return flow->info.port_src == pkt_info->l4.port_dst &&
-           flow->info.port_dst == pkt_info->l4.port_src &&
+    return flow->info.port_src == pkt_info->l4.port_dst && flow->info.port_dst == pkt_info->l4.port_src &&
            flow->info.protocol_l4 == pkt_info->l4.protocol;
   else
     return 0;
@@ -253,10 +241,8 @@ static
 static
 #endif
     void
-    pfwl_flow_table_init_info(
-        pfwl_flow_table_partition_t *tinfo,
-        uint32_t lowest_index, uint32_t highest_index,
-        uint32_t max_active_flows) {
+    pfwl_flow_table_init_info(pfwl_flow_table_partition_t *tinfo, uint32_t lowest_index, uint32_t highest_index,
+                              uint32_t max_active_flows) {
   tinfo->lowest_index = lowest_index;
   tinfo->highest_index = highest_index;
   tinfo->max_active_flows = max_active_flows;
@@ -265,8 +251,8 @@ static
   tinfo->active_flows = 0;
   tinfo->delayed_deletion_flow = NULL;
   tinfo->next_flow_id = 0;
-  for(size_t i = 0; i < PFWL_FLOW_TABLE_MAX_IDLE_TIME; i++){
-    tinfo->expiration_buckets[i] = new std::unordered_set<pfwl_flow_t*>();
+  for (size_t i = 0; i < PFWL_FLOW_TABLE_MAX_IDLE_TIME; i++) {
+    tinfo->expiration_buckets[i] = new std::unordered_set<pfwl_flow_t *>();
   }
 }
 
@@ -276,8 +262,7 @@ static void pfwl_flow_table_update_flow_count(pfwl_flow_table_t *db) {
     if (db->table != NULL) {
       for (uint16_t j = 0; j < db->num_partitions; ++j) {
         db->partitions[j].active_flows = 0;
-        for (uint32_t i = db->partitions[j].lowest_index;
-             i <= db->partitions[j].highest_index; ++i) {
+        for (uint32_t i = db->partitions[j].lowest_index; i <= db->partitions[j].highest_index; ++i) {
           cur = db->table[i].next;
           while (cur != &(db->table[i])) {
             cur = cur->next;
@@ -290,17 +275,14 @@ static void pfwl_flow_table_update_flow_count(pfwl_flow_table_t *db) {
 }
 
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
-pfwl_flow_DB_v4_t *pfwl_flow_table_create(uint32_t size,
-                                          uint32_t max_active_v4_flows,
-                                          uint16_t num_partitions,
+pfwl_flow_DB_v4_t *pfwl_flow_table_create(uint32_t size, uint32_t max_active_v4_flows, uint16_t num_partitions,
                                           uint32_t start_pool_size) {
 #else
-pfwl_flow_table_t *pfwl_flow_table_create(uint32_t expected_flows,
-                                          pfwl_flows_strategy_t strategy,
+pfwl_flow_table_t *pfwl_flow_table_create(uint32_t expected_flows, pfwl_flows_strategy_t strategy,
                                           uint16_t num_partitions) {
 #endif
   pfwl_flow_table_t *table = NULL;
-  if(expected_flows < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE){
+  if (expected_flows < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE) {
     expected_flows = PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE;
   }
   uint32_t size = expected_flows / PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE;
@@ -326,13 +308,12 @@ pfwl_flow_table_t *pfwl_flow_table_create(uint32_t expected_flows,
     }
 
 #if PFWL_NUMA_AWARE
-    table->partitions = numa_alloc_onnode(sizeof(pfwl_flow_DB_v4_partition_t) * table->num_partitions,
-                                          PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
+    table->partitions =
+        numa_alloc_onnode(sizeof(pfwl_flow_DB_v4_partition_t) * table->num_partitions, PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
     assert(table->partitions);
 #else
-    int tmp = posix_memalign(
-        (void **) &(table->partitions), PFWL_CACHE_LINE_SIZE,
-        sizeof(pfwl_flow_table_partition_t) * table->num_partitions);
+    int tmp = posix_memalign((void **) &(table->partitions), PFWL_CACHE_LINE_SIZE,
+                             sizeof(pfwl_flow_table_partition_t) * table->num_partitions);
     if (tmp) {
       assert("Failure on posix_memalign" == 0);
     }
@@ -349,25 +330,21 @@ pfwl_flow_table_t *pfwl_flow_table_create(uint32_t expected_flows,
   return table;
 }
 
-void pflw_flow_table_set_flow_cleaner_callback(
-    pfwl_flow_table_t *db,
-    pfwl_flow_cleaner_callback_t *flow_cleaner_callback) {
+void pflw_flow_table_set_flow_cleaner_callback(pfwl_flow_table_t *db,
+                                               pfwl_flow_cleaner_callback_t *flow_cleaner_callback) {
   db->flow_cleaner_callback = flow_cleaner_callback;
 }
 
-void pflw_flow_table_set_flow_termination_callback(
-    pfwl_flow_table_t *db, pfwl_flow_termination_callback_t *flow_termination_callback){
+void pflw_flow_table_set_flow_termination_callback(pfwl_flow_table_t *db,
+                                                   pfwl_flow_termination_callback_t *flow_termination_callback) {
   db->flow_termination_callback = flow_termination_callback;
 }
 
-void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
-                                      uint16_t num_partitions) {
+void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table, uint16_t num_partitions) {
   table->num_partitions = num_partitions;
   /** Partitions management. **/
-  uint32_t partition_size =
-      ceil((float) table->total_size / (float) table->num_partitions);
-  uint32_t partition_max_active_v4_flows =
-      table->max_active_flows / table->num_partitions;
+  uint32_t partition_size = ceil((float) table->total_size / (float) table->num_partitions);
+  uint32_t partition_max_active_v4_flows = table->max_active_flows / table->num_partitions;
 
   uint16_t j;
   uint32_t lowest_index = 0;
@@ -376,9 +353,7 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
     debug_print("[flow_table.c]: Created partition "
                 "[%" PRIu32 ", %" PRIu32 "]\n",
                 lowest_index, highest_index);
-    pfwl_flow_table_init_info(
-        &(table->partitions[j]), lowest_index,
-        highest_index, partition_max_active_v4_flows);
+    pfwl_flow_table_init_info(&(table->partitions[j]), lowest_index, highest_index, partition_max_active_v4_flows);
     lowest_index = highest_index + 1;
     /**
      * The last partition gets the entries up to the end of the
@@ -393,29 +368,21 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
     ipv4_flow_t *flow_pool;
     uint32_t i;
-    table->individual_pool_size =
-        table->start_pool_size / table->num_partitions;
+    table->individual_pool_size = table->start_pool_size / table->num_partitions;
 #if PFWL_NUMA_AWARE
-    flow_pool =
-        numa_alloc_onnode(sizeof(ipv4_flow_t) * table->individual_pool_size,
-                          PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
+    flow_pool = numa_alloc_onnode(sizeof(ipv4_flow_t) * table->individual_pool_size, PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
     assert(flow_pool);
     table->partitions[j].pool =
-        numa_alloc_onnode(sizeof(uint32_t) * table->individual_pool_size,
-                          PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
+        numa_alloc_onnode(sizeof(uint32_t) * table->individual_pool_size, PFWL_NUMA_AWARE_FLOW_TABLE_NODE);
     assert(table->partitions[j].pool);
 #else
-    int tmp =
-        posix_memalign((void **) &flow_pool, PFWL_CACHE_LINE_SIZE,
-                       (sizeof(ipv4_flow_t) * table->individual_pool_size) +
-                           PFWL_CACHE_LINE_SIZE);
+    int tmp = posix_memalign((void **) &flow_pool, PFWL_CACHE_LINE_SIZE,
+                             (sizeof(ipv4_flow_t) * table->individual_pool_size) + PFWL_CACHE_LINE_SIZE);
     if (tmp) {
       assert("Failure on posix_memalign" == 0);
     }
-    tmp = posix_memalign((void **) &(table->partitions[j].pool),
-                         PFWL_CACHE_LINE_SIZE,
-                         (sizeof(uint32_t) * table->individual_pool_size) +
-                             PFWL_CACHE_LINE_SIZE);
+    tmp = posix_memalign((void **) &(table->partitions[j].pool), PFWL_CACHE_LINE_SIZE,
+                         (sizeof(uint32_t) * table->individual_pool_size) + PFWL_CACHE_LINE_SIZE);
     if (tmp) {
       assert("Failure on posix_memalign" == 0);
     }
@@ -425,8 +392,7 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
     }
     table->partitions[j].pool_size = table->individual_pool_size;
     table->partitions[j].memory_chunk_lower_bound = flow_pool;
-    table->partitions[j].memory_chunk_upper_bound =
-        flow_pool + table->individual_pool_size;
+    table->partitions[j].memory_chunk_upper_bound = flow_pool + table->individual_pool_size;
 #endif
   }
   debug_print("%s\n", "[flow_table.c]: Computing active v4 flows.");
@@ -434,23 +400,20 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
   debug_print("%s\n", "[flow_table.c]: Active v4 flows computation finished.");
 }
 
-void jsonrpc_delete_parser(void* parser);
+void jsonrpc_delete_parser(void *parser);
 
-static uint32_t get_last_timestamp(pfwl_flow_t* flow){
+static uint32_t get_last_timestamp(pfwl_flow_t *flow) {
   return std::max(flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][0],
-             flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][1]);
+                  flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][1]);
 }
 
-static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
-                                    uint16_t partition_id,
-                                    pfwl_flow_t *to_delete,
-                                    pfwl_timestamp_unit_t unit,
-                                    bool delete_from_bucket = true) {
+static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db, uint16_t partition_id, pfwl_flow_t *to_delete,
+                                           pfwl_timestamp_unit_t unit, bool delete_from_bucket = true) {
   // Delete from the expiration buckets
-  if(delete_from_bucket){
+  if (delete_from_bucket) {
     uint32_t bucket_timestamp = get_last_timestamp(to_delete);
     uint32_t bucket_id = get_bucket_by_timestamp(bucket_timestamp, unit);
-    std::unordered_set<pfwl_flow_t*>* bucket = db->partitions[partition_id].expiration_buckets[bucket_id];
+    std::unordered_set<pfwl_flow_t *> *bucket = db->partitions[partition_id].expiration_buckets[bucket_id];
     bucket->erase(to_delete);
     debug_print("[flow_table.c]: Removing flow %" PRIu64 " from bucket %u\n", to_delete->info.id, bucket_id);
   }
@@ -459,12 +422,12 @@ static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
   to_delete->prev->next = to_delete->next;
   to_delete->next->prev = to_delete->prev;
 
-  if (db->flow_cleaner_callback){
+  if (db->flow_cleaner_callback) {
     (*(db->flow_cleaner_callback))(*(to_delete->info.udata));
   }
 
-  if (db->flow_termination_callback){
-    pfwl_flow_info_t* info = &(to_delete->info);
+  if (db->flow_termination_callback) {
+    pfwl_flow_info_t *info = &(to_delete->info);
     (*(db->flow_termination_callback))(info);
   }
   --db->partitions[partition_id].active_flows;
@@ -477,24 +440,19 @@ static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
   if (to_delete->info_private.last_rebuilt_ip_fragments) {
     free((void *) to_delete->info_private.last_rebuilt_ip_fragments);
   }
-  for(size_t i = 0; i < PFWL_PROTO_L7_NUM; i++){
-    if(to_delete->info_private.flow_cleaners_dissectors[i]){
+  for (size_t i = 0; i < PFWL_PROTO_L7_NUM; i++) {
+    if (to_delete->info_private.flow_cleaners_dissectors[i]) {
       to_delete->info_private.flow_cleaners_dissectors[i](&(to_delete->info_private));
     }
   }
 
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
-  if (likely(
-          to_delete >=
-              db->partitions[partition_id].memory_chunk_lower_bound &&
-          to_delete < db->partitions[partition_id]
-                          .memory_chunk_upper_bound)) {
+  if (likely(to_delete >= db->partitions[partition_id].memory_chunk_lower_bound &&
+             to_delete < db->partitions[partition_id].memory_chunk_upper_bound)) {
     debug_print("%s\n", "[flow_table.c]: Reinserting the flow"
                         " in the pool.");
-    db->partitions[partition_id]
-        .pool[db->partitions[partition_id].pool_size] =
-        to_delete -
-        db->partitions[partition_id].memory_chunk_lower_bound;
+    db->partitions[partition_id].pool[db->partitions[partition_id].pool_size] =
+        to_delete - db->partitions[partition_id].memory_chunk_lower_bound;
     ++db->partitions[partition_id].pool_size;
   } else {
     debug_print("%s\n", "[flow_table.c]: Poolsize exceeded,"
@@ -506,28 +464,21 @@ static void mc_pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
 #endif
 }
 
-void mc_pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db,
-                                          uint16_t partition_id,
-                                          pfwl_flow_t *to_delete) {
-  db->partitions[partition_id].delayed_deletion_flow =
-      to_delete;
+void mc_pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db, uint16_t partition_id, pfwl_flow_t *to_delete) {
+  db->partitions[partition_id].delayed_deletion_flow = to_delete;
 }
 
-void pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db,
-                                       pfwl_flow_t *to_delete) {
+void pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db, pfwl_flow_t *to_delete) {
   mc_pfwl_flow_table_delete_flow_later(db, 0, to_delete);
 }
 
-void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db,
-                                 pfwl_flow_t *to_delete,
-                                 pfwl_timestamp_unit_t unit) {
+void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db, pfwl_flow_t *to_delete, pfwl_timestamp_unit_t unit) {
   mc_pfwl_flow_table_delete_flow(db, 0, to_delete, unit);
 }
 
-__attribute__((unused)) static double get_max_idle_time(pfwl_timestamp_unit_t unit){
+__attribute__((unused)) static double get_max_idle_time(pfwl_timestamp_unit_t unit) {
   return convert_time(PFWL_FLOW_TABLE_MAX_IDLE_TIME, unit);
 }
-
 
 #if 0
 #include <arpa/inet.h>
@@ -547,15 +498,14 @@ void print_flow(ipv4_flow_t* iterator) {
 }
 #endif
 
-void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private,
-                                  char *protocols_to_inspect,
+void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, char *protocols_to_inspect,
                                   uint8_t tcp_reordering_enabled) {
   bzero(flow_info_private, sizeof(pfwl_flow_info_private_t));
   int i;
   flow_info_private->possible_protocols = 0;
   for (i = 0; i < (int) PFWL_PROTO_L7_NUM; i++) {
     uint8_t set = BITTEST(protocols_to_inspect, i);
-    if(set){
+    if (set) {
       BITSET(flow_info_private->possible_matching_protocols, i);
       ++flow_info_private->possible_protocols;
     }
@@ -574,19 +524,12 @@ static void pfwl_init_flow_info_public_internal(pfwl_flow_info_t *flow_info) {
   flow_info->statistics[PFWL_STAT_L4_TCP_WINDOW_SCALING][1] = -1;
 }
 
-void pfwl_init_flow(pfwl_flow_t* flow,
-                    const pfwl_dissection_info_t* dissection_info,
-                    char *protocols_to_inspect,
-                    uint8_t tcp_reordering_enabled,
-                    uint64_t id,
-                    uint32_t id_hash,
-                    uint16_t thread_id){
-  pfwl_flow_info_t* info = &(flow->info);
-  pfwl_flow_info_private_t* info_private = &(flow->info_private);
+void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
+                    uint8_t tcp_reordering_enabled, uint64_t id, uint32_t id_hash, uint16_t thread_id) {
+  pfwl_flow_info_t *info = &(flow->info);
+  pfwl_flow_info_private_t *info_private = &(flow->info_private);
   pfwl_init_flow_info_public_internal(info);
-  pfwl_init_flow_info_internal(info_private,
-                               protocols_to_inspect,
-                               tcp_reordering_enabled);
+  pfwl_init_flow_info_internal(info_private, protocols_to_inspect, tcp_reordering_enabled);
   info->addr_src = dissection_info->l3.addr_src;
   info->addr_dst = dissection_info->l3.addr_dst;
   info->port_src = dissection_info->l4.port_src;
@@ -605,18 +548,16 @@ void pfwl_init_flow(pfwl_flow_t* flow,
   info_private->flow = flow;
 }
 
-pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
-    pfwl_flow_table_t *db, uint16_t partition_id, uint32_t index,
-    pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
-    uint8_t tcp_reordering_enabled, uint32_t timestamp, uint8_t syn,
-    pfwl_timestamp_unit_t unit) {
+pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, uint16_t partition_id, uint32_t index,
+                                                    pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
+                                                    uint8_t tcp_reordering_enabled, uint32_t timestamp, uint8_t syn,
+                                                    pfwl_timestamp_unit_t unit) {
   debug_print("%s\n", "[flow_table.c]: "
                       "pfwl_flow_table_find_or_create_flow_v4 invoked.");
-  pfwl_flow_table_partition_t& partition = db->partitions[partition_id];
+  pfwl_flow_table_partition_t &partition = db->partitions[partition_id];
   // Do it before searching the current flow
-  if(partition.delayed_deletion_flow) {
-    mc_pfwl_flow_table_delete_flow(
-        db, partition_id, partition.delayed_deletion_flow, unit);
+  if (partition.delayed_deletion_flow) {
+    mc_pfwl_flow_table_delete_flow(db, partition_id, partition.delayed_deletion_flow, unit);
     partition.delayed_deletion_flow = NULL;
   }
 
@@ -636,8 +577,7 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
    * Expiration check is done in another place, here we need to check if
    * a SYN has been received on a connection where some RSTs where received.
    **/
-  if (iterator != head && dissection_info->l4.protocol == IPPROTO_TCP &&
-      iterator->info_private.seen_rst && syn) {
+  if (iterator != head && dissection_info->l4.protocol == IPPROTO_TCP && iterator->info_private.seen_rst && syn) {
     // Delete old flow.
     mc_pfwl_flow_table_delete_flow(db, partition_id, iterator, unit);
     // Force the following code to create a new flow.
@@ -647,13 +587,11 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
   /**Flow not found, add it after the head.**/
   if (iterator == head) {
     new_flow = true;
-    if (unlikely(
-            partition.active_flows ==
-            partition.max_active_flows)){
-      if(db->flows_strategy == PFWL_FLOWS_STRATEGY_SKIP){
+    if (unlikely(partition.active_flows == partition.max_active_flows)) {
+      if (db->flows_strategy == PFWL_FLOWS_STRATEGY_SKIP) {
         return NULL;
-      }else if(db->flows_strategy == PFWL_FLOWS_STRATEGY_EVICT){
-        pfwl_flow_t* oldest = get_next_expiring_flow(timestamp, unit, partition);
+      } else if (db->flows_strategy == PFWL_FLOWS_STRATEGY_EVICT) {
+        pfwl_flow_t *oldest = get_next_expiring_flow(timestamp, unit, partition);
         mc_pfwl_flow_table_delete_flow(db, partition_id, oldest, unit);
       }
     }
@@ -675,8 +613,7 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
     assert(iterator);
 
     /**Creates new flow and inserts it in the list.**/
-    pfwl_init_flow(iterator, dissection_info, protocols_to_inspect,
-                   tcp_reordering_enabled, partition.next_flow_id++,
+    pfwl_init_flow(iterator, dissection_info, protocols_to_inspect, tcp_reordering_enabled, partition.next_flow_id++,
                    index, partition_id);
 
     iterator->prev = head;
@@ -702,9 +639,8 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
     iterator->next->prev = iterator;
   }
 #endif
-  pfwl_flow_info_t* finfo = &iterator->info;
-  if (memcmp(&(finfo->addr_src), &(dissection_info->l3.addr_src),
-             sizeof(dissection_info->l3.addr_src)) == 0 &&
+  pfwl_flow_info_t *finfo = &iterator->info;
+  if (memcmp(&(finfo->addr_src), &(dissection_info->l3.addr_src), sizeof(dissection_info->l3.addr_src)) == 0 &&
       finfo->port_src == dissection_info->l4.port_src) {
     dissection_info->l4.direction = PFWL_DIRECTION_OUTBOUND;
   } else {
@@ -726,8 +662,8 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
   uint32_t bucket_id = get_bucket_by_timestamp(get_last_timestamp(iterator), unit);
   debug_print("[flow_table.c]: Adding flow %" PRIu64 " to bucket %u\n", finfo->id, bucket_id);
   partition.expiration_buckets[bucket_id]->insert(iterator);
-  if(!new_flow){
-    if(old_bucket_id != bucket_id){
+  if (!new_flow) {
+    if (old_bucket_id != bucket_id) {
       partition.expiration_buckets[old_bucket_id]->erase(iterator);
       debug_print("[flow_table.c]: Removing flow %" PRIu64 " from bucket %u\n", finfo->id, old_bucket_id);
     }
@@ -735,16 +671,15 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(
 
   // Check expiration
   uint32_t expired_bucket = get_bucket_expiring_id(timestamp, unit);
-  for(auto it : *(partition.expiration_buckets[expired_bucket])){
-    mc_pfwl_flow_table_delete_flow(db, partition_id, it, unit, false); // Don't delete from bucket because we will clear it after      
+  for (auto it : *(partition.expiration_buckets[expired_bucket])) {
+    mc_pfwl_flow_table_delete_flow(db, partition_id, it, unit,
+                                   false); // Don't delete from bucket because we will clear it after
   }
   partition.expiration_buckets[expired_bucket]->clear();
   return iterator;
 }
 
-uint32_t
-pfwl_compute_v4_hash_function(pfwl_flow_table_t *db,
-                              const pfwl_dissection_info_t *const pkt_info) {
+uint32_t pfwl_compute_v4_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH
   uint32_t row = v4_fnv_hash_function(pkt_info) % db->total_size;
 #elif PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH
@@ -757,18 +692,14 @@ pfwl_compute_v4_hash_function(pfwl_flow_table_t *db,
   return row;
 }
 
-pfwl_flow_t *pfwl_flow_table_find_or_create_flow(
-    pfwl_flow_table_t *db, pfwl_dissection_info_t *pkt_info,
-    char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
-    double timestamp, uint8_t syn, pfwl_timestamp_unit_t unit) {
-  return mc_pfwl_flow_table_find_or_create_flow(
-      db, 0, pfwl_compute_v4_hash_function(db, pkt_info), pkt_info,
-      protocols_to_inspect, tcp_reordering_enabled, timestamp, syn, unit);
+pfwl_flow_t *pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, pfwl_dissection_info_t *pkt_info,
+                                                 char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
+                                                 double timestamp, uint8_t syn, pfwl_timestamp_unit_t unit) {
+  return mc_pfwl_flow_table_find_or_create_flow(db, 0, pfwl_compute_v4_hash_function(db, pkt_info), pkt_info,
+                                                protocols_to_inspect, tcp_reordering_enabled, timestamp, syn, unit);
 }
 
-uint32_t
-pfwl_compute_v6_hash_function(pfwl_flow_table_t *db,
-                              const pfwl_dissection_info_t *const pkt_info) {
+uint32_t pfwl_compute_v6_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH
   uint32_t row = v6_fnv_hash_function(pkt_info) % db->total_size;
 #elif PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH
@@ -781,8 +712,7 @@ pfwl_compute_v6_hash_function(pfwl_flow_table_t *db,
   return row;
 }
 
-pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index,
-                                       pfwl_dissection_info_t *pkt_info) {
+pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, pfwl_dissection_info_t *pkt_info) {
   pfwl_flow_t *head = &(db->table[index]);
   pfwl_flow_t *iterator = head->next;
 
@@ -801,32 +731,28 @@ void pfwl_flow_table_delete(pfwl_flow_table_t *db, pfwl_timestamp_unit_t unit) {
   if (db != NULL) {
     if (db->table != NULL) {
       for (uint16_t j = 0; j < db->num_partitions; ++j) {
-        for (uint32_t i = db->partitions[j].lowest_index;
-             i <= db->partitions[j].highest_index; ++i) {
+        for (uint32_t i = db->partitions[j].lowest_index; i <= db->partitions[j].highest_index; ++i) {
           while (db->table[i].next != &(db->table[i])) {
             mc_pfwl_flow_table_delete_flow(db, j, db->table[i].next, unit);
           }
         }
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
 #if PFWL_NUMA_AWARE
-        numa_free(db->partitions[j].memory_chunk_lower_bound,
-                  sizeof(ipv6_flow_t) * db->individual_pool_size);
-        numa_free(db->partitions[j].pool,
-                  sizeof(uint32_t) * db->individual_pool_size);
+        numa_free(db->partitions[j].memory_chunk_lower_bound, sizeof(ipv6_flow_t) * db->individual_pool_size);
+        numa_free(db->partitions[j].pool, sizeof(uint32_t) * db->individual_pool_size);
 #else
         free(db->partitions[j].memory_chunk_lower_bound);
         free(db->partitions[j].pool);
 #endif
 #endif
-      for(size_t i = 0; i < PFWL_FLOW_TABLE_MAX_IDLE_TIME; i++){
-        delete db->partitions[j].expiration_buckets[i];
-      }
+        for (size_t i = 0; i < PFWL_FLOW_TABLE_MAX_IDLE_TIME; i++) {
+          delete db->partitions[j].expiration_buckets[i];
+        }
       }
     }
 
 #if PFWL_NUMA_AWARE
-    numa_free(db->partitions,
-              sizeof(pfwl_flow_DB_v4_partition_t) * db->num_partitions);
+    numa_free(db->partitions, sizeof(pfwl_flow_DB_v4_partition_t) * db->num_partitions);
     numa_free(db->table, sizeof(ipv4_flow_t) * db->total_size);
 #else
     free(db->partitions);

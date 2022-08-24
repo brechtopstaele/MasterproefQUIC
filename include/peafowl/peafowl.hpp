@@ -30,10 +30,10 @@
 #define PFWL_API_HPP
 
 #include <peafowl/peafowl.h>
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace peafowl{
+namespace peafowl {
 
 /**
  * A string as represented by peafowl.
@@ -41,6 +41,7 @@ namespace peafowl{
 class String {
 private:
   pfwl_string_t _string;
+
 public:
   /**
    * Constructs an empty string.
@@ -57,7 +58,7 @@ public:
    * Returns the buffer containing the protocol field.
    * @return The buffer containing the protocol field.
    */
-  const unsigned char* getValue() const;
+  const unsigned char *getValue() const;
 
   /**
    * Returns the length of the buffer.
@@ -69,10 +70,10 @@ public:
 /**
  * A peafowl pair.
  **/
-template <typename T>
-class Pair{
+template <typename T> class Pair {
 private:
   T _first, _second;
+
 public:
   /**
    * Constructs an empty pair.
@@ -117,6 +118,7 @@ typedef pfwl_flows_strategy_t FlowsStrategy;
 class Field {
 private:
   pfwl_field_t _field;
+
 public:
   /**
    * Constructs an empty field.
@@ -161,6 +163,7 @@ class IpAddress {
 private:
   pfwl_ip_addr _addr;
   bool _isIPv6;
+
 public:
   /**
    * Builds the IP address.
@@ -210,10 +213,11 @@ typedef pfwl_direction_t Direction;
  * When adding a new protocol, please update the pfwl_l2_protocols_names
  * array in parsing_l2.c
  **/
-class ProtocolL2{
+class ProtocolL2 {
 private:
   const pfwl_protocol_l2_t _protocol;
   const std::string _name;
+
 public:
   /**
    * Copy constructor
@@ -225,13 +229,13 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
-  ProtocolL2(const std::string& protocol);
+  ProtocolL2(const std::string &protocol);
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
-  const std::string& getName() const;
+  const std::string &getName() const;
 
   /**
    * Returns the identifier of the protocol.
@@ -242,7 +246,9 @@ public:
   /**
    * Accesses the protocol.
    */
-  operator pfwl_protocol_l2_t() const {return _protocol;}
+  operator pfwl_protocol_l2_t() const {
+    return _protocol;
+  }
 
   /**
    * Checks if two protocols are equal.
@@ -250,7 +256,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
-  friend bool operator== (const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+  friend bool operator==(const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
 
   /**
    * Checks if two protocols are different.
@@ -258,16 +264,17 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
-  friend bool operator!= (const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+  friend bool operator!=(const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
 };
 
 /**
  * L3 (IP) protocol.
  **/
-class ProtocolL3{
+class ProtocolL3 {
 private:
   const pfwl_protocol_l3_t _protocol;
   const std::string _name;
+
 public:
   /**
    * Copy constructor
@@ -279,13 +286,13 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
-  ProtocolL3(const std::string& protocol);
+  ProtocolL3(const std::string &protocol);
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
-  const std::string& getName() const;
+  const std::string &getName() const;
 
   /**
    * Returns the identifier of the protocol.
@@ -296,7 +303,9 @@ public:
   /**
    * Accesses the protocol.
    */
-  operator pfwl_protocol_l3_t() const {return _protocol;}
+  operator pfwl_protocol_l3_t() const {
+    return _protocol;
+  }
 
   /**
    * Checks if two protocols are equal.
@@ -304,7 +313,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
-  friend bool operator== (const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+  friend bool operator==(const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
 
   /**
    * Checks if two protocols are different.
@@ -312,7 +321,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
-  friend bool operator!= (const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+  friend bool operator!=(const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
 };
 
 /**
@@ -320,10 +329,11 @@ public:
  * include/netinet/in.h (IPPROTO_TCP,
  * IPPROTO_UDP, IPPROTO_ICMP, etc...)
  **/
-class ProtocolL4{
+class ProtocolL4 {
 private:
   const pfwl_protocol_l4_t _protocol;
   const std::string _name;
+
 public:
   /**
    * Copy constructor
@@ -335,13 +345,13 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
-  ProtocolL4(const std::string& protocol);
+  ProtocolL4(const std::string &protocol);
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
-  const std::string& getName() const;
+  const std::string &getName() const;
 
   /**
    * Returns the identifier of the protocol.
@@ -352,7 +362,9 @@ public:
   /**
    * Accesses the protocol.
    */
-  operator pfwl_protocol_l4_t() const {return _protocol;}
+  operator pfwl_protocol_l4_t() const {
+    return _protocol;
+  }
 
   /**
    * Checks if two protocols are equal.
@@ -360,7 +372,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
-  friend bool operator== (const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+  friend bool operator==(const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
 
   /**
    * Checks if two protocols are different.
@@ -368,7 +380,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
-  friend bool operator!= (const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+  friend bool operator!=(const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
 
   /**
    * Checks if two protocols are equal.
@@ -376,7 +388,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
-  friend bool operator== (const ProtocolL4 &p1, const int &p2);
+  friend bool operator==(const ProtocolL4 &p1, const int &p2);
 
   /**
    * Checks if two protocols are different.
@@ -384,16 +396,17 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
-  friend bool operator!= (const ProtocolL4 &p1, const int &p2);
+  friend bool operator!=(const ProtocolL4 &p1, const int &p2);
 };
 
 /**
  * L7 (application level) protocol.
  **/
-class ProtocolL7{
+class ProtocolL7 {
 private:
   pfwl_protocol_l7_t _protocol;
   std::string _name;
+
 public:
   /**
    * Copy constructor
@@ -405,13 +418,13 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
-  ProtocolL7(const std::string& protocol);
+  ProtocolL7(const std::string &protocol);
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
-  const std::string& getName() const;
+  const std::string &getName() const;
 
   /**
    * Returns the identifier of the protocol.
@@ -422,7 +435,9 @@ public:
   /**
    * Accesses the protocol.
    */
-  operator pfwl_protocol_l7_t() const {return _protocol;}
+  operator pfwl_protocol_l7_t() const {
+    return _protocol;
+  }
 
   /**
    * Checks if two protocols are equal.
@@ -430,7 +445,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
-  friend bool operator== (const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+  friend bool operator==(const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
 
   /**
    * Checks if two protocols are different.
@@ -438,7 +453,7 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
-  friend bool operator!= (const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+  friend bool operator!=(const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
 };
 
 /**
@@ -447,6 +462,7 @@ public:
 class FlowInfo {
 private:
   pfwl_flow_info_t _flowInfo;
+
 public:
   /**
    * Constructor.
@@ -561,7 +577,7 @@ public:
    * Returns the user data associated to this flow.
    * @return The user data associated to this flow.
    */
-  void** getUserData() const;
+  void **getUserData() const;
 
   /**
    * Returns the C flow representation.
@@ -573,15 +589,16 @@ public:
    * Sets some user-specific data for this flow.
    * @param udata User-specific data for this flow.
    */
-  void setUserData(void* udata);
+  void setUserData(void *udata);
 };
 
 /**
  * The result of the L2 identification process.
  **/
-class DissectionInfoL2{
+class DissectionInfoL2 {
 private:
   pfwl_dissection_info_l2_t _dissectionInfo;
+
 public:
   /**
    * Constructor.
@@ -616,9 +633,10 @@ public:
 /**
  * The result of the L3 identification process.
  **/
-class DissectionInfoL3{
+class DissectionInfoL3 {
 private:
   pfwl_dissection_info_l3_t _dissectionInfo;
+
 public:
   /**
    * Constructor.
@@ -661,7 +679,7 @@ public:
    * @return The refragmented IP packet (if it was fragmented, starting from
    * the first byte of L3 packet) and its length.
    **/
-  std::pair<const unsigned char*, size_t> getRefragmentedPacket() const;
+  std::pair<const unsigned char *, size_t> getRefragmentedPacket() const;
 
   /**
    * Returns the L3 protocol.
@@ -679,9 +697,10 @@ public:
 /**
  * The result of the L4 identification process.
  **/
-class DissectionInfoL4{
+class DissectionInfoL4 {
 private:
   pfwl_dissection_info_l4_t _dissectionInfo;
+
 public:
   /**
    * Constructor.
@@ -729,7 +748,7 @@ public:
    * Returns the resegmented TCP payload and its length.
    * @return The resegmented TCP payload and its length.
    */
-  std::pair<const unsigned char*, size_t> getResegmentedPacket() const;
+  std::pair<const unsigned char *, size_t> getResegmentedPacket() const;
 
   /**
    * Returns the L4 protocol.
@@ -752,9 +771,10 @@ typedef pfwl_field_id_t FieldId;
 /**
  * The result of the L7 identification process.
  **/
-class DissectionInfoL7{
+class DissectionInfoL7 {
 private:
   pfwl_dissection_info_l7_t _dissectionInfo;
+
 public:
   /**
    * Constructor.
@@ -844,9 +864,10 @@ public:
 /**
  * Status of the identification process
  **/
-class Status{
+class Status {
 private:
   pfwl_status_t _status;
+
 public:
   /**
    * Copy constructor.
@@ -870,8 +891,9 @@ public:
 /**
  * The result of the identification process.
  **/
-class DissectionInfo{
+class DissectionInfo {
   friend class FlowInfoPrivate;
+
 private:
   pfwl_dissection_info_t _dissectionInfo;
   DissectionInfoL2 _l2;
@@ -880,6 +902,7 @@ private:
   DissectionInfoL7 _l7;
   FlowInfo _flowInfo;
   Status _status;
+
 public:
   /**
    * Constructor.
@@ -893,7 +916,7 @@ public:
    * @param rhs The C dissection info.
    * @return The CPP dissection info.
    */
-  DissectionInfo& operator=(const pfwl_dissection_info_t& rhs);
+  DissectionInfo &operator=(const pfwl_dissection_info_t &rhs);
 
   /**
    * Guesses the protocol looking only at source/destination ports.
@@ -968,18 +991,20 @@ public:
    * Returns the C dissection info.
    * @return The C dissection info.
    */
-  const pfwl_dissection_info_t& getNativeInfo() const;
+  const pfwl_dissection_info_t &getNativeInfo() const;
 };
 
 class Peafowl;
 
 /// @cond EXTERNAL
-class FlowInfoPrivate{
+class FlowInfoPrivate {
   friend class Peafowl;
+
 private:
-  pfwl_flow_info_private_t* _info;
+  pfwl_flow_info_private_t *_info;
+
 public:
-  FlowInfoPrivate(const Peafowl& state, const DissectionInfo &info);
+  FlowInfoPrivate(const Peafowl &state, const DissectionInfo &info);
   ~FlowInfoPrivate();
 };
 /// @endcond
@@ -999,7 +1024,7 @@ typedef pfwl_field_matching_t FieldMatching;
  * is used to notify the user about some events concerning
  * the flow (e.g. flow termination).
  */
-class FlowManager{
+class FlowManager {
 public:
   ~FlowManager();
   /**
@@ -1012,7 +1037,9 @@ public:
    * managed by the implementer.
    * @param info The flow information.
    */
-  virtual void onTermination(const FlowInfo&){;}
+  virtual void onTermination(const FlowInfo &) {
+    ;
+  }
 };
 
 /**
@@ -1020,8 +1047,9 @@ public:
  * options to customize Peafowl's defragmentation
  * routines.
  */
-class DefragmentationOptions{
+class DefragmentationOptions {
   friend class Peafowl;
+
 private:
   uint16_t _tableSizeIPv4, _tableSizeIPv6;
   uint32_t _perHostMemoryLimitIPv4, _perHostMemoryLimitIPv6;
@@ -1031,6 +1059,7 @@ private:
   bool _perHostMemoryLimitIPv4set, _perHostMemoryLimitIPv6set;
   bool _totalMemoryLimitIPv4set, _totalMemoryLimitIPv6set;
   bool _reassemblyTimeoutIPv4set, _reassemblyTimeoutIPv6set;
+
 public:
   /**
    * Constructor.
@@ -1118,10 +1147,12 @@ public:
 /**
  * @brief This class is the Peafowl handler.
  */
-class Peafowl{
+class Peafowl {
   friend class FlowInfoPrivate;
+
 private:
-  pfwl_state_t* _state;
+  pfwl_state_t *_state;
+
 public:
   /**
    * @brief Initializes Peafowl.
@@ -1139,22 +1170,21 @@ public:
    * when the flow terminates.
    * @param flowManager The functor object.
    */
-  void setFlowManager(FlowManager* flowManager);
+  void setFlowManager(FlowManager *flowManager);
 
   /**
    * @brief Sets the number of simultaneously active flows to be expected.
    * @param flows The number of simultaneously active flows.
-   * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit 
-   * to the number of simultaneously active flows. However, this could lead 
+   * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit
+   * to the number of simultaneously active flows. However, this could lead
    * to slowdown when retrieving flow information.
    * If PFWL_FLOWS_STRATEGY_SKIP, when that number of active flows is reached,
-   * if a new flow is created an error will be returned (PFWL_ERROR_MAX_FLOWS) 
-   * and new flows will not be created. 
-   * If PFWL_FLOWS_STRATEGY_EVICT, when when that number of active flows 
+   * if a new flow is created an error will be returned (PFWL_ERROR_MAX_FLOWS)
+   * and new flows will not be created.
+   * If PFWL_FLOWS_STRATEGY_EVICT, when when that number of active flows
    * is reached, if a new flow is created the oldest flow will be evicted.
    */
   void setExpectedFlows(uint32_t flows, FlowsStrategy strategy);
-
 
   /**
    * Sets the maximum number of packets to use to identify the protocol.
@@ -1171,7 +1201,7 @@ public:
    * @brief setDefragmentationOptions Sets the IPv4/IPv6 defragmentation options.
    * @param options The IPv4/IPv6 defragmentation options.
    */
-  void setDefragmentationOptions(const DefragmentationOptions& options);
+  void setDefragmentationOptions(const DefragmentationOptions &options);
 
   /**
    * If enabled, the library will reorder out of order TCP packets
@@ -1228,9 +1258,7 @@ public:
    * to a Peafowl datalink type by calling the function 'convertPcapDlt'.
    * @return The result of the dissection from L2 to L7.
    */
-  DissectionInfo dissectFromL2(const std::string& pkt,
-                               double timestamp,
-                               ProtocolL2 datalinkType);
+  DissectionInfo dissectFromL2(const std::string &pkt, double timestamp, ProtocolL2 datalinkType);
 
   /**
    * Dissects the packet starting from the beginning of the L3 (IP) header.
@@ -1240,8 +1268,7 @@ public:
    * it is assumed that the timestamps unit is 'seconds'.
    * @return The result of the dissection from L3 to L7.
    */
-  DissectionInfo dissectFromL3(const std::string& pkt,
-                               double timestamp);
+  DissectionInfo dissectFromL3(const std::string &pkt, double timestamp);
 
   /**
    * Dissects the packet starting from the beginning of the L4 (UDP or TCP)
@@ -1253,9 +1280,7 @@ public:
    * @param info The dissection information about L3 header.
    * @return The result of the dissection from L3 to L7.
    */
-  DissectionInfo dissectFromL4(const std::string& pkt,
-                               double timestamp,
-                               const DissectionInfo& info);
+  DissectionInfo dissectFromL4(const std::string &pkt, double timestamp, const DissectionInfo &info);
 
   /**
    * Extracts from the packet the L2 information.
@@ -1265,8 +1290,7 @@ public:
    * calling the function 'convertPcapDlt'.
    * @return The result of the L2 dissection.
    */
-  DissectionInfo dissectL2(const std::string& pkt,
-                           pfwl_protocol_l2_t datalinkType);
+  DissectionInfo dissectL2(const std::string &pkt, pfwl_protocol_l2_t datalinkType);
 
   /**
    * Extracts from the packet the L3 information.
@@ -1276,8 +1300,7 @@ public:
    * it is assumed that the timestamps unit is 'seconds'.
    * @return The result of the L3 dissection.
    */
-  DissectionInfo dissectL3(const std::string& pkt,
-                           double timestamp);
+  DissectionInfo dissectL3(const std::string &pkt, double timestamp);
 
   /**
    * Extracts from the packet the L4 information.
@@ -1290,9 +1313,7 @@ public:
    * @param   flowInfoPrivate Will be filled by this call.
    * @return  The result of the L4 dissection.
    */
-  DissectionInfo dissectL4(const std::string& pkt,
-                           double timestamp,
-                           const DissectionInfo& info,
+  DissectionInfo dissectL4(const std::string &pkt, double timestamp, const DissectionInfo &info,
                            FlowInfoPrivate &flowInfoPrivate);
 
   /**
@@ -1312,9 +1333,7 @@ public:
    *          stored by the user.
    * @return  The result of the L7 dissection.
    */
-  DissectionInfo dissectL7(const std::string& pkt,
-                           const DissectionInfo& info,
-                           FlowInfoPrivate &flowInfoPrivate);
+  DissectionInfo dissectL7(const std::string &pkt, const DissectionInfo &info, FlowInfoPrivate &flowInfoPrivate);
 
   /**
    * Enables the extraction of a specific L7 field for a given protocol.
@@ -1399,7 +1418,7 @@ public:
    * The 'tagsFile' argument can be NULL and the matching rules can be added later with the *TagsAdd calls.
    *
    */
-  void fieldTagsLoadL7(FieldId field, const char* tagsFile);
+  void fieldTagsLoadL7(FieldId field, const char *tagsFile);
 
   /**
    * Adds a tag matching rule for a specific string field.
@@ -1411,7 +1430,8 @@ public:
    * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
    * @param tag The tag to assign to the packet when the field matches with 'value'.
    */
-  void fieldStringTagsAddL7(FieldId field, const std::string& value, FieldMatching matchingType, const std::string& tag);
+  void fieldStringTagsAddL7(FieldId field, const std::string &value, FieldMatching matchingType,
+                            const std::string &tag);
 
   /**
    * Adds a tag matching rule for a specific multimap field.
@@ -1426,7 +1446,8 @@ public:
    * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
    * @param tag The tag to assign to the packet when the field matches with 'value'.
    */
-  void fieldMmapTagsAddL7(FieldId field, const std::string& key, const std::string& value, FieldMatching matchingType, const std::string& tag);
+  void fieldMmapTagsAddL7(FieldId field, const std::string &key, const std::string &value, FieldMatching matchingType,
+                          const std::string &tag);
 
   /**
    * Unloads the associations between fields values and user-defined tags.
@@ -1434,7 +1455,6 @@ public:
    * @param field   The field identifier.
    */
   void fieldTagsUnloadL7(FieldId field);
-
 
   /**
    * Enables the computation of a specific flow statistic.

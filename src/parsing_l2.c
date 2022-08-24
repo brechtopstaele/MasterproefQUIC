@@ -55,10 +55,10 @@
 #ifndef PFWL_DEBUG_L2
 #define PFWL_DEBUG_L2 0
 #endif
-#define debug_print(fmt, ...)                                                  \
-  do {                                                                         \
-    if (PFWL_DEBUG_L2)                                                         \
-      fprintf(stderr, fmt, __VA_ARGS__);                                       \
+#define debug_print(fmt, ...)            \
+  do {                                   \
+    if (PFWL_DEBUG_L2)                   \
+      fprintf(stderr, fmt, __VA_ARGS__); \
   } while (0)
 
 /* Header offsets */
@@ -158,8 +158,7 @@ struct wifi_hdr {
   /* u_int64_t ccmp - for data encription only - check fc.flag */
 } __attribute__((__packed__));
 
-static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type,
-                                 uint16_t off) {
+static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type, uint16_t off) {
   uint32_t dlink_offset = off;
 
   // define vlan header
@@ -216,8 +215,7 @@ static inline uint8_t getBits(uint16_t x, int p, int n) {
   return (x >> (p + 1 - n)) & ~(~0 << n);
 }
 
-pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
-                              pfwl_protocol_l2_t datalink_type,
+pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t datalink_type,
                               pfwl_dissection_info_t *dissection_info) {
   memset(dissection_info, 0, sizeof(pfwl_dissection_info_t));
   // check parameters
@@ -308,8 +306,7 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
 
     // Check Data type
     if (getBits(wifi_header->ts, 3, 2) == W_DATA) {
-      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) ||
-          (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
+      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) || (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
         wifi_len = sizeof(struct wifi_hdr); /* 26 bytes */
         dlink_offset += wifi_len;
       }
@@ -325,8 +322,7 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
     else {
-      debug_print("%s\n",
-                  "Probably a wifi packet with data encription. Discard\n");
+      debug_print("%s\n", "Probably a wifi packet with data encription. Discard\n");
       return PFWL_ERROR_L2_PARSING;
     }
     break;
@@ -338,8 +334,7 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
 
     // Check Data type
     if (getBits(wifi_header->ts, 3, 2) == W_DATA) {
-      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) ||
-          (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
+      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) || (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
         wifi_len = sizeof(struct wifi_hdr); /* 26 bytes */
         dlink_offset = wifi_len;
       }
@@ -355,8 +350,7 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
     else {
-      debug_print("%s\n",
-                  "Probably a wifi packet with data encription. Discard\n");
+      debug_print("%s\n", "Probably a wifi packet with data encription. Discard\n");
       return PFWL_ERROR_L2_PARSING;
     }
     break;
@@ -440,9 +434,7 @@ pfwl_protocol_l2_t pfwl_convert_pcap_dlt(int dlt) {
 }
 #else
 pfwl_protocol_l2_t pfwl_convert_pcap_dlt(int x) {
-  fprintf(
-      stderr,
-      "To use the pfwl_convert_pcap_dlt call, libpcap needs to be installed");
+  fprintf(stderr, "To use the pfwl_convert_pcap_dlt call, libpcap needs to be installed");
 }
 #endif
 
@@ -462,23 +454,23 @@ static const char* pfwl_l2_protocols_names[PFWL_PROTO_L2_NUM] = {
 };
 // clang-format on
 
-const char *pfwl_get_L2_protocol_name(pfwl_protocol_l2_t protocol){
-  if(protocol < PFWL_PROTO_L2_NUM){
+const char *pfwl_get_L2_protocol_name(pfwl_protocol_l2_t protocol) {
+  if (protocol < PFWL_PROTO_L2_NUM) {
     return pfwl_l2_protocols_names[protocol];
-  }else{
+  } else {
     return "Unknown";
   }
 }
 
-pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name){
-  for(size_t i = 0; i < PFWL_PROTO_L2_NUM; i++){
-    if(!strcasecmp(name, pfwl_l2_protocols_names[i])){
+pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name) {
+  for (size_t i = 0; i < PFWL_PROTO_L2_NUM; i++) {
+    if (!strcasecmp(name, pfwl_l2_protocols_names[i])) {
       return (pfwl_protocol_l2_t) i;
     }
   }
   return PFWL_PROTO_L2_NUM;
 }
 
-const char ** pfwl_get_L2_protocols_names(){
+const char **pfwl_get_L2_protocols_names() {
   return pfwl_l2_protocols_names;
 }

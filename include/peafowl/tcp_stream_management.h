@@ -89,10 +89,9 @@ void pfwl_reordering_tcp_delete_all_fragments(pfwl_flow_info_private_t *victim);
  *         'data_length' field contains the length of the new (longer)
  *         segment.
  */
-pfwl_tcp_reordering_reordered_segment_t
-pfwl_reordering_tcp_track_connection(pfwl_dissection_info_t *dissection_info,
-                                     pfwl_flow_info_private_t *tracking,
-                                     const unsigned char *pkt);
+pfwl_tcp_reordering_reordered_segment_t pfwl_reordering_tcp_track_connection(pfwl_dissection_info_t *dissection_info,
+                                                                             pfwl_flow_info_private_t *tracking,
+                                                                             const unsigned char *pkt);
 
 /**
  * Only checks if the connection terminates.
@@ -102,9 +101,8 @@ pfwl_reordering_tcp_track_connection(pfwl_dissection_info_t *dissection_info,
  *                 about the TCP connection.
  * @return 1 if the connection is terminated, 0 otherwise.
  */
-uint8_t pfwl_reordering_tcp_track_connection_light(
-    const unsigned char *pkt, pfwl_dissection_info_t *dissection_info,
-    pfwl_flow_info_private_t *tracking);
+uint8_t pfwl_reordering_tcp_track_connection_light(const unsigned char *pkt, pfwl_dissection_info_t *dissection_info,
+                                                   pfwl_flow_info_private_t *tracking);
 
 #ifdef __cplusplus
 }

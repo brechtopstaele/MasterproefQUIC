@@ -53,49 +53,48 @@ struct stun_header {
   uint8_t transaction_id[12];
 } __attribute__((packed));
 
-uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-  struct stun_header* stun_packet = (struct stun_header*) app_data;
-  if(stun_packet->zeros == 0 &&
-     stun_packet->magic_cookie == STUN_MAGIC_COOKIE){
-    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS)      ||
-       pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT)){
+uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  struct stun_header *stun_packet = (struct stun_header *) app_data;
+  if (stun_packet->zeros == 0 && stun_packet->magic_cookie == STUN_MAGIC_COOKIE) {
+    if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS) ||
+        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT)) {
       size_t offset = sizeof(struct stun_header);
-      while(offset < data_length){
+      while (offset < data_length) {
         uint16_t type = get_u16(app_data, offset);
         uint16_t length = ntohs(get_u16(app_data, offset + 2));
-        if(type == STUN_MAPPED_ADDRESS ||
-           type == STUN_XOR_MAPPED_ADDRESS){
+        if (type == STUN_MAPPED_ADDRESS || type == STUN_XOR_MAPPED_ADDRESS) {
           uint8_t family = app_data[offset + 5];
           uint16_t port = ntohs(get_u16(app_data, offset + 6));
           size_t addr_len = 0;
-          if(family == 0x01){
+          if (family == 0x01) {
             // IPv4
             addr_len = 4;
             struct in_addr in;
             in.s_addr = get_u32(app_data, offset + 8);
-            if(type == STUN_XOR_MAPPED_ADDRESS){
+            if (type == STUN_XOR_MAPPED_ADDRESS) {
               in.s_addr ^= STUN_MAGIC_COOKIE;
             }
-            inet_ntop(AF_INET, &in, flow_info_private->stun_mapped_address, sizeof(flow_info_private->stun_mapped_address));
-          }else{
+            inet_ntop(AF_INET, &in, flow_info_private->stun_mapped_address,
+                      sizeof(flow_info_private->stun_mapped_address));
+          } else {
             // IPv6
             addr_len = 16;
             struct in6_addr in;
             memcpy(in.s6_addr, app_data + offset + 8, 16);
-            if(type == STUN_XOR_MAPPED_ADDRESS){
+            if (type == STUN_XOR_MAPPED_ADDRESS) {
               in.s6_addr[0] ^= (STUN_MAGIC_COOKIE >> 24) & 0xFF;
               in.s6_addr[1] ^= (STUN_MAGIC_COOKIE >> 16) & 0xFF;
               in.s6_addr[2] ^= (STUN_MAGIC_COOKIE >> 8) & 0xFF;
-              in.s6_addr[3] ^= (STUN_MAGIC_COOKIE) & 0xFF;
-              for (int i = 0; i<12; i++) {
-                  in.s6_addr[4+i] ^= stun_packet->transaction_id[i];
+              in.s6_addr[3] ^= (STUN_MAGIC_COOKIE) &0xFF;
+              for (int i = 0; i < 12; i++) {
+                in.s6_addr[4 + i] ^= stun_packet->transaction_id[i];
               }
             }
-            inet_ntop(AF_INET6, &in, flow_info_private->stun_mapped_address, sizeof(flow_info_private->stun_mapped_address));
+            inet_ntop(AF_INET6, &in, flow_info_private->stun_mapped_address,
+                      sizeof(flow_info_private->stun_mapped_address));
           }
-          if(type == STUN_XOR_MAPPED_ADDRESS){
+          if (type == STUN_XOR_MAPPED_ADDRESS) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
             port ^= 0x2112;
 #else
@@ -103,13 +102,14 @@ uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data,
 #endif
           }
           pfwl_field_number_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT, port);
-          pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS, (const unsigned char*) flow_info_private->stun_mapped_address, addr_len);
+          pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS,
+                                (const unsigned char *) flow_info_private->stun_mapped_address, addr_len);
         }
         offset += length + 4; /* 'Type' and 'length' lengths are not included in 'length'*/
       }
     }
     return PFWL_PROTOCOL_MATCHES;
-  }else{
+  } else {
     return PFWL_PROTOCOL_NO_MATCHES;
   }
 }

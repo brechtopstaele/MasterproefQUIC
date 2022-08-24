@@ -43,26 +43,24 @@
 #endif
 
 #ifndef BIT_AT
-#define BIT_AT(a, i)                                                           \
-  (!!((unsigned int) (a)[(unsigned int) (i) >> 3] &                            \
-      (1 << ((unsigned int) (i) &7))))
+#define BIT_AT(a, i) (!!((unsigned int) (a)[(unsigned int) (i) >> 3] & (1 << ((unsigned int) (i) &7))))
 #endif
 
 #ifndef ELEM_AT
 #define ELEM_AT(a, i, v) ((unsigned int) (i) < ARRAY_SIZE(a) ? (a)[(i)] : (v))
 #endif
 
-#define SET_ERRNO(e)                                                           \
-  do {                                                                         \
-    parser->http_errno = (e);                                                  \
+#define SET_ERRNO(e)          \
+  do {                        \
+    parser->http_errno = (e); \
   } while (0)
 
 #define CURRENT_STATE() p_state
 #define UPDATE_STATE(V) p_state = (enum state)(V);
-#define RETURN(V)                                                              \
-  do {                                                                         \
-    parser->state = CURRENT_STATE();                                           \
-    return (V);                                                                \
+#define RETURN(V)                    \
+  do {                               \
+    parser->state = CURRENT_STATE(); \
+    return (V);                      \
   } while (0);
 #define REEXECUTE() goto reexecute;
 
@@ -75,22 +73,22 @@
 #endif
 
 /* Run the notify callback FOR, returning ER if it fails */
-#define CALLBACK_NOTIFY_(FOR, ER)                                              \
-  do {                                                                         \
-    assert(HTTP_PARSER_ERRNO(parser) == HPE_OK);                               \
-                                                                               \
-    if (LIKELY(settings->on_##FOR)) {                                          \
-      parser->state = CURRENT_STATE();                                         \
-      if (UNLIKELY(0 != settings->on_##FOR(parser))) {                         \
-        SET_ERRNO(HPE_CB_##FOR);                                               \
-      }                                                                        \
-      UPDATE_STATE(parser->state);                                             \
-                                                                               \
-      /* We either errored above or got paused; get out */                     \
-      if (UNLIKELY(HTTP_PARSER_ERRNO(parser) != HPE_OK)) {                     \
-        return (ER);                                                           \
-      }                                                                        \
-    }                                                                          \
+#define CALLBACK_NOTIFY_(FOR, ER)                          \
+  do {                                                     \
+    assert(HTTP_PARSER_ERRNO(parser) == HPE_OK);           \
+                                                           \
+    if (LIKELY(settings->on_##FOR)) {                      \
+      parser->state = CURRENT_STATE();                     \
+      if (UNLIKELY(0 != settings->on_##FOR(parser))) {     \
+        SET_ERRNO(HPE_CB_##FOR);                           \
+      }                                                    \
+      UPDATE_STATE(parser->state);                         \
+                                                           \
+      /* We either errored above or got paused; get out */ \
+      if (UNLIKELY(HTTP_PARSER_ERRNO(parser) != HPE_OK)) { \
+        return (ER);                                       \
+      }                                                    \
+    }                                                      \
   } while (0)
 
 /* Run the notify callback FOR and consume the current byte */
@@ -100,40 +98,39 @@
 #define CALLBACK_NOTIFY_NOADVANCE(FOR) CALLBACK_NOTIFY_(FOR, p - data)
 
 /* Run data callback FOR with LEN bytes, returning ER if it fails */
-#define CALLBACK_DATA_(FOR, LEN, ER)                                           \
-  do {                                                                         \
-    assert(HTTP_PARSER_ERRNO(parser) == HPE_OK);                               \
-                                                                               \
-    if (FOR##_mark) {                                                          \
-      if (LIKELY(settings->on_##FOR)) {                                        \
-        parser->state = CURRENT_STATE();                                       \
-        if (UNLIKELY(0 != settings->on_##FOR(parser, FOR##_mark, (LEN)))) {    \
-          SET_ERRNO(HPE_CB_##FOR);                                             \
-        }                                                                      \
-        UPDATE_STATE(parser->state);                                           \
-                                                                               \
-        /* We either errored above or got paused; get out */                   \
-        if (UNLIKELY(HTTP_PARSER_ERRNO(parser) != HPE_OK)) {                   \
-          return (ER);                                                         \
-        }                                                                      \
-      }                                                                        \
-      FOR##_mark = NULL;                                                       \
-    }                                                                          \
+#define CALLBACK_DATA_(FOR, LEN, ER)                                        \
+  do {                                                                      \
+    assert(HTTP_PARSER_ERRNO(parser) == HPE_OK);                            \
+                                                                            \
+    if (FOR##_mark) {                                                       \
+      if (LIKELY(settings->on_##FOR)) {                                     \
+        parser->state = CURRENT_STATE();                                    \
+        if (UNLIKELY(0 != settings->on_##FOR(parser, FOR##_mark, (LEN)))) { \
+          SET_ERRNO(HPE_CB_##FOR);                                          \
+        }                                                                   \
+        UPDATE_STATE(parser->state);                                        \
+                                                                            \
+        /* We either errored above or got paused; get out */                \
+        if (UNLIKELY(HTTP_PARSER_ERRNO(parser) != HPE_OK)) {                \
+          return (ER);                                                      \
+        }                                                                   \
+      }                                                                     \
+      FOR##_mark = NULL;                                                    \
+    }                                                                       \
   } while (0)
 
 /* Run the data callback FOR and consume the current byte */
 #define CALLBACK_DATA(FOR) CALLBACK_DATA_(FOR, p - FOR##_mark, p - data + 1)
 
 /* Run the data callback FOR and don't consume the current byte */
-#define CALLBACK_DATA_NOADVANCE(FOR)                                           \
-  CALLBACK_DATA_(FOR, p - FOR##_mark, p - data)
+#define CALLBACK_DATA_NOADVANCE(FOR) CALLBACK_DATA_(FOR, p - FOR##_mark, p - data)
 
 /* Set the mark FOR; non-destructive if mark is already set */
-#define MARK(FOR)                                                              \
-  do {                                                                         \
-    if (!FOR##_mark) {                                                         \
-      FOR##_mark = p;                                                          \
-    }                                                                          \
+#define MARK(FOR)      \
+  do {                 \
+    if (!FOR##_mark) { \
+      FOR##_mark = p;  \
+    }                  \
   } while (0)
 
 /* Don't allow the total size of the HTTP headers (including the status
@@ -147,13 +144,13 @@
  * than any reasonable request or response so this should never affect
  * day-to-day operation.
  */
-#define COUNT_HEADER_SIZE(V)                                                   \
-  do {                                                                         \
-    parser->nread += (V);                                                      \
-    if (UNLIKELY(parser->nread > (HTTP_MAX_HEADER_SIZE))) {                    \
-      SET_ERRNO(HPE_HEADER_OVERFLOW);                                          \
-      goto error;                                                              \
-    }                                                                          \
+#define COUNT_HEADER_SIZE(V)                                \
+  do {                                                      \
+    parser->nread += (V);                                   \
+    if (UNLIKELY(parser->nread > (HTTP_MAX_HEADER_SIZE))) { \
+      SET_ERRNO(HPE_HEADER_OVERFLOW);                       \
+      goto error;                                           \
+    }                                                       \
   } while (0)
 
 #define PROXY_CONNECTION "proxy-connection"
@@ -213,13 +210,11 @@ static const char tokens[256] = {
     'x', 'y', 'z', 0, '|', 0, '~', 0};
 
 static const int8_t unhex[256] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0,  1,  2,  3,  4,  5,  6,  7,  8,
-    9,  -1, -1, -1, -1, -1, -1, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0,  1,  2,  3,
+    4,  5,  6,  7,  8,  9,  -1, -1, -1, -1, -1, -1, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 10, 11, 12, 13, 14, 15, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 #if HTTP_PARSER_STRICT
 #define T(v) 0
@@ -413,12 +408,12 @@ enum http_host_state {
 #define IS_NUM(c) ((c) >= '0' && (c) <= '9')
 #define IS_ALPHANUM(c) (IS_ALPHA(c) || IS_NUM(c))
 #define IS_HEX(c) (IS_NUM(c) || (LOWER(c) >= 'a' && LOWER(c) <= 'f'))
-#define IS_MARK(c)                                                             \
-  ((c) == '-' || (c) == '_' || (c) == '.' || (c) == '!' || (c) == '~' ||       \
-   (c) == '*' || (c) == '\'' || (c) == '(' || (c) == ')')
-#define IS_USERINFO_CHAR(c)                                                    \
-  (IS_ALPHANUM(c) || IS_MARK(c) || (c) == '%' || (c) == ';' || (c) == ':' ||   \
-   (c) == '&' || (c) == '=' || (c) == '+' || (c) == '$' || (c) == ',')
+#define IS_MARK(c)                                                                                                  \
+  ((c) == '-' || (c) == '_' || (c) == '.' || (c) == '!' || (c) == '~' || (c) == '*' || (c) == '\'' || (c) == '(' || \
+   (c) == ')')
+#define IS_USERINFO_CHAR(c)                                                                                            \
+  (IS_ALPHANUM(c) || IS_MARK(c) || (c) == '%' || (c) == ';' || (c) == ':' || (c) == '&' || (c) == '=' || (c) == '+' || \
+   (c) == '$' || (c) == ',')
 
 #define STRICT_TOKEN(c) (tokens[(unsigned char) c])
 
@@ -428,28 +423,25 @@ enum http_host_state {
 #define IS_HOST_CHAR(c) (IS_ALPHANUM(c) || (c) == '.' || (c) == '-')
 #else
 #define TOKEN(c) ((c == ' ') ? ' ' : tokens[(unsigned char) c])
-#define IS_URL_CHAR(c)                                                         \
-  (BIT_AT(normal_url_char, (unsigned char) c) || ((c) &0x80))
-#define IS_HOST_CHAR(c)                                                        \
-  (IS_ALPHANUM(c) || (c) == '.' || (c) == '-' || (c) == '_')
+#define IS_URL_CHAR(c) (BIT_AT(normal_url_char, (unsigned char) c) || ((c) &0x80))
+#define IS_HOST_CHAR(c) (IS_ALPHANUM(c) || (c) == '.' || (c) == '-' || (c) == '_')
 #endif
 
 /**
  * Verify that a char is a valid visible (printable) US-ASCII
  * character or %x80-FF
  **/
-#define IS_HEADER_CHAR(ch)                                                     \
-  (ch == CR || ch == LF || ch == 9 || ((unsigned char) ch > 31 && ch != 127))
+#define IS_HEADER_CHAR(ch) (ch == CR || ch == LF || ch == 9 || ((unsigned char) ch > 31 && ch != 127))
 
 #define start_state (parser->type == HTTP_REQUEST ? s_start_req : s_start_res)
 
 #if HTTP_PARSER_STRICT
-#define STRICT_CHECK(cond)                                                     \
-  do {                                                                         \
-    if (cond) {                                                                \
-      SET_ERRNO(HPE_STRICT);                                                   \
-      goto error;                                                              \
-    }                                                                          \
+#define STRICT_CHECK(cond)   \
+  do {                       \
+    if (cond) {              \
+      SET_ERRNO(HPE_STRICT); \
+      goto error;            \
+    }                        \
   } while (0)
 #define NEW_MESSAGE() (http_should_keep_alive(parser) ? start_state : s_dead)
 #else
@@ -624,9 +616,7 @@ static enum state parse_url_char(enum state s, const char ch) {
   return s_dead;
 }
 
-size_t http_parser_execute(http_parser *parser,
-                           const http_parser_settings *settings,
-                           const char *data, size_t len) {
+size_t http_parser_execute(http_parser *parser, const http_parser_settings *settings, const char *data, size_t len) {
   char c, ch;
   int8_t unhex_val;
   const char *p = data;
@@ -989,9 +979,9 @@ size_t http_parser_execute(http_parser *parser,
         ; /* nada */
       } else if ((ch >= 'A' && ch <= 'Z') || ch == '-') {
         switch (parser->method << 16 | parser->index << 8 | ch) {
-#define XX(meth, pos, ch, new_meth)                                            \
-  case (HTTP_##meth << 16 | pos << 8 | ch):                                    \
-    parser->method = HTTP_##new_meth;                                          \
+#define XX(meth, pos, ch, new_meth)         \
+  case (HTTP_##meth << 16 | pos << 8 | ch): \
+    parser->method = HTTP_##new_meth;       \
     break;
 
           XX(POST, 1, 'U', PUT)
@@ -1082,8 +1072,7 @@ size_t http_parser_execute(http_parser *parser,
       case LF:
         parser->http_major = 0;
         parser->http_minor = 9;
-        UPDATE_STATE((ch == CR) ? s_req_line_almost_done :
-                                  s_header_field_start);
+        UPDATE_STATE((ch == CR) ? s_req_line_almost_done : s_header_field_start);
         CALLBACK_DATA(url);
         break;
       default:
@@ -1273,60 +1262,55 @@ size_t http_parser_execute(http_parser *parser,
           }
           break;
 
-        /* connection */
+          /* connection */
 
         case h_matching_connection:
           parser->index++;
-          if (parser->index > sizeof(CONNECTION) - 1 ||
-              c != CONNECTION[parser->index]) {
+          if (parser->index > sizeof(CONNECTION) - 1 || c != CONNECTION[parser->index]) {
             parser->header_state = h_general;
           } else if (parser->index == sizeof(CONNECTION) - 2) {
             parser->header_state = h_connection;
           }
           break;
 
-        /* proxy-connection */
+          /* proxy-connection */
 
         case h_matching_proxy_connection:
           parser->index++;
-          if (parser->index > sizeof(PROXY_CONNECTION) - 1 ||
-              c != PROXY_CONNECTION[parser->index]) {
+          if (parser->index > sizeof(PROXY_CONNECTION) - 1 || c != PROXY_CONNECTION[parser->index]) {
             parser->header_state = h_general;
           } else if (parser->index == sizeof(PROXY_CONNECTION) - 2) {
             parser->header_state = h_connection;
           }
           break;
 
-        /* content-length */
+          /* content-length */
 
         case h_matching_content_length:
           parser->index++;
-          if (parser->index > sizeof(CONTENT_LENGTH) - 1 ||
-              c != CONTENT_LENGTH[parser->index]) {
+          if (parser->index > sizeof(CONTENT_LENGTH) - 1 || c != CONTENT_LENGTH[parser->index]) {
             parser->header_state = h_general;
           } else if (parser->index == sizeof(CONTENT_LENGTH) - 2) {
             parser->header_state = h_content_length;
           }
           break;
 
-        /* transfer-encoding */
+          /* transfer-encoding */
 
         case h_matching_transfer_encoding:
           parser->index++;
-          if (parser->index > sizeof(TRANSFER_ENCODING) - 1 ||
-              c != TRANSFER_ENCODING[parser->index]) {
+          if (parser->index > sizeof(TRANSFER_ENCODING) - 1 || c != TRANSFER_ENCODING[parser->index]) {
             parser->header_state = h_general;
           } else if (parser->index == sizeof(TRANSFER_ENCODING) - 2) {
             parser->header_state = h_transfer_encoding;
           }
           break;
 
-        /* upgrade */
+          /* upgrade */
 
         case h_matching_upgrade:
           parser->index++;
-          if (parser->index > sizeof(UPGRADE) - 1 ||
-              c != UPGRADE[parser->index]) {
+          if (parser->index > sizeof(UPGRADE) - 1 || c != UPGRADE[parser->index]) {
             parser->header_state = h_general;
           } else if (parser->index == sizeof(UPGRADE) - 2) {
             parser->header_state = h_upgrade;
@@ -1378,7 +1362,7 @@ size_t http_parser_execute(http_parser *parser,
         break;
       }
 
-    /* FALLTHROUGH */
+      /* FALLTHROUGH */
 
     case s_header_value_start: {
       MARK(header_value);
@@ -1530,8 +1514,7 @@ size_t http_parser_execute(http_parser *parser,
         /* Transfer-Encoding: chunked */
         case h_matching_transfer_encoding_chunked:
           parser->index++;
-          if (parser->index > sizeof(CHUNKED) - 1 ||
-              c != CHUNKED[parser->index]) {
+          if (parser->index > sizeof(CHUNKED) - 1 || c != CHUNKED[parser->index]) {
             h_state = h_general;
           } else if (parser->index == sizeof(CHUNKED) - 2) {
             h_state = h_transfer_encoding_chunked;
@@ -1559,8 +1542,7 @@ size_t http_parser_execute(http_parser *parser,
         /* looking for 'Connection: keep-alive' */
         case h_matching_connection_keep_alive:
           parser->index++;
-          if (parser->index > sizeof(KEEP_ALIVE) - 1 ||
-              c != KEEP_ALIVE[parser->index]) {
+          if (parser->index > sizeof(KEEP_ALIVE) - 1 || c != KEEP_ALIVE[parser->index]) {
             h_state = h_matching_connection_token;
           } else if (parser->index == sizeof(KEEP_ALIVE) - 2) {
             h_state = h_connection_keep_alive;
@@ -1580,8 +1562,7 @@ size_t http_parser_execute(http_parser *parser,
         /* looking for 'Connection: upgrade' */
         case h_matching_connection_upgrade:
           parser->index++;
-          if (parser->index > sizeof(UPGRADE) - 1 ||
-              c != UPGRADE[parser->index]) {
+          if (parser->index > sizeof(UPGRADE) - 1 || c != UPGRADE[parser->index]) {
             h_state = h_matching_connection_token;
           } else if (parser->index == sizeof(UPGRADE) - 2) {
             h_state = h_connection_upgrade;
@@ -1727,14 +1708,12 @@ size_t http_parser_execute(http_parser *parser,
       UPDATE_STATE(s_headers_done);
 
       /* Set this here so that on_headers_complete() callbacks can see it */
-      if ((parser->flags & F_UPGRADE) &&
-          (parser->flags & F_CONNECTION_UPGRADE)) {
+      if ((parser->flags & F_UPGRADE) && (parser->flags & F_CONNECTION_UPGRADE)) {
         /* For responses, "Upgrade: foo" and "Connection: upgrade" are
          * mandatory only when it is a 101 Switching Protocols response,
          * otherwise it is purely informational, to announce support.
          */
-        parser->upgrade =
-            (parser->type == HTTP_REQUEST || parser->status_code == 101);
+        parser->upgrade = (parser->type == HTTP_REQUEST || parser->status_code == 101);
       } else {
         parser->upgrade = (parser->method == HTTP_CONNECT);
       }
@@ -1780,11 +1759,8 @@ size_t http_parser_execute(http_parser *parser,
 
       parser->nread = 0;
 
-      hasBody =
-          parser->flags & F_CHUNKED ||
-          (parser->content_length > 0 && parser->content_length != ULLONG_MAX);
-      if (parser->upgrade && (parser->method == HTTP_CONNECT ||
-                              (parser->flags & F_SKIPBODY) || !hasBody)) {
+      hasBody = parser->flags & F_CHUNKED || (parser->content_length > 0 && parser->content_length != ULLONG_MAX);
+      if (parser->upgrade && (parser->method == HTTP_CONNECT || (parser->flags & F_SKIPBODY) || !hasBody)) {
         /* Exit, the rest of the message is in a different protocol. */
         UPDATE_STATE(NEW_MESSAGE());
         CALLBACK_NOTIFY(message_complete);
@@ -1821,11 +1797,9 @@ size_t http_parser_execute(http_parser *parser,
     }
 
     case s_body_identity: {
-      uint64_t to_read =
-          MIN(parser->content_length, (uint64_t)((data + len) - p));
+      uint64_t to_read = MIN(parser->content_length, (uint64_t)((data + len) - p));
 
-      assert(parser->content_length != 0 &&
-             parser->content_length != ULLONG_MAX);
+      assert(parser->content_length != 0 && parser->content_length != ULLONG_MAX);
 
       /* The difference between advancing content_length and p is because
        * the latter will automaticaly advance on the next loop iteration.
@@ -1949,12 +1923,10 @@ size_t http_parser_execute(http_parser *parser,
     }
 
     case s_chunk_data: {
-      uint64_t to_read =
-          MIN(parser->content_length, (uint64_t)((data + len) - p));
+      uint64_t to_read = MIN(parser->content_length, (uint64_t)((data + len) - p));
 
       assert(parser->flags & F_CHUNKED);
-      assert(parser->content_length != 0 &&
-             parser->content_length != ULLONG_MAX);
+      assert(parser->content_length != 0 && parser->content_length != ULLONG_MAX);
 
       /* See the explanation in s_body_identity for why the content
        * length and data pointers are managed this way.
@@ -2008,9 +1980,8 @@ size_t http_parser_execute(http_parser *parser,
    * value that's in-bounds).
    */
 
-  assert(((header_field_mark ? 1 : 0) + (header_value_mark ? 1 : 0) +
-          (url_mark ? 1 : 0) + (body_mark ? 1 : 0) + (status_mark ? 1 : 0)) <=
-         1);
+  assert(((header_field_mark ? 1 : 0) + (header_value_mark ? 1 : 0) + (url_mark ? 1 : 0) + (body_mark ? 1 : 0) +
+          (status_mark ? 1 : 0)) <= 1);
 
   CALLBACK_DATA_NOADVANCE(header_field);
   CALLBACK_DATA_NOADVANCE(header_value);
@@ -2074,9 +2045,7 @@ void http_parser_init(http_parser *parser, enum http_parser_type t) {
   memset(parser, 0, sizeof(*parser));
   parser->data = data;
   parser->type = t;
-  parser->state = (t == HTTP_REQUEST ?
-                       s_start_req :
-                       (t == HTTP_RESPONSE ? s_start_res : s_start_req_or_res));
+  parser->state = (t == HTTP_REQUEST ? s_start_req : (t == HTTP_RESPONSE ? s_start_res : s_start_req_or_res));
   parser->http_errno = HPE_OK;
 }
 
@@ -2094,8 +2063,7 @@ const char *http_errno_description(enum http_errno err) {
   return http_strerror_tab[err].description;
 }
 
-static enum http_host_state http_parse_host_char(enum http_host_state s,
-                                                 const char ch) {
+static enum http_host_state http_parse_host_char(enum http_host_state s, const char ch) {
   switch (s) {
   case s_http_userinfo:
   case s_http_userinfo_start:
@@ -2156,8 +2124,7 @@ static enum http_host_state http_parse_host_char(enum http_host_state s,
   /* FALLTHROUGH */
   case s_http_host_v6_zone_start:
     /* RFC 6874 Zone ID consists of 1*( unreserved / pct-encoded) */
-    if (IS_ALPHANUM(ch) || ch == '%' || ch == '.' || ch == '-' || ch == '_' ||
-        ch == '~') {
+    if (IS_ALPHANUM(ch) || ch == '%' || ch == '.' || ch == '-' || ch == '_' || ch == '~') {
       return s_http_host_v6_zone;
     }
     break;
@@ -2176,8 +2143,7 @@ static enum http_host_state http_parse_host_char(enum http_host_state s,
   return s_http_host_dead;
 }
 
-static int http_parse_host(const char *buf, struct http_parser_url *u,
-                           int found_at) {
+static int http_parse_host(const char *buf, struct http_parser_url *u, int found_at) {
   enum http_host_state s;
 
   const char *p;
@@ -2262,8 +2228,7 @@ void http_parser_url_init(struct http_parser_url *u) {
   memset(u, 0, sizeof(*u));
 }
 
-int http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
-                          struct http_parser_url *u) {
+int http_parser_parse_url(const char *buf, size_t buflen, int is_connect, struct http_parser_url *u) {
   enum state s;
   const char *p;
   enum http_parser_url_fields uf, old_uf;
@@ -2333,8 +2298,7 @@ int http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
 
   /* host must be present if there is a schema */
   /* parsing http:///toto will fail */
-  if ((u->field_set & (1 << UF_SCHEMA)) &&
-      (u->field_set & (1 << UF_HOST)) == 0) {
+  if ((u->field_set & (1 << UF_SCHEMA)) && (u->field_set & (1 << UF_HOST)) == 0) {
     return 1;
   }
 
@@ -2369,8 +2333,7 @@ void http_parser_pause(http_parser *parser, int paused) {
    * state. In non-debug builds, there's not much that we can do about this
    * other than ignore it.
    */
-  if (HTTP_PARSER_ERRNO(parser) == HPE_OK ||
-      HTTP_PARSER_ERRNO(parser) == HPE_PAUSED) {
+  if (HTTP_PARSER_ERRNO(parser) == HPE_OK || HTTP_PARSER_ERRNO(parser) == HPE_PAUSED) {
     SET_ERRNO((paused) ? HPE_PAUSED : HPE_OK);
   } else {
     assert(0 && "Attempting to pause parser in error state");
@@ -2382,7 +2345,6 @@ int http_body_is_final(const struct http_parser *parser) {
 }
 
 unsigned long http_parser_version(void) {
-  return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
-         HTTP_PARSER_VERSION_MINOR * 0x00100 |
+  return HTTP_PARSER_VERSION_MAJOR * 0x10000 | HTTP_PARSER_VERSION_MINOR * 0x00100 |
          HTTP_PARSER_VERSION_PATCH * 0x00001;
 }

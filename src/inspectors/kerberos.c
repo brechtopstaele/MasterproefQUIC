@@ -31,20 +31,18 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-uint8_t check_kerberos(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-    if(data_length >= 4 && ntohl(get_u32(app_data, 0)) == data_length - 4){
-        if(data_length > 19 && 
-           app_data[14] == 0x05 &&
-	       (app_data[19] == 0x0a || app_data[19] == 0x0c || app_data[19] == 0x0d || app_data[19] == 0x0e)){ 
-            return PFWL_PROTOCOL_MATCHES;
-        }
-
-        if(data_length > 21 && app_data[16] == 0x05 &&
-           (app_data[21] == 0x0a || app_data[21] == 0x0c || app_data[21] == 0x0d || app_data[21] == 0x0e)){
-            return PFWL_PROTOCOL_MATCHES;
-        } 
+uint8_t check_kerberos(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                       pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  if (data_length >= 4 && ntohl(get_u32(app_data, 0)) == data_length - 4) {
+    if (data_length > 19 && app_data[14] == 0x05 &&
+        (app_data[19] == 0x0a || app_data[19] == 0x0c || app_data[19] == 0x0d || app_data[19] == 0x0e)) {
+      return PFWL_PROTOCOL_MATCHES;
     }
-    return PFWL_PROTOCOL_NO_MATCHES;
+
+    if (data_length > 21 && app_data[16] == 0x05 &&
+        (app_data[21] == 0x0a || app_data[21] == 0x0c || app_data[21] == 0x0d || app_data[21] == 0x0e)) {
+      return PFWL_PROTOCOL_MATCHES;
+    }
+  }
+  return PFWL_PROTOCOL_NO_MATCHES;
 }

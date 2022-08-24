@@ -26,6 +26,7 @@
  * =========================================================================
  */
 
+#include <openssl/evp.h>
 /* GCM AES ENCRYPTION */
 int aes_gcm_encrypt(unsigned char *plaintext, int plaintext_len, const EVP_CIPHER *cipher_type,
                 unsigned char *aad, int aad_len,

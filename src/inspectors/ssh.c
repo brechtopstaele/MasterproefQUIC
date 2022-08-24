@@ -44,13 +44,11 @@ static void ssh_zap_cr(char *str, int len) {
 
 #define PFWL_SSH_MAX_ATTEMPTS 6
 
-uint8_t check_ssh(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
+uint8_t check_ssh(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                  pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   if (pkt_info->l4.direction == 0) {
     // Client -> Server)
-    if (data_length > 7 && data_length < 100 &&
-        memcmp(app_data, "SSH-", 4) == 0) {
+    if (data_length > 7 && data_length < 100 && memcmp(app_data, "SSH-", 4) == 0) {
       /*
       if (pfwl_metadata_extraction(PFWL_PROTOCOL_SSH)) {
           t->ssh_client_signature = malloc(sizeof(char)*(data_length + 1));
@@ -63,8 +61,7 @@ uint8_t check_ssh(pfwl_state_t *state, const unsigned char *app_data,
     }
   } else {
     // Server -> Client
-    if (data_length > 7 && data_length < 500 &&
-        memcmp(app_data, "SSH-", 4) == 0) {
+    if (data_length > 7 && data_length < 500 && memcmp(app_data, "SSH-", 4) == 0) {
       /*
       if (pfwl_metadata_extraction(PFWL_PROTOCOL_SSH)) {
           t->ssh_server_signature = malloc(sizeof(char)*(data_length + 1));
@@ -79,8 +76,9 @@ uint8_t check_ssh(pfwl_state_t *state, const unsigned char *app_data,
 
   if (flow_info_private->ssh_stage >= 2) {
     return PFWL_PROTOCOL_MATCHES;
-  } else if(flow_info_private->info_public->statistics[PFWL_STAT_L7_PACKETS][0] +
-            flow_info_private->info_public->statistics[PFWL_STAT_L7_PACKETS][1] < PFWL_SSH_MAX_ATTEMPTS){
+  } else if (flow_info_private->info_public->statistics[PFWL_STAT_L7_PACKETS][0] +
+                 flow_info_private->info_public->statistics[PFWL_STAT_L7_PACKETS][1] <
+             PFWL_SSH_MAX_ATTEMPTS) {
     return PFWL_PROTOCOL_MORE_DATA_NEEDED;
   }
 
