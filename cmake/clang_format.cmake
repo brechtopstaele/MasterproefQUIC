@@ -21,6 +21,8 @@ add_custom_target(
                  BreakBeforeTernaryOperators : false,
                  SpaceAfterCStyleCast : true,
                  AlignAfterOpenBracket : true,
+                 ColumnLimit : 120,
+                 AlignEscapedNewlines : Left,
                  UseTab : Never}'
         -i
         ${SOURCE_FILES}
