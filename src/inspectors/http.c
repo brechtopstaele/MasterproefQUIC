@@ -207,6 +207,8 @@ uint8_t check_http(pfwl_state_t *state, const unsigned char *app_data, size_t da
    */
   if (parser->data == NULL) {
     http_parser_init(parser, HTTP_BOTH);
+    // in case init was forced, we have to free previous temp_buffer)
+    free(flow_info_private->http_informations[pkt_info->l4.direction].temp_buffer);
     bzero(&(flow_info_private->http_informations[pkt_info->l4.direction]), sizeof(pfwl_http_internal_informations_t));
 
     parser->extracted_fields = pkt_info->l7.protocol_fields;
