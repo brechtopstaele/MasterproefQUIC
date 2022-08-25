@@ -110,7 +110,7 @@ static void parse_tcp_opt_hdrs(pfwl_state_t *state, const unsigned char *pkt, si
 }
 
 pfwl_status_t mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
-                                      int tid, pfwl_dissection_info_t *dissection_info,
+                                      pfwl_dissection_info_t *dissection_info,
                                       pfwl_flow_info_private_t **flow_info_private) {
   uint8_t syn = 0;
   switch (dissection_info->l4.protocol) {
@@ -237,7 +237,7 @@ pfwl_status_t pfwl_dissect_L4(pfwl_state_t *state, const unsigned char *pkt, siz
    * We can pass any thread id, indeed in this case we don't
    * need lock synchronization.
    **/
-  return mc_pfwl_parse_L4_header(state, pkt, length, current_time, 0, dissection_info, flow_info_private);
+  return mc_pfwl_parse_L4_header(state, pkt, length, current_time, dissection_info, flow_info_private);
 }
 
 pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,

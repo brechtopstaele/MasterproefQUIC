@@ -1496,7 +1496,7 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
                                       double current_time, int tid, pfwl_dissection_info_t *dissection_info);
 
 pfwl_status_t mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *p_pkt, size_t p_length,
-                                      double timestamp, int tid, pfwl_dissection_info_t *dissection_info,
+                                      double timestamp, pfwl_dissection_info_t *dissection_info,
                                       pfwl_flow_info_private_t **flow_info_private);
 /// @endcond
 

@@ -82,8 +82,8 @@ static bool isMoneroStratumMethod(const char *method, size_t methodLen){
 #error "Please fix <bits/endian.h>"
 #endif
 
-uint8_t check_monero(pfwl_state_t *state, const unsigned char *app_data,
-                     size_t data_length, pfwl_dissection_info_t *pkt_info,
+uint8_t check_monero(pfwl_state_t *, const unsigned char *app_data,
+                     size_t , pfwl_dissection_info_t *pkt_info,
                      pfwl_flow_info_private_t *flow_info_private) {
   // Magic number: https://github.com/monero-project/monero/blob/master/src/p2p/p2p_protocol_defs.h
   if (*((uint32_t *) app_data) == MONERO_MAGIC_COOKIE) {

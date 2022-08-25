@@ -39,8 +39,8 @@ static bool isStratumMethod(const char *method, size_t methodLen) {
          !strncmp(method, "client." , 7);
 }
 
-uint8_t check_stratum(pfwl_state_t *state, const unsigned char *app_data,
-                    size_t data_length, pfwl_dissection_info_t *pkt_info,
+uint8_t check_stratum(pfwl_state_t *, const unsigned char *,
+                    size_t , pfwl_dissection_info_t *pkt_info,
                     pfwl_flow_info_private_t *flow_info_private) {
   if(flow_info_private->info_public->protocols_l7_num){
     if(flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_JSON_RPC){
