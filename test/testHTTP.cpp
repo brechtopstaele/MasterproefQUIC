@@ -51,7 +51,7 @@ TEST(HTTPTest, ContentType) {
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_HTTP_BODY);
   bool ctFound = false;
   bool bodyFound = false;
-  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
   if(r.l7.protocol == PFWL_PROTO_L7_HTTP){
     pfwl_string_t field;
     if((*r.flow_info.udata == NULL) &&
@@ -89,7 +89,7 @@ TEST(HTTPTest, ContentType2) {
       pfwl_field_add_L7(state, PFWL_FIELDS_L7_HTTP_BODY);
       bool cTypeFound = false, bodyFound = false, uAgentFound = false, hostFound = false;
       size_t packet_id = 1; // Just simpler to compare with Wireshark dissection, where packets start from 1
-      getProtocols(filename, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+      getProtocols(filename, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
         if(r.l7.protocol == PFWL_PROTO_L7_HTTP){
           // Content type
           pfwl_string_t field;
@@ -147,7 +147,7 @@ TEST(HTTPTest, Tags) {
 
   std::vector<uint> protocols;
   bool foundSuffix = false, foundPrefix = false, foundMozilla = false, foundEthereal = false;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
 
     for(size_t i = 0; i < r.l7.tags_num; i++){
       if(r.l7.tags_num &&
@@ -186,7 +186,7 @@ TEST(HTTPTest, TagsFromFile) {
 
   std::vector<uint> protocols;
   bool foundSuffix = false, foundPrefix = false, foundMozilla = false, foundEthereal = false;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     for(size_t i = 0; i < r.l7.tags_num; i++){
       if(r.l7.tags_num &&
          !strcmp(r.l7.tags[i], "TAG_SUFFIX")){

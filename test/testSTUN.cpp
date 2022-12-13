@@ -22,7 +22,7 @@ TEST(STUNTest, AddressPort) {
     int addressesFound = 0;
     pfwl_string_t address;
     int64_t port = 0;
-    getProtocols("./pcaps/stun-0.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+    getProtocols("./pcaps/stun-0.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
         if(r.l7.protocol == PFWL_PROTO_L7_STUN){
             if(!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS, &address)){
               pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT, &port);

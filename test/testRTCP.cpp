@@ -13,7 +13,7 @@ TEST(RTCPTest, Generic) {
 static void testFields(pfwl_state_t* state){
     std::vector<uint> protocols;
     int64_t pkts = 0, octects = 0;
-    getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+    getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
         if(r.l7.protocol == PFWL_PROTO_L7_RTCP){
             pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_PKT_COUNT, &pkts);
             pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_RTCP_SENDER_OCT_COUNT, &octects);

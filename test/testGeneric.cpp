@@ -9,7 +9,7 @@ TEST(GenericTest, MaxFlows) {
   std::vector<uint> protocols;
   pfwl_set_expected_flows(state, 1, PFWL_FLOWS_STRATEGY_SKIP);
   uint errors = 0;
-  getProtocols("./pcaps/whatsapp.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/whatsapp.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t){
     if(status == PFWL_ERROR_MAX_FLOWS){
       ++errors;
     }

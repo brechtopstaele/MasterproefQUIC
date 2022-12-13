@@ -88,26 +88,26 @@ int main(int argc, char** argv){
 						res3    = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &ja3);
 						printf("RES %d %d %d %d\n", res, res1, res2, res3);
 						if (!res) {
-							printf("Quic Version: %.*s\n", version.length, version.value);
+							printf("Quic Version: %.*s\n", (int)version.length, version.value);
 						} else {
 							printf("Quic Version: unknown\n");
 						}
 
 						if (!res1) {
-							printf("Quic SNI: %.*s\n", sni.length, sni.value);
+							printf("Quic SNI: %.*s\n", (int)sni.length, sni.value);
 						} else {
 							printf("Quic SNI: unknown\n");
 						}
 
 						if (!res2) {
-							printf("Quic UAID: %.*s\n", uaid.length, uaid.value);
+							printf("Quic UAID: %.*s\n", (int)uaid.length, uaid.value);
 						} else {
 							printf("Quic UAID: unknown\n");
 						}
 
 						if (!res3) {
 							printf("Quic JA3: ");
-							int i;
+							size_t i;
 							for(i = 0; i < ja3.length; i++) {
 								printf("%c", ja3.value[i]);
 							}

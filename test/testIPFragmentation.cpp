@@ -11,7 +11,7 @@ static void test4in4(bool defrag){
   }
   std::vector<uint> protocols;
   uint icmp_packets = 0;
-  getProtocols("./pcaps/ip_fragmentation/4in4_outer.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/ip_fragmentation/4in4_outer.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(r.l4.protocol == IPPROTO_ICMP){
       ++icmp_packets;
     }
@@ -33,7 +33,7 @@ static void test6in6(bool defrag, const char* filename, size_t pkt_to_check){
   std::vector<uint> protocols;
   bool checked = false;
   size_t packet_id = 1;
-  getProtocols(filename, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols(filename, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(packet_id == pkt_to_check){
       checked = true;
       if(defrag){
@@ -70,7 +70,7 @@ static void testGeneric(bool defrag){
   }
   std::vector<uint> protocols;
   size_t packet_id = 1;
-  getProtocols("./pcaps/ip_fragmentation/correct_1.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/ip_fragmentation/correct_1.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(packet_id == 23){
       uint expected_port_src = 0;
       uint expected_port_dst = 0;

@@ -42,8 +42,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define MAX_FILENAME_SIZE 128
-
 void flow_delete_cb(void* flow_specific_user_data){
   if(flow_specific_user_data){
     fclose((FILE*) flow_specific_user_data);
@@ -100,7 +98,7 @@ int main(int argc, char** argv){
           char dst_string[64];
           strcpy(dst_string, inet_ntoa(dst));
 
-          char filename[MAX_FILENAME_SIZE];
+          char filename[192];
           sprintf(filename, "%s:%"PRIu16"_to_%s:%"PRIu16"_at_%ld.jpeg", src_string, ntohs(r.l4.port_src), dst_string, ntohs(r.l4.port_dst), time(NULL));
 
           u_int32_t j=0;

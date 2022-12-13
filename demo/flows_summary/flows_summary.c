@@ -86,7 +86,7 @@ static const char* convert_l7_protocols(pfwl_flow_info_t* flow_info){
     protocols_tmp[0] = 0;
     for(size_t i = 0; i < flow_info->protocols_l7_num; i++){
         strcat(protocols_tmp, pfwl_get_L7_protocol_name(flow_info->protocols_l7[i]));
-        if(i != flow_info->protocols_l7_num - 1){
+        if(i != (size_t)(flow_info->protocols_l7_num - 1)){
             strcat(protocols_tmp, ",");
         }
     }

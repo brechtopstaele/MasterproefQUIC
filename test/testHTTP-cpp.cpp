@@ -52,7 +52,7 @@ TEST(HTTPTest, ContentType) {
   bool ctFound = false;
   bool bodyFound = false;
   peafowl::Field field;
-  getProtocolsCpp("./pcaps/http-jpeg.pcap", protocols, &state, [&](peafowl::Status status, peafowl::DissectionInfo& r){
+  getProtocolsCpp("./pcaps/http-jpeg.pcap", protocols, &state, [&](peafowl::Status, peafowl::DissectionInfo& r){
   if(r.getL7().getProtocol() == PFWL_PROTO_L7_HTTP){
     if((*r.getFlowInfo().getUserData() == NULL) &&
        (field = r.getL7().httpGetHeader("Content-Type")).isPresent() &&
@@ -89,7 +89,7 @@ TEST(HTTPTest, ContentType2) {
       state.fieldAddL7(PFWL_FIELDS_L7_HTTP_BODY);
       bool cTypeFound = false, bodyFound = false, uAgentFound = false, hostFound = false;
       size_t packet_id = 1; // Just simpler to compare with Wireshark dissection, where packets start from 1
-      getProtocolsCpp(filename, protocols, &state, [&](peafowl::Status status, peafowl::DissectionInfo& r){
+      getProtocolsCpp(filename, protocols, &state, [&](peafowl::Status, peafowl::DissectionInfo& r){
         if(r.getL7().getProtocol() == PFWL_PROTO_L7_HTTP){
           // Content type
           peafowl::Field field;
@@ -146,7 +146,7 @@ TEST(HTTPTest, Tags) {
 
   std::vector<uint> protocols;
   bool foundSuffix = false, foundPrefix = false, foundMozilla = false, foundEthereal = false;
-  getProtocolsCpp("./pcaps/http.cap", protocols, &state, [&](peafowl::Status status, peafowl::DissectionInfo& r){
+  getProtocolsCpp("./pcaps/http.cap", protocols, &state, [&](peafowl::Status, peafowl::DissectionInfo& r){
 
     for(auto tag : r.getL7().getTags()){
       if(tag == "TAG_SUFFIX"){
@@ -180,7 +180,7 @@ TEST(HTTPTest, TagsFromFile) {
 
   std::vector<uint> protocols;
   bool foundSuffix = false, foundPrefix = false, foundMozilla = false, foundEthereal = false;
-  getProtocolsCpp("./pcaps/http.cap", protocols, &state, [&](peafowl::Status status, peafowl::DissectionInfo& r){
+  getProtocolsCpp("./pcaps/http.cap", protocols, &state, [&](peafowl::Status, peafowl::DissectionInfo& r){
     for(auto tag : r.getL7().getTags()){
       if(tag == "TAG_SUFFIX"){
         foundSuffix = true;

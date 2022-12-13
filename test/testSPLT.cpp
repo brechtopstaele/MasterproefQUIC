@@ -29,7 +29,7 @@ TEST(SPLTTest, SPLT) {
   pfwl_set_timestamp_unit(state, PFWL_TIMESTAMP_UNIT_MICROSECONDS); // Since we set PCAP timestamps (which are expressed as microseconds).
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   }, true);
   pfwl_terminate(state);

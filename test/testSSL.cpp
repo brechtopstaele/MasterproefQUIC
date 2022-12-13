@@ -90,7 +90,7 @@ TEST(SSLTest, Tags) {
 
   std::vector<uint> protocols;
   bool foundSni = false;
-  getProtocols("./pcaps/ssl-2.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/ssl-2.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
 
     for(size_t i = 0; i < r.l7.tags_num; i++){
       if(r.l7.tags_num &&
@@ -119,7 +119,6 @@ TEST(SSLTest, JA3){
 
   bool versionFoundSer = false, ciphersFoundSer = false, extensionsFoundSer = false, 
        curvesFoundSer = false, curvesPointsFoundSer = false, jaFoundSer = false;
-  uint pktId = 1;
   getProtocols("./pcaps/ssl-3.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
     pfwl_string_t field;
     int64_t fieldNum;
@@ -202,7 +201,7 @@ TEST(SSLTest, JA3Tags) {
 
   std::vector<uint> protocols;
   bool found = true;
-  getProtocols("./pcaps/whatsapp_login_call.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/whatsapp_login_call.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     for(size_t i = 0; i < r.l7.tags_num; i++){
       if(r.l7.tags_num &&
          !strcmp(r.l7.tags[i], "Used by many programs on OSX,apple.WebKit.Networking")){

@@ -20,7 +20,7 @@ TEST(SIPTest, CallbackRequestURI){
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_SIP_REQUEST_URI);
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_SIP_METHOD);
 
-  getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(r.l7.protocol == PFWL_PROTO_L7_SIP){
       pfwl_string_t field;
       if(!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SIP_REQUEST_URI, &field)){
@@ -41,7 +41,7 @@ TEST(SIPTest, Tags) {
 
   std::vector<uint> protocols;
   bool foundRURI = false;
-  getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/sip-rtp.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
 
     for(size_t i = 0; i < r.l7.tags_num; i++){
       if(r.l7.protocol == PFWL_PROTO_L7_SIP &&

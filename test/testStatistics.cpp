@@ -11,7 +11,7 @@ TEST(StatisticsTest, Timestamps) {
   uint8_t check_timestamp = 1;
   uint8_t direction;
   uint8_t slept = 0;
-  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(last_timestamp && check_timestamp && r.l4.direction == direction){
       EXPECT_TRUE(r.flow_info.statistics[PFWL_STAT_TIMESTAMP_LAST][direction] - r.flow_info.statistics[PFWL_STAT_TIMESTAMP_FIRST][direction] == 2 ||
                   r.flow_info.statistics[PFWL_STAT_TIMESTAMP_LAST][direction] - r.flow_info.statistics[PFWL_STAT_TIMESTAMP_FIRST][direction] == 3);
@@ -33,7 +33,7 @@ TEST(StatisticsTest, BytesAndPackets) {
   pfwl_state_t* state = pfwl_init();
   std::vector<uint> protocols;
   size_t packet_id = 1; // Starts from one for a simple comparison with wireshark output
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r){
     if(packet_id == 3){
       // src -> dst
       EXPECT_EQ(r.flow_info.statistics[PFWL_STAT_BYTES][0], 88);
@@ -94,7 +94,7 @@ TEST(StatisticsTest, TCPFlags) {
   pfwl_set_flow_termination_callback(state, &flagchecker);
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
@@ -115,7 +115,7 @@ TEST(StatisticsTest, TCPFlags2) {
   pfwl_tcp_reordering_disable(state);
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http-segmented.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http-segmented.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
@@ -135,7 +135,7 @@ TEST(StatisticsTest, TCPRetransmissions) {
   pfwl_set_flow_termination_callback(state, &flagchecker);
   std::vector<uint> protocols;
   targetflow = 2;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
@@ -149,7 +149,7 @@ TEST(StatisticsTest, TCPZeroWindow) {
   pfwl_set_flow_termination_callback(state, &flagchecker);
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http-jpeg.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
@@ -163,7 +163,7 @@ TEST(StatisticsTest, TCPWindowScaling) {
   pfwl_set_flow_termination_callback(state, &flagchecker);
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http-segmented.pcap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http-segmented.pcap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
@@ -177,7 +177,7 @@ TEST(StatisticsTest, TCPNoWindowScaling) {
   pfwl_set_flow_termination_callback(state, &flagchecker);
   std::vector<uint> protocols;
   targetflow = 0;
-  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
+  getProtocols("./pcaps/http.cap", protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t){
     ;
   });
   pfwl_terminate(state);
