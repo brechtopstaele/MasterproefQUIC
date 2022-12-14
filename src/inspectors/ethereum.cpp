@@ -23,47 +23,46 @@
  * SOFTWARE.
  * =========================================================================
  */
+#include "../external/rapidjson/document.h"
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 #include <peafowl/utils.h>
-#include "../external/rapidjson/document.h"
 
 #include <iostream>
 #include <string.h>
 
 using namespace rapidjson;
 
-static bool isWorkerEth(Document* d){
+static bool isWorkerEth(Document *d) {
   auto it = d->FindMember("worker");
   return it != d->MemberEnd() && !strcmp(it->value.GetString(), "eth1.0");
 }
 
 static int isEthMethod(const char *method, size_t methodLen) {
-  if(methodLen < 5){
+  if (methodLen < 5) {
     return 0;
   }
-  return !strncmp(method, "shh_" , 4) ||
-         !strncmp(method, "db_"  , 3) ||
-         !strncmp(method, "eth_" , 4) ||
-         !strncmp(method, "net_" , 4) ||
-         !strncmp(method, "web3_", 5);
+  return !strncmp(method, "shh_", 4) || !strncmp(method, "db_", 3) || !strncmp(method, "eth_", 4) ||
+         !strncmp(method, "net_", 4) || !strncmp(method, "web3_", 5);
 }
 
-uint8_t check_ethereum(pfwl_state_t *, const unsigned char *,
-                       size_t , pfwl_dissection_info_t *pkt_info,
+uint8_t check_ethereum(pfwl_state_t *, const unsigned char *, size_t, pfwl_dissection_info_t *pkt_info,
                        pfwl_flow_info_private_t *flow_info_private) {
-  if(flow_info_private->info_public->protocols_l7_num){
-    if(flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_JSON_RPC){
-      Document* d = static_cast<Document*>(flow_info_private->json_parser);
+  if (flow_info_private->info_public->protocols_l7_num) {
+    if (flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+        PFWL_PROTO_L7_JSON_RPC) {
+      Document *d = static_cast<Document *>(flow_info_private->json_parser);
       assert(d);
       pfwl_string_t method;
 
-      if((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) && isEthMethod((const char*) method.value, method.length)) ||
-         isWorkerEth(d)){
+      if ((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) &&
+           isEthMethod((const char *) method.value, method.length)) ||
+          isWorkerEth(d)) {
         return PFWL_PROTOCOL_MATCHES;
       }
-    }else if(BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
-             flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_NOT_DETERMINED){
+    } else if (BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
+               flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+                   PFWL_PROTO_L7_NOT_DETERMINED) {
       // Could still become JSON-RPC
       return PFWL_PROTOCOL_MORE_DATA_NEEDED;
     }

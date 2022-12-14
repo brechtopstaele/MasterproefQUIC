@@ -24,32 +24,33 @@
  * SOFTWARE.
  * =========================================================================
  */
+#include "../external/rapidjson/document.h"
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 #include <peafowl/utils.h>
-#include "../external/rapidjson/document.h"
 
 using namespace rapidjson;
 
 static bool isStratumMethod(const char *method, size_t methodLen) {
-  if(methodLen < 7){
+  if (methodLen < 7) {
     return false;
   }
-  return !strncmp(method, "mining." , 7) ||
-         !strncmp(method, "client." , 7);
+  return !strncmp(method, "mining.", 7) || !strncmp(method, "client.", 7);
 }
 
-uint8_t check_stratum(pfwl_state_t *, const unsigned char *,
-                    size_t , pfwl_dissection_info_t *pkt_info,
-                    pfwl_flow_info_private_t *flow_info_private) {
-  if(flow_info_private->info_public->protocols_l7_num){
-    if(flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_JSON_RPC){
+uint8_t check_stratum(pfwl_state_t *, const unsigned char *, size_t, pfwl_dissection_info_t *pkt_info,
+                      pfwl_flow_info_private_t *flow_info_private) {
+  if (flow_info_private->info_public->protocols_l7_num) {
+    if (flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+        PFWL_PROTO_L7_JSON_RPC) {
       pfwl_string_t method;
-      if((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) && isStratumMethod((const char*) method.value, method.length))){
+      if ((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) &&
+           isStratumMethod((const char *) method.value, method.length))) {
         return PFWL_PROTOCOL_MATCHES;
       }
-    }else if(BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
-             flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_NOT_DETERMINED){
+    } else if (BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
+               flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+                   PFWL_PROTO_L7_NOT_DETERMINED) {
       // Could still become JSON-RPC
       return PFWL_PROTOCOL_MORE_DATA_NEEDED;
     }

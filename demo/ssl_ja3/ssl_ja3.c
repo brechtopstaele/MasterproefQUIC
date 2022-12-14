@@ -27,53 +27,53 @@
  * =========================================================================
  */
 
-#include <peafowl/peafowl.h>
-#include <pcap.h>
-#include <net/ethernet.h>
-#include <time.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <net/ethernet.h>
+#include <netinet/in.h>
+#include <pcap.h>
+#include <peafowl/peafowl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <assert.h>
+#include <sys/socket.h>
+#include <time.h>
+#include <unistd.h>
 
-int main(int argc, char** argv){
-  if(argc!=2){
+int main(int argc, char **argv) {
+  if (argc != 2) {
     fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
     return -1;
   }
-  char* pcap_filename=argv[1];
+  char *pcap_filename = argv[1];
   char errbuf[PCAP_ERRBUF_SIZE];
 
-  pfwl_state_t* state=pfwl_init();
-  pcap_t *handle=pcap_open_offline(pcap_filename, errbuf);
+  pfwl_state_t *state = pfwl_init();
+  pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
 
-  if(handle==NULL){
+  if (handle == NULL) {
     fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
     return (2);
   }
 
-  const u_char* packet;
+  const u_char *packet;
   struct pcap_pkthdr header;
 
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_JA3);
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_HANDSHAKE_TYPE);
   pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
-  while((packet = pcap_next(handle, &header))!=NULL){
+  while ((packet = pcap_next(handle, &header)) != NULL) {
     pfwl_dissection_info_t r;
-    if(pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK){
+    if (pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK) {
       pfwl_string_t field;
-      if(r.l7.protocol == PFWL_PROTO_L7_SSL &&
-         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SSL_JA3, &field)){
+      if (r.l7.protocol == PFWL_PROTO_L7_SSL &&
+          !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SSL_JA3, &field)) {
         int64_t htype;
         pfwl_field_number_get(r.l7.protocol_fields, PFWL_FIELDS_L7_SSL_HANDSHAKE_TYPE, &htype);
-        if(htype == 0x01){
+        if (htype == 0x01) {
           printf("JA3: %.*s\n", (int) field.length, field.value);
-        }else if(htype == 0x02){
+        } else if (htype == 0x02) {
           printf("JA3S: %.*s\n", (int) field.length, field.value);
         }
       }
