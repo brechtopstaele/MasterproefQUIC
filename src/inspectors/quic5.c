@@ -440,11 +440,19 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       quic_info.dst_conn_id_len = app_data[quic_info.header_len];
       quic_info.header_len++; // 1 byte destionation connection length
 
+      if (quic_info.dst_conn_id_len > sizeof(quic_info.dst_conn_id)) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
+
       memcpy(quic_info.dst_conn_id, &app_data[quic_info.header_len], quic_info.dst_conn_id_len);
       quic_info.header_len = quic_info.header_len + quic_info.dst_conn_id_len; /* destination connection id length */
 
       quic_info.src_conn_id_len = app_data[quic_info.header_len];
       quic_info.header_len++; // 1 byte source connection length
+
+      if (quic_info.src_conn_id_len > sizeof(quic_info.src_conn_id)) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
 
       memcpy(quic_info.src_conn_id, &app_data[quic_info.header_len], quic_info.src_conn_id_len);
       quic_info.header_len = quic_info.header_len + quic_info.src_conn_id_len; /* source connection id length */
