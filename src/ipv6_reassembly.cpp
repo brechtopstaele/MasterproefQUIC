@@ -445,7 +445,7 @@ unsigned char *pfwl_reordering_manage_ipv6_fragment(pfwl_ipv6_fragmentation_stat
                                                     uint16_t unfragmentable_size,
                                                     const unsigned char *fragmentable_start, uint16_t fragmentable_size,
                                                     uint16_t offset, uint8_t more_fragments, uint32_t identification,
-                                                    uint8_t next_header, uint32_t current_time, int tid) {
+                                                    uint8_t next_header, uint32_t current_time, int) {
   pfwl_ipv6_fragmentation_source_t *source;
   pfwl_ipv6_fragmentation_flow_t *flow;
 

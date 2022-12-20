@@ -306,7 +306,7 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
     unsigned char md5[16];
     MD5_Final(md5, &ctx);
     int n;
-    unsigned char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
+    char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
     for (n = 0; n < 16; n++) {
       sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
       state->scratchpad_next_byte += 2;
@@ -314,7 +314,7 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
 #if PFWL_DEBUG_SSL
     printf("JA3: %.*s\n", 32, ja3_start);
 #endif
-    pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_JA3, ja3_start, 32);
+    pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_JA3, (const unsigned char *) ja3_start, 32);
   }
   // TODO: Everytime we write on scratchpad we should check that the max length is not exceeded
   return 2;

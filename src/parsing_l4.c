@@ -402,11 +402,7 @@ static const char *pfwl_l4_protocols_names[IPPROTO_MAX] = {[0 ... IPPROTO_MAX - 
 };
 
 const char *pfwl_get_L4_protocol_name(pfwl_protocol_l4_t protocol) {
-  if (protocol < IPPROTO_MAX) {
-    return pfwl_l4_protocols_names[protocol];
-  } else {
-    return "Unknown";
-  }
+  return pfwl_l4_protocols_names[protocol];
 }
 
 pfwl_protocol_l4_t pfwl_get_L4_protocol_id(const char *const name) {

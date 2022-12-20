@@ -127,7 +127,7 @@ static size_t convert_length_connection(size_t len){
 }
 */
 
-static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const size_t ver_len) {
+static int quic_version_tostring(const uint32_t qver, char *ver, const size_t ver_len) {
   size_t len = 0;
 
   switch (qver) {

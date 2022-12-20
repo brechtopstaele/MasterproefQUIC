@@ -447,7 +447,7 @@ static
 
 unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
                                                     uint32_t current_time, uint16_t offset, uint8_t more_fragments,
-                                                    int tid) {
+                                                    int) {
   struct iphdr *iph = (struct iphdr *) data;
 
   pfwl_ipv4_fragmentation_source_t *source;

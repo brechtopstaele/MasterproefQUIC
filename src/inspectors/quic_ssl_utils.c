@@ -403,8 +403,8 @@ int HKDF_Expand(const unsigned char *key, const size_t key_len, const unsigned c
   return len;
 }
 
-int hkdf_create_tls13_label(const unsigned int a, const unsigned char *label, unsigned char *out, size_t out_len) {
-  unsigned char pref_label[] = "tls13 ";
+int hkdf_create_tls13_label(const unsigned int a, const char *label, unsigned char *out, size_t out_len) {
+  char pref_label[] = "tls13 ";
   size_t pref_label_len = strlen(pref_label);
   size_t label_len = strlen(label);
   size_t v_label_len = pref_label_len + label_len;

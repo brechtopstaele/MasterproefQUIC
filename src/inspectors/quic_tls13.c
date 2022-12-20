@@ -322,12 +322,18 @@ static bool reassembled_state_add_data(reassembled_state_t *reassembled_state, s
 
 static size_t handle_frame_00(const unsigned char *tls_data, const unsigned char *tls_data_end,
                               reassembled_state_t *reassembled_state) {
+  (void) tls_data;
+  (void) tls_data_end;
+  (void) reassembled_state;
   /* frame 00 is padding, skip it */
   return 1;
 }
 
 static size_t handle_frame_01(const unsigned char *tls_data, const unsigned char *tls_data_end,
                               reassembled_state_t *reassembled_state) {
+  (void) tls_data;
+  (void) tls_data_end;
+  (void) reassembled_state;
   /* frame 01 is ping, skip it */
   return 1;
 }
@@ -460,7 +466,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
     unsigned char md5[16];
     size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5);
 
-    unsigned char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
+    char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
 
     for (size_t n = 0; n < md5sum_len; n++) {
       sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
@@ -469,7 +475,8 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 
     // printf("JA3 md5 %s\n", ja3_start);
 
-    pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, ja3_start, md5sum_len * 2);
+    pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
+                          md5sum_len * 2);
   }
   // printf("JA3:");
   // debug_print_rawfield(md5sum, 0, md5sum_len);
