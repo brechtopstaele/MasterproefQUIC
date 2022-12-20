@@ -35,11 +35,6 @@
 #define PFWL_MAX_INT_32 4294967295
 #define PFWL_TCP_MAX_IN_TRAVEL_DATA 2147483648 /** 2^31 **/
 
-#define SET_BIT(val, bitIndex) val |= (1 << bitIndex)
-#define CLEAR_BIT(val, bitIndex) val &= ~(1 << bitIndex)
-#define TOGGLE_BIT(val, bitIndex) val ^= (1 << bitIndex)
-#define BIT_IS_SET(val, bitIndex) (val & (1 << bitIndex))
-
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
 #define BITSLOT(b) ((b) / CHAR_BIT)                  /** Gets the byte in which the b-th bit is located. **/
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b)) /** Sets in the mask a the b-th bit. **/

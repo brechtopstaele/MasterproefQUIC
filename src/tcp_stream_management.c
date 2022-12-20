@@ -38,6 +38,11 @@
 #include <string.h>
 #include <strings.h>
 
+#define SET_BIT(val, bitIndex) val |= (1 << bitIndex)
+#define CLEAR_BIT(val, bitIndex) val &= ~(1 << bitIndex)
+#define TOGGLE_BIT(val, bitIndex) val ^= (1 << bitIndex)
+#define BIT_IS_SET(val, bitIndex) (val & (1 << bitIndex))
+
 #define PFWL_DEBUG_TCP_REORDERING 0
 #define debug_print(fmt, ...)            \
   do {                                   \
