@@ -14,6 +14,7 @@ option (ENABLE_CLANGFORMAT "Enables clang-format formatting" OFF)
 option (ENABLE_PYTHON "Enables generation of Python code" OFF)
 option (ENABLE_C "Enables generation of C/C++ libraries" ON)
 option (ENABLE_DEMO "Install demo executables" OFF)
+option (ENABLE_OPENSSL "Enable the search of OpenSSL" ON)
 
 add_compile_options(-Wall -Wextra -pedantic)
 
@@ -22,7 +23,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GNU_SOURCE")
 
 find_package(PCAP)
-find_package(OpenSSL)
+if (ENABLE_OPENSSL)
+  find_package(OpenSSL)
+endif (ENABLE_OPENSSL)
 
 # This must be the first thing done, since COVERAGE_COMPILER_FLAGS must be used by all the targets
 ###########

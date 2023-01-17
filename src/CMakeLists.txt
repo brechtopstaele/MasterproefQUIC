@@ -2,7 +2,7 @@
 # Src and header files #
 ########################
 include_directories(${CMAKE_SOURCE_DIR}/include)
-file(GLOB SOURCES "*.cpp" "*.c" "inspectors/*.cpp" "inspectors/*.c" "external/md5.c")
+file(GLOB SOURCES "*.cpp" "*.c" "inspectors/*.cpp" "inspectors/*.c")
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/worker.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_mc.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_py.cpp")
 
 if (PCAP_FOUND)
@@ -14,6 +14,8 @@ if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIR})
   link_libraries(${OPENSSL_LIBRARIES})
   add_definitions(-DHAVE_OPENSSL)
+else()
+  list(APPEND SOURCES "${CMAKE_SOURCE_DIR}/src/external/md5.c")
 endif(OPENSSL_FOUND)
 
 ####################
