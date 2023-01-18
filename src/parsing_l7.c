@@ -54,74 +54,139 @@
       fprintf(stderr, fmt, __VA_ARGS__); \
   } while (0)
 
-// clang-format off
-static const pfwl_protocol_l7_t pfwl_known_ports_tcp[PFWL_MAX_UINT_16 + 1] = {
-  [0 ... PFWL_MAX_UINT_16] = PFWL_PROTO_L7_UNKNOWN,
-  [port_dns] = PFWL_PROTO_L7_DNS,
-  [port_http] = PFWL_PROTO_L7_HTTP,
-  [port_bgp] = PFWL_PROTO_L7_BGP,
-  [port_smtp_1] = PFWL_PROTO_L7_SMTP,
-  [port_smtp_2] = PFWL_PROTO_L7_SMTP,
-  [port_smtp_ssl] = PFWL_PROTO_L7_SMTP,
-  [port_pop3] = PFWL_PROTO_L7_POP3,
-  [port_pop3_ssl] = PFWL_PROTO_L7_POP3,
-  [port_imap] = PFWL_PROTO_L7_IMAP,
-  [port_imap_ssl] = PFWL_PROTO_L7_IMAP,
-  [port_ssl] = PFWL_PROTO_L7_SSL,
-  [port_tor] = PFWL_PROTO_L7_TOR,
-  [port_hangout_19305] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19306] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19307] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19308] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19309] = PFWL_PROTO_L7_HANGOUT,
-  [port_ssh] = PFWL_PROTO_L7_SSH,
-  [port_bitcoin] = PFWL_PROTO_L7_BITCOIN,
-  [port_monero_p2p_1] = PFWL_PROTO_L7_MONERO,
-  [port_monero_p2p_2] = PFWL_PROTO_L7_MONERO,
-  [port_monero_rpc_1] = PFWL_PROTO_L7_MONERO,
-  [port_monero_rpc_2] = PFWL_PROTO_L7_MONERO,
-  [port_stun] = PFWL_PROTO_L7_STUN,
-  [port_stun_tls] = PFWL_PROTO_L7_STUN,
-  [port_mqtt] = PFWL_PROTO_L7_MQTT,
-  [port_mqtt_ssl] = PFWL_PROTO_L7_MQTT,
-  [port_viber_1] = PFWL_PROTO_L7_VIBER,
-  [port_viber_3] = PFWL_PROTO_L7_VIBER,
-  [port_viber_4] = PFWL_PROTO_L7_VIBER,
-  [port_viber_5] = PFWL_PROTO_L7_VIBER,
-  [port_kerberos] = PFWL_PROTO_L7_KERBEROS,
-  [port_git] = PFWL_PROTO_L7_GIT,
-};
+typedef pfwl_protocol_l7_t (*pfwl_get_known_port_fp)(u_int16_t);
 
-static const pfwl_protocol_l7_t pfwl_known_ports_udp[PFWL_MAX_UINT_16 + 1] = {
-  [0 ... PFWL_MAX_UINT_16] = PFWL_PROTO_L7_UNKNOWN,
-  [port_dns] = PFWL_PROTO_L7_DNS,
-  [port_mdns] = PFWL_PROTO_L7_MDNS,
-  [port_dhcp_1] = PFWL_PROTO_L7_DHCP,
-  [port_dhcp_2] = PFWL_PROTO_L7_DHCP,
-  [port_dhcpv6_1] = PFWL_PROTO_L7_DHCPv6,
-  [port_dhcpv6_2] = PFWL_PROTO_L7_DHCPv6,
-  [port_sip] = PFWL_PROTO_L7_SIP,
-  [port_ntp] = PFWL_PROTO_L7_NTP,
-  [port_hangout_19302] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19303] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19304] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19305] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19306] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19307] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19308] = PFWL_PROTO_L7_HANGOUT,
-  [port_hangout_19309] = PFWL_PROTO_L7_HANGOUT,
-  [port_dropbox] = PFWL_PROTO_L7_DROPBOX,
-  [port_spotify] = PFWL_PROTO_L7_SPOTIFY,
-  [port_ssdp] = PFWL_PROTO_L7_SSDP,
-  [port_stun] = PFWL_PROTO_L7_STUN,
-  [port_viber_1] = PFWL_PROTO_L7_VIBER,
-  [port_viber_2] = PFWL_PROTO_L7_VIBER,
-  [port_viber_3] = PFWL_PROTO_L7_VIBER,
-  [port_viber_4] = PFWL_PROTO_L7_VIBER,
-  [port_viber_5] = PFWL_PROTO_L7_VIBER,
-  [port_kerberos] = PFWL_PROTO_L7_KERBEROS,
-};
-// clang-format on
+static pfwl_protocol_l7_t pfwl_known_ports_tcp(u_int16_t port) {
+  switch (port) {
+  case port_dns:
+    return PFWL_PROTO_L7_DNS;
+  case port_http:
+    return PFWL_PROTO_L7_HTTP;
+  case port_bgp:
+    return PFWL_PROTO_L7_BGP;
+  case port_smtp_1:
+    return PFWL_PROTO_L7_SMTP;
+  case port_smtp_2:
+    return PFWL_PROTO_L7_SMTP;
+  case port_smtp_ssl:
+    return PFWL_PROTO_L7_SMTP;
+  case port_pop3:
+    return PFWL_PROTO_L7_POP3;
+  case port_pop3_ssl:
+    return PFWL_PROTO_L7_POP3;
+  case port_imap:
+    return PFWL_PROTO_L7_IMAP;
+  case port_imap_ssl:
+    return PFWL_PROTO_L7_IMAP;
+  case port_ssl:
+    return PFWL_PROTO_L7_SSL;
+  case port_tor:
+    return PFWL_PROTO_L7_TOR;
+  case port_hangout_19305:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19306:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19307:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19308:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19309:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_ssh:
+    return PFWL_PROTO_L7_SSH;
+  case port_bitcoin:
+    return PFWL_PROTO_L7_BITCOIN;
+  case port_monero_p2p_1:
+    return PFWL_PROTO_L7_MONERO;
+  case port_monero_p2p_2:
+    return PFWL_PROTO_L7_MONERO;
+  case port_monero_rpc_1:
+    return PFWL_PROTO_L7_MONERO;
+  case port_monero_rpc_2:
+    return PFWL_PROTO_L7_MONERO;
+  case port_stun:
+    return PFWL_PROTO_L7_STUN;
+  case port_stun_tls:
+    return PFWL_PROTO_L7_STUN;
+  case port_mqtt:
+    return PFWL_PROTO_L7_MQTT;
+  case port_mqtt_ssl:
+    return PFWL_PROTO_L7_MQTT;
+  case port_viber_1:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_3:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_4:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_5:
+    return PFWL_PROTO_L7_VIBER;
+  case port_kerberos:
+    return PFWL_PROTO_L7_KERBEROS;
+  case port_git:
+    return PFWL_PROTO_L7_GIT;
+  default:
+    return PFWL_PROTO_L7_UNKNOWN;
+  }
+}
+
+static pfwl_protocol_l7_t pfwl_known_ports_udp(u_int16_t port) {
+  switch (port) {
+  case port_dns:
+    return PFWL_PROTO_L7_DNS;
+  case port_mdns:
+    return PFWL_PROTO_L7_MDNS;
+  case port_dhcp_1:
+    return PFWL_PROTO_L7_DHCP;
+  case port_dhcp_2:
+    return PFWL_PROTO_L7_DHCP;
+  case port_dhcpv6_1:
+    return PFWL_PROTO_L7_DHCPv6;
+  case port_dhcpv6_2:
+    return PFWL_PROTO_L7_DHCPv6;
+  case port_sip:
+    return PFWL_PROTO_L7_SIP;
+  case port_ntp:
+    return PFWL_PROTO_L7_NTP;
+  case port_hangout_19302:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19303:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19304:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19305:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19306:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19307:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19308:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_hangout_19309:
+    return PFWL_PROTO_L7_HANGOUT;
+  case port_dropbox:
+    return PFWL_PROTO_L7_DROPBOX;
+  case port_spotify:
+    return PFWL_PROTO_L7_SPOTIFY;
+  case port_ssdp:
+    return PFWL_PROTO_L7_SSDP;
+  case port_stun:
+    return PFWL_PROTO_L7_STUN;
+  case port_viber_1:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_2:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_3:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_4:
+    return PFWL_PROTO_L7_VIBER;
+  case port_viber_5:
+    return PFWL_PROTO_L7_VIBER;
+  case port_kerberos:
+    return PFWL_PROTO_L7_KERBEROS;
+  default:
+    return PFWL_PROTO_L7_UNKNOWN;
+  }
+}
 
 typedef enum {
   PFWL_L7_TRANSPORT_TCP = 0,
@@ -317,7 +382,7 @@ static int inspect_protocol(pfwl_protocol_l4_t protocol_l4, const pfwl_protocol_
 
 void pfwl_dissect_L7_sub(pfwl_state_t *state, const unsigned char *pkt, size_t length,
                          pfwl_dissection_info_t *diss_info, pfwl_flow_info_private_t *flow_info_private) {
-  const pfwl_protocol_l7_t *well_known_ports;
+  pfwl_get_known_port_fp well_known_ports;
   pfwl_protocol_l7_t i;
   uint8_t check_result = PFWL_PROTOCOL_NO_MATCHES;
 
@@ -335,8 +400,8 @@ void pfwl_dissect_L7_sub(pfwl_state_t *state, const unsigned char *pkt, size_t l
     pfwl_protocol_l7_t first_to_check;
     pfwl_protocol_l7_t checked = 0;
 
-    if ((first_to_check = well_known_ports[diss_info->l4.port_src]) == PFWL_PROTO_L7_UNKNOWN &&
-        (first_to_check = well_known_ports[diss_info->l4.port_dst]) == PFWL_PROTO_L7_UNKNOWN) {
+    if ((first_to_check = well_known_ports(diss_info->l4.port_src)) == PFWL_PROTO_L7_UNKNOWN &&
+        (first_to_check = well_known_ports(diss_info->l4.port_dst)) == PFWL_PROTO_L7_UNKNOWN) {
       first_to_check = 0;
     }
 
@@ -518,13 +583,13 @@ pfwl_status_t pfwl_dissect_L7(pfwl_state_t *state, const unsigned char *pkt, siz
 pfwl_protocol_l7_t pfwl_guess_protocol(pfwl_dissection_info_t identification_info) {
   pfwl_protocol_l7_t r = PFWL_PROTO_L7_UNKNOWN;
   if (identification_info.l4.protocol == IPPROTO_TCP) {
-    r = pfwl_known_ports_tcp[identification_info.l4.port_src];
+    r = pfwl_known_ports_tcp(identification_info.l4.port_src);
     if (r == PFWL_PROTO_L7_UNKNOWN)
-      r = pfwl_known_ports_tcp[identification_info.l4.port_dst];
+      r = pfwl_known_ports_tcp(identification_info.l4.port_dst);
   } else if (identification_info.l4.protocol == IPPROTO_UDP) {
-    r = pfwl_known_ports_udp[identification_info.l4.port_src];
+    r = pfwl_known_ports_udp(identification_info.l4.port_src);
     if (r == PFWL_PROTO_L7_UNKNOWN) {
-      r = pfwl_known_ports_udp[identification_info.l4.port_dst];
+      r = pfwl_known_ports_udp(identification_info.l4.port_dst);
     }
   } else {
     r = PFWL_PROTO_L7_UNKNOWN;

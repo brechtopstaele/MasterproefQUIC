@@ -89,17 +89,17 @@ typedef enum {
   VER_Q050 = 0x51303530,
   VER_T050 = 0x54303530,
   VER_T051 = 0x54303531,
-  VER_MVFST_22 = 0xfaceb001,
-  VER_MVFST_27 = 0xfaceb002,
-  VER_MVFST_EXP = 0xfaceb00e,
-  VER_DRAFT22 = 0xff000016,
-  VER_DRAFT23 = 0xff000017,
-  VER_DRAFT24 = 0xff000018,
-  VER_DRAFT25 = 0xff000019,
-  VER_DRAFT26 = 0xff00001a,
-  VER_DRAFT27 = 0xff00001b,
-  VER_DRAFT28 = 0xff00001c,
-  VER_DRAFT29 = 0xff00001d,
+  VER_MVFST_22 = (int) 0xfaceb001,
+  VER_MVFST_27 = (int) 0xfaceb002,
+  VER_MVFST_EXP = (int) 0xfaceb00e,
+  VER_DRAFT22 = (int) 0xff000016,
+  VER_DRAFT23 = (int) 0xff000017,
+  VER_DRAFT24 = (int) 0xff000018,
+  VER_DRAFT25 = (int) 0xff000019,
+  VER_DRAFT26 = (int) 0xff00001a,
+  VER_DRAFT27 = (int) 0xff00001b,
+  VER_DRAFT28 = (int) 0xff00001c,
+  VER_DRAFT29 = (int) 0xff00001d,
   VER_ONE = 0x00000001,
 } quic_version_t;
 
@@ -474,7 +474,8 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
     if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_VERSION)) {
       scratchpad = state->scratchpad + state->scratchpad_next_byte;
       size_t ver_str_len = quic_version_tostring(quic_info.version, scratchpad, 32);
-      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, scratchpad, ver_str_len);
+      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION,
+                            (const unsigned char *) scratchpad, ver_str_len);
       state->scratchpad_next_byte += ver_str_len;
     }
 
@@ -513,7 +514,8 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
                 if (start_content + offset + length <= data_length) {
                   scratchpad = state->scratchpad + state->scratchpad_next_byte;
                   memcpy(scratchpad, &quic_info.decrypted_payload[start_content + offset], length);
-                  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, scratchpad, length);
+                  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI,
+                                        (const unsigned char *) scratchpad, length);
                   state->scratchpad_next_byte += length;
                 }
               }
@@ -527,7 +529,8 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
                 if (start_content + offset + length <= data_length) {
                   scratchpad = state->scratchpad + state->scratchpad_next_byte;
                   memcpy(scratchpad, &quic_info.decrypted_payload[start_content + offset], length);
-                  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, scratchpad, length);
+                  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID,
+                                        (const unsigned char *) scratchpad, length);
                   state->scratchpad_next_byte += length;
                 }
               }
@@ -545,6 +548,12 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
 #else
 uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                     pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) app_data;
+  (void) data_length;
+  (void) pkt_info;
+  (void) flow_info_private;
+
   return PFWL_PROTOCOL_NO_MATCHES;
 }
 #endif

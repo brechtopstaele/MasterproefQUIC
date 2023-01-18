@@ -109,14 +109,14 @@ typedef struct _rtcp_sr {
   uint32_t ssrc;
   sender_info_t si;
   report_block_t rb[1];
-} rtcp_sr_t;
+} __attribute__((packed)) rtcp_sr_t;
 
 /* Receiver Report */
 typedef struct _rtcp_rr {
   struct rtcp_header header;
   uint32_t ssrc;
   report_block_t rb[1];
-} rtcp_rr_t;
+} __attribute__((packed)) rtcp_rr_t;
 
 /* Source Descrption Items*/
 typedef struct _rtcp_sdes_item {
@@ -130,7 +130,7 @@ typedef struct _rtcp_sdes_t {
   struct rtcp_header header;
   uint32_t csrc;
   rtcp_sdes_item_t item[1];
-} rtcp_sdes_t;
+} __attribute__((packed)) rtcp_sdes_t;
 
 /* Goodbye */
 /* typedef struct _rtcp_bye */

@@ -42,6 +42,8 @@
 
 #define PFWL_MAX_SSL_REQUEST_SIZE 10000
 
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 // GREASE_TABLE Ref: https://tools.ietf.org/html/draft-davidben-tls-grease-00
 const uint32_t GREASE_TABLE[] = {0x0a0a, 0x1a1a, 0x2a2a, 0x3a3a, 0x4a4a, 0x5a5a, 0x6a6a, 0x7a7a,
                                  0x8a8a, 0x9a9a, 0xaaaa, 0xbaba, 0xcaca, 0xdada, 0xeaea, 0xfafa};
@@ -137,7 +139,7 @@ static void stripCertificateTrailer(char *buffer, int *buffer_len) {
 
 static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_private, int offset,
                              const unsigned char *payload, uint16_t extensions_len, uint extension_offset,
-                             size_t data_length, char *buffer, int buffer_len, pfwl_field_t *fields,
+                             size_t data_length, char *buffer, size_t buffer_len, pfwl_field_t *fields,
                              uint32_t *next_server_extension, uint32_t *remaining_extension_len,
                              size_t scratchpad_start, uint8_t handshake_msg_type) {
   char *extensions = state->scratchpad + state->scratchpad_next_byte;
@@ -183,7 +185,7 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           break;
       }
 
-      len = (u_int) PFWL_MIN(extension_len - begin, buffer_len - 1);
+      len = MIN(extension_len - begin, buffer_len - 1);
       strncpy(buffer, &server_name[begin], len);
       buffer[len] = '\0';
       stripCertificateTrailer(buffer, (int *) &buffer_len);
@@ -323,7 +325,7 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
 /* Code fixes courtesy of Alexsandro Brahm <alex@digistar.com.br> */
 static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_private, uint32_t proc_bytes,
                              const unsigned char *hdr, const unsigned char *payload, size_t data_length, char *buffer,
-                             int buffer_len, pfwl_field_t *fields, uint32_t *next_server_extension,
+                             size_t buffer_len, pfwl_field_t *fields, uint32_t *next_server_extension,
                              uint32_t *remaining_extension_len) {
   /*
     Nothing matched so far: let's decode the certificate with some heuristics
@@ -359,7 +361,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
     // Here we are sure we saw the client certificate
 
     /* Check after handshake protocol header (5 bytes) and message header (4 bytes) */
-    int i;
+    size_t i;
     int first_payload_byte = 9 - proc_bytes;
     if (first_payload_byte < 0) {
       first_payload_byte = 0;
@@ -421,7 +423,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
   }
 
   if (handshake_msg_type == CLIENT_HELLO || handshake_msg_type == SERVER_HELLO) {
-    int base_offset = 43;
+    size_t base_offset = 43;
     if (*next_server_extension) {
       return processExtensions(state, flow_info_private, 0, payload, *remaining_extension_len, *next_server_extension,
                                data_length, buffer, buffer_len, fields, next_server_extension, remaining_extension_len,
@@ -432,7 +434,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
 
       // TODO: Replace ssl_length with data_length, and if checks are not satisfied manage segmentation
       if ((session_id_len + base_offset + 2) <= ssl_length) {
-        int offset;
+        size_t offset;
         u_int16_t cypher_len;
         uint cypher_offset;
         if (handshake_msg_type == CLIENT_HELLO) {
@@ -555,7 +557,7 @@ uint8_t check_ssl(pfwl_state_t *state, const unsigned char *payload, size_t data
   uint32_t *proc_bytes = &(flow_info_private->ssl_information.processed_bytes[pkt_info->l4.direction]);
   if (*hdr_next < 6) {
     size_t i = 0;
-    for (i = 0; i < data_length && i < 6 - *hdr_next; i++) {
+    for (i = 0; i < data_length && i < 6u - *hdr_next; i++) {
       hdr[i + *hdr_next] = payload[i];
     }
     *hdr_next = i;

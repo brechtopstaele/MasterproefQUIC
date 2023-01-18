@@ -46,6 +46,8 @@ static void ssh_zap_cr(char *str, int len) {
 
 uint8_t check_ssh(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+
   if (pkt_info->l4.direction == 0) {
     // Client -> Server)
     if (data_length > 7 && data_length < 100 && memcmp(app_data, "SSH-", 4) == 0) {

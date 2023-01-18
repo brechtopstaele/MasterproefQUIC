@@ -28,6 +28,8 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
+#include "common_utils.h"
+
 #define FMASK 0x8000
 #define QUERY 0
 #define ANSWER 1
@@ -64,16 +66,6 @@ struct dns_header {
   u_int16_t auth_rrs;
   u_int16_t add_rrs;
 } __attribute__((packed));
-
-/**
-   #param uint16_t
-   #param int
-   #param int
-   @return n bit from position p of number x
-**/
-static inline uint8_t getBits(uint16_t x, uint p, uint n) {
-  return (x >> (p + 1 - n)) & ~(~0 << n);
-}
 
 /**
    #param const unsigned char*
@@ -214,7 +206,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
         pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
 
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_TYPE))
-        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, "Query", 6);
+        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, (const unsigned char *) "Query", 6);
 
       /** check accuracy type for fields parsing **/
       if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {
@@ -245,7 +237,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
         pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
 
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_TYPE))
-        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, "Answer", 7);
+        pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, (const unsigned char *) "Answer", 7);
 
       /** check accuracy type for fields parsing **/
       if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {

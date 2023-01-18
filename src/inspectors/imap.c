@@ -32,6 +32,9 @@
 
 uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) pkt_info;
+
   uint16_t i = 0;
   uint16_t space_pos = 0;
   uint16_t command_start = 0;
@@ -89,7 +92,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
         /* command = &(app_data[command_start]); */
       }
 
-      if ((command_start + 3) < data_length) {
+      if ((command_start + 3u) < data_length) {
         if ((app_data[command_start] == 'O' || app_data[command_start] == 'o') &&
             (app_data[command_start + 1] == 'K' || app_data[command_start + 1] == 'k') &&
             app_data[command_start + 2] == ' ') {
@@ -104,7 +107,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 10) < data_length) {
+      if ((command_start + 10u) < data_length) {
         if ((app_data[command_start] == 'C' || app_data[command_start] == 'c') &&
             (app_data[command_start + 1] == 'A' || app_data[command_start + 1] == 'a') &&
             (app_data[command_start + 2] == 'P' || app_data[command_start + 2] == 'p') &&
@@ -119,7 +122,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 8) < data_length) {
+      if ((command_start + 8u) < data_length) {
         if ((app_data[command_start] == 'S' || app_data[command_start] == 's') &&
             (app_data[command_start + 1] == 'T' || app_data[command_start + 1] == 't') &&
             (app_data[command_start + 2] == 'A' || app_data[command_start + 2] == 'a') &&
@@ -133,7 +136,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 5) < data_length) {
+      if ((command_start + 5u) < data_length) {
         if ((app_data[command_start] == 'L' || app_data[command_start] == 'l') &&
             (app_data[command_start + 1] == 'O' || app_data[command_start + 1] == 'o') &&
             (app_data[command_start + 2] == 'G' || app_data[command_start + 2] == 'g') &&
@@ -171,7 +174,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 12) < data_length) {
+      if ((command_start + 12u) < data_length) {
         if ((app_data[command_start] == 'A' || app_data[command_start] == 'a') &&
             (app_data[command_start + 1] == 'U' || app_data[command_start + 1] == 'u') &&
             (app_data[command_start + 2] == 'T' || app_data[command_start + 2] == 't') &&
@@ -188,7 +191,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 9) < data_length) {
+      if ((command_start + 9u) < data_length) {
         if ((app_data[command_start] == 'N' || app_data[command_start] == 'n') &&
             (app_data[command_start + 1] == 'A' || app_data[command_start + 1] == 'a') &&
             (app_data[command_start + 2] == 'M' || app_data[command_start + 2] == 'm') &&
@@ -202,7 +205,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 4) < data_length) {
+      if ((command_start + 4u) < data_length) {
         if ((app_data[command_start] == 'L' || app_data[command_start] == 'l') &&
             (app_data[command_start + 1] == 'S' || app_data[command_start + 1] == 's') &&
             (app_data[command_start + 2] == 'U' || app_data[command_start + 2] == 'u') &&
@@ -229,7 +232,7 @@ uint8_t check_imap(pfwl_state_t *state, const unsigned char *app_data, size_t da
           saw_command = 1;
         }
       }
-      if ((command_start + 6) < data_length) {
+      if ((command_start + 6u) < data_length) {
         if ((app_data[command_start] == 'S' || app_data[command_start] == 's') &&
             (app_data[command_start + 1] == 'E' || app_data[command_start + 1] == 'e') &&
             (app_data[command_start + 2] == 'L' || app_data[command_start + 2] == 'l') &&

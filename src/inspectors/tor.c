@@ -33,6 +33,10 @@
 
 uint8_t check_tor(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) data_length;
+  (void) flow_info_private;
+
   if (((app_data[0] == 0x17) || (app_data[0] == 0x16)) && (app_data[1] == 0x03) && (app_data[2] == 0x01) &&
       (app_data[3] == 0x00) &&
       (pkt_info->l4.port_src == port_tor ||

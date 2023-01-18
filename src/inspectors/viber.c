@@ -32,6 +32,10 @@
 #include <peafowl/peafowl.h>
 uint8_t check_viber(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                     pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) pkt_info;
+  (void) flow_info_private;
+
   if (app_data) {
     if ((data_length == 12 && app_data[2] == 0x03 && app_data[3] == 0x00) ||
         (data_length == 20 && app_data[2] == 0x09 && app_data[3] == 0x00) ||

@@ -403,7 +403,9 @@ int HKDF_Expand(const unsigned char *key, const size_t key_len, const unsigned c
   return len;
 }
 
+// TODO: use this out_len param
 int hkdf_create_tls13_label(const unsigned int a, const char *label, unsigned char *out, size_t out_len) {
+  (void) out_len;
   char pref_label[] = "tls13 ";
   size_t pref_label_len = strlen(pref_label);
   size_t label_len = strlen(label);

@@ -47,6 +47,8 @@ static uint8_t mqtt_validate_length(const unsigned char *app_data, size_t data_l
 
 uint8_t check_mqtt(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+
   uint8_t control_hdr = app_data[0];
   uint8_t pkt_type = control_hdr >> 4;
   uint8_t len_valid = mqtt_validate_length(app_data, data_length);

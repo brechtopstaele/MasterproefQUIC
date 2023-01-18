@@ -144,7 +144,7 @@
 #define REGISTRATION_5XX_TERMINATION 4
 #define REGISTRATION_6XX_TERMINATION 5
 
-uint8_t getUser(pfwl_field_t *user, pfwl_field_t *domain, const unsigned char *s, int len) {
+uint8_t getUser(pfwl_field_t *user, pfwl_field_t *domain, const unsigned char *s, unsigned int len) {
   enum state { URI_BEGIN, URI_USER, URI_PARAM, URI_PASSWORD, URI_HOST_IPV6, URI_HOST, URI_HOST_END, URI_END, URI_OFF };
 
   enum state st;
@@ -345,7 +345,7 @@ int parseSdpCLine(pfwl_sip_miprtcp_t *mp, const unsigned char *data, size_t len)
   /* c=IN IP4 224.2.17.12 */
 
   enum state st;
-  int last_offset = 0, i;
+  size_t last_offset = 0, i;
 
   st = ST_NETTYPE;
   last_offset = 0;
@@ -390,7 +390,7 @@ int parseSdpMLine(pfwl_sip_miprtcp_t *mp, const unsigned char *data, size_t len)
   enum state { ST_TYPE, ST_PORT, ST_AVP, ST_CODEC, ST_END };
 
   enum state st;
-  int last_offset = 0, i;
+  size_t last_offset = 0, i;
 
   st = ST_TYPE;
   last_offset = 0;
@@ -442,7 +442,7 @@ int parseSdpALine(pfwl_sip_miprtcp_t *mp, const unsigned char *data, size_t len)
   enum state { ST_START, ST_PROTO, ST_TYPE, ST_IP, ST_END };
 
   enum state st;
-  int last_offset = 0, i;
+  size_t last_offset = 0, i;
 
   st = ST_START;
   last_offset = 0;
@@ -493,7 +493,7 @@ int parseSdpARtpMapLine(pfwl_sip_codecmap_t *cp, const unsigned char *data, size
   enum state { ST_START, ST_NAME, ST_RATE, ST_END };
 
   enum state st;
-  int last_offset = 0, i;
+  size_t last_offset = 0, i;
 
   st = ST_START;
   last_offset = 0;
@@ -511,7 +511,7 @@ int parseSdpARtpMapLine(pfwl_sip_codecmap_t *cp, const unsigned char *data, size
     case ST_NAME:
       if (data[i] == '/') {
         st = ST_RATE;
-        snprintf(cp->name, sizeof(cp->name), "%.*s", (i - last_offset) - 1, data + last_offset + 1);
+        snprintf(cp->name, sizeof(cp->name), "%.*s", (int) (i - last_offset) - 1, data + last_offset + 1);
         last_offset = i;
       }
       break;
@@ -675,7 +675,7 @@ int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, i
 }
 
 int parseVQRtcpXR(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_private, const unsigned char *body,
-                  pfwl_sip_internal_information_t *psip, pfwl_field_t *extracted_fields_sip) {
+                  pfwl_field_t *extracted_fields_sip) {
   const unsigned char *c, *tmp;
   int offset, last_offset;
 
@@ -708,7 +708,9 @@ int parseVQRtcpXR(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_priva
   return 1;
 }
 
+// TODO: use len param
 pfwl_sip_method_t getMethodType(const char *s, size_t len) {
+  (void) len;
   if ((*s == 'I' || *s == 'i') && !memcmp(s, INVITE_METHOD, INVITE_LEN)) {
     return INVITE;
   } else if ((*s == 'A' || *s == 'a') && !memcmp(s, ACK_METHOD, ACK_LEN)) {
@@ -985,7 +987,7 @@ uint8_t parse_message(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_p
         if (sip_info->hasSdp) {
           parseSdp(c, sip_info, contentLength);
         } else if (sip_info->hasVqRtcpXR) {
-          parseVQRtcpXR(state, flow_info_private, c, sip_info, extracted_fields_sip);
+          parseVQRtcpXR(state, flow_info_private, c, extracted_fields_sip);
         }
         break;
       }

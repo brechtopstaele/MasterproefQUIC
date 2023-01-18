@@ -35,6 +35,8 @@
 #include <peafowl/tcp_stream_management.h>
 #include <peafowl/utils.h>
 
+#include "common_utils.h"
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <net/ethernet.h>
@@ -205,14 +207,6 @@ static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type, uint16_t o
     break;
   }
   return dlink_offset;
-}
-
-/*
-  Function for pfwl_parse_datalink()
-  @return n bit from position p of number x
-*/
-static inline uint8_t getBits(uint16_t x, int p, int n) {
-  return (x >> (p + 1 - n)) & ~(~0 << n);
 }
 
 pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t datalink_type,

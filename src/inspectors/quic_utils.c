@@ -114,15 +114,6 @@ void debug_print_rawfield(const unsigned char *app_data, size_t start_offset, si
   printf("\n");
 }
 
-void debug_print_charfield(const unsigned char *app_data, size_t start_offset, size_t len) {
-  size_t i;
-
-  for (i = 0; i < len; i++) {
-    printf("%C", app_data[start_offset + i]);
-  }
-  printf("\n");
-}
-
 void *memdup(const uint8_t *orig, size_t len) {
   void *dest = malloc(len);
   if (dest)

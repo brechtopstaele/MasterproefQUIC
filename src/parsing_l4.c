@@ -322,84 +322,45 @@ pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state, const unsigned char *pkt
   return status;
 }
 
-static const char *pfwl_l4_protocols_names[IPPROTO_MAX] = {[0 ... IPPROTO_MAX - 1] = "Unknown",
-#ifdef IPPROTO_IP
-                                                           [IPPROTO_IP] = "IP",
-#endif
-#ifdef IPPROTO_ICMP
-                                                           [IPPROTO_ICMP] = "ICMP",
-#endif
-#ifdef IPPROTO_IGMP
-                                                           [IPPROTO_IGMP] = "IGMP",
-#endif
-#ifdef IPPROTO_IPIP
-                                                           [IPPROTO_IPIP] = "IPIP",
-#endif
-#ifdef IPPROTO_TCP
-                                                           [IPPROTO_TCP] = "TCP",
-#endif
-#ifdef IPPROTO_EGP
-                                                           [IPPROTO_EGP] = "EGP",
-#endif
-#ifdef IPPROTO_PUP
-                                                           [IPPROTO_PUP] = "PUP",
-#endif
-#ifdef IPPROTO_UDP
-                                                           [IPPROTO_UDP] = "UDP",
-#endif
-#ifdef IPPROTO_IDP
-                                                           [IPPROTO_IDP] = "IDP",
-#endif
-#ifdef IPPROTO_TP
-                                                           [IPPROTO_TP] = "TP",
-#endif
-#ifdef IPPROTO_DCCP
-                                                           [IPPROTO_DCCP] = "DCCP",
-#endif
-#ifdef IPPROTO_IPV6
-                                                           [IPPROTO_IPV6] = "IPV6",
-#endif
-#ifdef IPPROTO_RSVP
-                                                           [IPPROTO_RSVP] = "RSVP",
-#endif
-#ifdef IPPROTO_GRE
-                                                           [IPPROTO_GRE] = "GRE",
-#endif
-#ifdef IPPROTO_ESP
-                                                           [IPPROTO_ESP] = "ESP",
-#endif
-#ifdef IPPROTO_AH
-                                                           [IPPROTO_AH] = "AH",
-#endif
-                                                           [58] = "ICMPv6",
-#ifdef IPPROTO_MTP
-                                                           [IPPROTO_MTP] = "MTP",
-#endif
-#ifdef IPPROTO_BEETPH
-                                                           [IPPROTO_BEETPH] = "BEETPH",
-#endif
-#ifdef IPPROTO_ENCAP
-                                                           [IPPROTO_ENCAP] = "ENCAP",
-#endif
-#ifdef IPPROTO_PIM
-                                                           [IPPROTO_PIM] = "PIM",
-#endif
-#ifdef IPPROTO_COMP
-                                                           [IPPROTO_COMP] = "COMP",
-#endif
-#ifdef IPPROTO_SCTP
-                                                           [IPPROTO_SCTP] = "SCTP",
-#endif
-#ifdef IPPROTO_UDPLITE
-                                                           [IPPROTO_UDPLITE] = "UDPLITE",
-#endif
-#ifdef IPPROTO_MPLS
-                                                           [IPPROTO_MPLS] = "MPLS",
-#endif
-#ifdef IPPROTO_RAW
-                                                           [IPPROTO_RAW] = "RAW"
-#endif
-};
+//"Unknown",
+static const char *pfwl_l4_protocols_names[IPPROTO_MAX] = {
+    [0] = "IP",     [1] = "ICMP", [2] = "IGMP",    "Unknown",         [4] = "IPIP",   "Unknown",     [6] = "TCP",
+    "Unknown",      [8] = "EGP",  "Unknown",       "Unknown",         "Unknown",      [12] = "PUP",  "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       [17] = "UDP",      "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      [22] = "IDP", "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      [29] = "TP",  "Unknown",       "Unknown",         "Unknown",      [33] = "DCCP", "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     [41] = "IPV6",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         [46] = "RSVP",  [47] = "GRE",  "Unknown",
+    "Unknown",      [50] = "ESP", [51] = "AH",     "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    [58] = "ICMPv6", "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      [92] = "MTP", "Unknown",       [94] = "BEETPH",   "Unknown",      "Unknown",     "Unknown",
+    [98] = "ENCAP", "Unknown",    "Unknown",       "Unknown",         "Unknown",      [103] = "PIM", "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       [108] = "COMP",    "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     [132] = "SCTP",
+    "Unknown",      "Unknown",    "Unknown",       [136] = "UDPLITE", [137] = "MPLS", "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       "Unknown",         "Unknown",      "Unknown",     "Unknown",
+    "Unknown",      "Unknown",    "Unknown",       [255] = "RAW"};
 
 const char *pfwl_get_L4_protocol_name(pfwl_protocol_l4_t protocol) {
   return pfwl_l4_protocols_names[protocol];

@@ -366,9 +366,7 @@ pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt, siz
 }
 
 static const char *pfwl_l3_protocols_names[PFWL_PROTO_L3_NUM] = {
-    [0 ... PFWL_PROTO_L3_NUM - 1] = "",
-    [PFWL_PROTO_L3_IPV4] = "IPv4",
-    [PFWL_PROTO_L3_IPV6] = "IPv6",
+    "", "", "", "", [PFWL_PROTO_L3_IPV4] = "IPv4", "", [PFWL_PROTO_L3_IPV6] = "IPv6",
 };
 
 const char *pfwl_get_L3_protocol_name(pfwl_protocol_l3_t protocol) {

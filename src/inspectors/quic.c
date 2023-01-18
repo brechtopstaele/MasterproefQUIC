@@ -67,7 +67,7 @@ static size_t convert_length_sequence(size_t len) {
   }
 }
 
-static uint16_t quic_getu16(const unsigned char *start, size_t offset, const unsigned char *version_start) {
+static uint16_t quic_getu16(const unsigned char *start, size_t offset) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
   return get_u16((const char *) start, offset);
 #elif __BYTE_ORDER == __BIG_ENDIAN
@@ -78,8 +78,7 @@ static uint16_t quic_getu16(const unsigned char *start, size_t offset, const uns
 #endif
 }
 
-static uint32_t quic_getu32(const unsigned char *start, size_t offset, const unsigned char *version_start) {
-  // int version = atoi((const char*) version_start + 1);
+static uint32_t quic_getu32(const unsigned char *start, size_t offset) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
   return get_u32((const char *) start, offset);
 #elif __BYTE_ORDER == __BIG_ENDIAN
@@ -114,14 +113,14 @@ uint8_t check_quic(pfwl_state_t *state, const unsigned char *app_data, size_t da
             (const char *) app_data + header_estimation, "CHLO", data_length - header_estimation);
         if (chlo_start) {
           debug_print("%s\n", "CHLO found");
-          uint16_t num_tags = quic_getu16(chlo_start, 4, version_start);
+          uint16_t num_tags = quic_getu16(chlo_start, 4);
           size_t start_tags = ((const unsigned char *) chlo_start - app_data) + 8;
           size_t start_content = start_tags + num_tags * 8;
           debug_print("Num tags: %d\n", num_tags);
           u_int32_t last_offset_end = 0;
           for (size_t i = start_tags; i < data_length; i += 8) {
             if (app_data[i] == 'S' && app_data[i + 1] == 'N' && app_data[i + 2] == 'I' && app_data[i + 3] == 0) {
-              u_int32_t offset_end = quic_getu32(app_data, i + 4, version_start);
+              u_int32_t offset_end = quic_getu32(app_data, i + 4);
               debug_print("Offset end: %d Last offset end: %d\n", offset_end, last_offset_end);
               u_int32_t length = offset_end - last_offset_end;
               u_int32_t offset = last_offset_end;
@@ -133,7 +132,7 @@ uint8_t check_quic(pfwl_state_t *state, const unsigned char *app_data, size_t da
                 break;
               }
             }
-            last_offset_end = quic_getu32(app_data, i + 4, version_start);
+            last_offset_end = quic_getu32(app_data, i + 4);
           }
         }
       }

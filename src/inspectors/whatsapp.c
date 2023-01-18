@@ -30,14 +30,19 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 static uint8_t whatsapp_sequence[] = {0x45, 0x44, 0x0,  0x01, 0x0, 0x0, 0x02, 0x08,
                                       0x0,  0x57, 0x41, 0x02, 0x0, 0x0, 0x0};
 
 uint8_t check_whatsapp(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                        pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) pkt_info;
+
   if (flow_info_private->whatsapp_matched_sequence < sizeof(whatsapp_sequence)) {
     if (memcmp(app_data, &whatsapp_sequence[flow_info_private->whatsapp_matched_sequence],
-               PFWL_MIN(sizeof(whatsapp_sequence) - flow_info_private->whatsapp_matched_sequence, data_length))) {
+               MIN(sizeof(whatsapp_sequence) - flow_info_private->whatsapp_matched_sequence, data_length))) {
       return PFWL_PROTOCOL_NO_MATCHES;
     } else {
       flow_info_private->whatsapp_matched_sequence += data_length;

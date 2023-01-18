@@ -54,6 +54,9 @@ static const char *const requests[PFWL_SMTP_NUM_REQUESTS] = {"EHLO ", "EXPN ", "
 
 uint8_t check_smtp(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) pkt_info;
+
   uint8_t i;
   if (data_length < PFWL_SMTP_MAX_RESPONSE_LENGTH) {
     return PFWL_PROTOCOL_MORE_DATA_NEEDED;

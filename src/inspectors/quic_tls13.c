@@ -77,9 +77,12 @@ static unsigned int is_grease(uint32_t x) {
 
 void tls13_parse_google_user_agent(pfwl_state_t *state, const unsigned char *data, size_t len,
                                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) flow_info_private;
+
   char *scratchpad = state->scratchpad + state->scratchpad_next_byte;
   memcpy(scratchpad, data, len);
-  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, scratchpad, len);
+  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, (const unsigned char *) scratchpad,
+                        len);
   state->scratchpad_next_byte += len;
 }
 
@@ -104,8 +107,12 @@ void tls13_parse_quic_transport_params(pfwl_state_t *state, const unsigned char 
   }
 }
 
+// TODO: use this len param
 void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size_t len,
                             pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) len;
+  (void) flow_info_private;
+
   size_t pointer = 0;
   // uint16_t 	list_len = ntohs(*(uint16_t *)(data));
   // size_t 		type 	= data[2];
@@ -114,7 +121,8 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
 
   char *scratchpad = state->scratchpad + state->scratchpad_next_byte;
   memcpy(scratchpad, data + pointer, server_len);
-  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, scratchpad, server_len);
+  pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, (const unsigned char *) scratchpad,
+                        server_len);
   state->scratchpad_next_byte += server_len;
 }
 
@@ -143,7 +151,7 @@ static void parse_ecpf(const unsigned char *data, const unsigned char *data_end,
 
 void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len,
                             pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
-                            unsigned char *ja3_string, size_t *ja3_string_len) {
+                            char *ja3_string, size_t *ja3_string_len) {
   size_t pointer;
   size_t TLVlen;
 
@@ -362,7 +370,7 @@ static size_t handle_frame_06(const unsigned char *tls_data, const unsigned char
 uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t tls_data_length,
                     pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   /* Finger printing */
-  unsigned char ja3_string[1024];
+  char ja3_string[1024];
   size_t ja3_string_len;
 
   size_t tls_pointer = 0;
@@ -464,7 +472,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
     // printf("JA3 String %s\n", ja3_string);
 
     unsigned char md5[16];
-    size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5);
+    size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
 
     char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
 
@@ -495,6 +503,12 @@ end_exit:
 #else
 uint8_t check_tls13(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                     pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) app_data;
+  (void) data_length;
+  (void) pkt_info;
+  (void) flow_info_private;
+
   return PFWL_PROTOCOL_NO_MATCHES;
 }
 #endif

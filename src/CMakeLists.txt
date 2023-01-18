@@ -2,6 +2,7 @@
 # Src and header files #
 ########################
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/include_priv)
 file(GLOB SOURCES "*.cpp" "*.c" "inspectors/*.cpp" "inspectors/*.c")
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/worker.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_mc.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_py.cpp")
 
