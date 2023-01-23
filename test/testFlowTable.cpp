@@ -48,6 +48,8 @@ TEST(FlowTable, MaxFlows) {
   p = initPktInfo(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_DIRECTION_OUTBOUND);
   pfwl_flow_t *fn = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(fn == NULL);
+
+  pfwl_flow_table_delete(table, PFWL_TIMESTAMP_UNIT_SECONDS);
 }
 
 static uint32_t evictedId = 9999;
@@ -85,6 +87,8 @@ TEST(FlowTable, MaxFlowsEviction) {
   pfwl_flow_t *fn = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(fn != NULL);
   EXPECT_EQ(evictedId, 1);
+
+  pfwl_flow_table_delete(table, PFWL_TIMESTAMP_UNIT_SECONDS);
 }
 
 static std::vector<uint32_t> evictedIds;
@@ -116,4 +120,6 @@ TEST(FlowTable, MaxFlowsEvictionMultiple) {
   for (size_t i = 0; i < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE; i++) {
     EXPECT_EQ(evictedIds[i], i);
   }
+
+  pfwl_flow_table_delete(table, PFWL_TIMESTAMP_UNIT_SECONDS);
 }
