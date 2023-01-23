@@ -793,7 +793,7 @@ int light_parse_message(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info
 
   c = app_data;
 
-  for (; *c && c - app_data < new_len; c++) {
+  for (; ((c - app_data) < new_len) && (*c); c++) {
     /* END of Request line and START of all other headers */
     if (*c == '\r' && *(c + 1) == '\n') { /* end of this line */
 
