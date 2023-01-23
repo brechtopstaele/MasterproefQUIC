@@ -640,8 +640,12 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, uint1
   }
 #endif
   pfwl_flow_info_t *finfo = &iterator->info;
-  if (memcmp(&(finfo->addr_src), &(dissection_info->l3.addr_src), sizeof(dissection_info->l3.addr_src)) == 0 &&
-      finfo->port_src == dissection_info->l4.port_src) {
+  if ((finfo->port_src == dissection_info->l4.port_src) &&
+      (((dissection_info->l3.protocol == PFWL_PROTO_L3_IPV4) &&
+        (finfo->addr_src.ipv4 == dissection_info->l3.addr_src.ipv4)) ||
+       ((dissection_info->l3.protocol == PFWL_PROTO_L3_IPV6) &&
+        (memcmp(&finfo->addr_src.ipv6, &dissection_info->l3.addr_src.ipv6, sizeof(dissection_info->l3.addr_src.ipv6)) ==
+         0)))) {
     dissection_info->l4.direction = PFWL_DIRECTION_OUTBOUND;
   } else {
     dissection_info->l4.direction = PFWL_DIRECTION_INBOUND;
