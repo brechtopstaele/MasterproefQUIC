@@ -55,6 +55,9 @@ struct stun_header {
 
 uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  if (data_length < sizeof(struct stun_header))
+    return PFWL_PROTOCOL_MORE_DATA_NEEDED;
+
   struct stun_header *stun_packet = (struct stun_header *) app_data;
   if (stun_packet->zeros == 0 && stun_packet->magic_cookie == STUN_MAGIC_COOKIE) {
     if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS) ||
