@@ -35,6 +35,8 @@
 #include <peafowl/tcp_stream_management.h>
 #include <peafowl/utils.h>
 
+#include "tags.h"
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/ip.h>
@@ -241,6 +243,9 @@ void pfwl_terminate(pfwl_state_t *state) {
     pfwl_tcp_reordering_disable(state);
 
     pfwl_flow_table_delete(state->flow_table, state->ts_unit);
+
+    pfwl_field_tags_delete(state);
+
     free(state);
   }
 }

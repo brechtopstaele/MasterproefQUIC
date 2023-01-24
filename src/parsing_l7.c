@@ -34,6 +34,8 @@
 #include <peafowl/tcp_stream_management.h>
 #include <peafowl/utils.h>
 
+#include "tags.h"
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/ip.h>
@@ -467,9 +469,6 @@ static int8_t pfwl_keep_inspecting(pfwl_state_t *state, pfwl_flow_info_private_t
     return state->fields_support_num[protocol] || state->fields_to_extract_num[protocol];
   }
 }
-
-const char *pfwl_field_string_tag_get(void *db, pfwl_string_t *value);
-const char *pfwl_field_mmap_tag_get(void *db, pfwl_string_t *key, pfwl_string_t *value);
 
 pfwl_status_t pfwl_dissect_L7(pfwl_state_t *state, const unsigned char *pkt, size_t length,
                               pfwl_dissection_info_t *diss_info, pfwl_flow_info_private_t *flow_info_private) {

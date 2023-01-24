@@ -204,8 +204,17 @@ extern "C" void pfwl_field_mmap_tags_add_L7(pfwl_state_t *state, pfwl_field_id_t
 extern "C" void pfwl_field_tags_unload_L7(pfwl_state_t *state, pfwl_field_id_t field) {
   if (state->tags_matchers[field]) {
     state->tags_matchers_num--;
-    delete static_cast<pfwl_field_matching_db_t *>(state->tags_matchers[field]);
+    if (pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_STRING)
+      delete static_cast<pfwl_field_matching_db_t *>(state->tags_matchers[field]);
+    else if (pfwl_get_L7_field_type(field) == PFWL_FIELD_TYPE_MMAP)
+      delete static_cast<std::map<std::string, pfwl_field_matching_db_t> *>(state->tags_matchers[field]);
     state->tags_matchers[field] = NULL;
+  }
+}
+
+extern "C" void pfwl_field_tags_delete(pfwl_state_t *state) {
+  for (size_t i = 0; i < PFWL_FIELDS_L7_NUM; ++i) {
+    pfwl_field_tags_unload_L7(state, pfwl_field_id_t(i));
   }
 }
 

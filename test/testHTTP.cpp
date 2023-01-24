@@ -37,6 +37,8 @@ TEST(HTTPTest, TCPDuplicates) {
   getProtocols("./pcaps/http.cap", protocols, state);
   // Two TCP segments retransmitted. So it counts 37 rather than 35
   EXPECT_EQ(protocols[PFWL_PROTO_L7_HTTP], (uint) 38);
+
+  pfwl_terminate(state);
 }
 
 TEST(HTTPTest, ContentType) {
