@@ -279,7 +279,7 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
             struct ip6_hdr tmp_ip6_hdr;
             memcpy(&tmp_ip6_hdr, pkt, sizeof(tmp_ip6_hdr));
 
-            length = tmp_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen + sizeof(tmp_ip6_hdr);
+            length = ntohs(tmp_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(tmp_ip6_hdr);
           }
           /**
            * Force the next iteration to analyze the
