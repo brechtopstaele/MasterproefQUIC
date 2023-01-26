@@ -22,7 +22,7 @@ static void checkSNI(const char *pcap, const char *sni, pfwl_field_matching_t ma
 
   std::vector<uint> protocols;
   bool foundSni = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     for (size_t i = 0; i < r.l7.tags_num; i++) {
       if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 && r.l7.tags_num && !strcmp(r.l7.tags[i], "TAG")) {
         foundSni = true;
@@ -46,7 +46,7 @@ static void checkVersion(const char *pcap, const char *expectedVersion) {
 
   std::vector<uint> protocols;
   bool foundVersion = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     pfwl_string_t version;
     if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version) &&
@@ -71,7 +71,7 @@ static void checkUserAgent(const char *pcap, const char *expectedUAID) {
 
   std::vector<uint> protocols;
   bool foundVersion = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     pfwl_string_t uaid;
     if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid) &&

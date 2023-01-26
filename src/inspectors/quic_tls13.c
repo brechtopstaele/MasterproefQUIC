@@ -393,6 +393,8 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
       frame_size = handle_frame_01(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
       break;
     case 0x06:
+    /* in gquic, the crypto frame is 8 */
+    case 0x08:
       frame_size = handle_frame_06(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
       break;
     default:
