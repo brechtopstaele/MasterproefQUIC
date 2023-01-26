@@ -538,7 +538,8 @@ int addMediaObject(pfwl_sip_miprtcpstatic_t *mp, pfwl_field_t *mediaIp, int medi
   return 1;
 }
 
-int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, int contentLength) {
+int parseSdp(const unsigned char *body, const unsigned char *end, pfwl_sip_internal_information_t *psip,
+             int contentLength) {
   const unsigned char *c, *tmp;
   int offset, last_offset;
 
@@ -577,7 +578,7 @@ int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, i
 
   memset(&tmpmp, 0, sizeof(pfwl_sip_miprtcp_t));
 
-  for (; *c; c++) {
+  for (; (c + 1 < end) && (*c); c++) {
     /* END MESSAGE and START BODY */
     if (*c == '\r' && *(c + 1) == '\n') { /* end of this line */
       //*c = '\0';
@@ -588,7 +589,7 @@ int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, i
         break;
 
       tmp = (const unsigned char *) (body + last_offset);
-      if (strlen((const char *) tmp) < 4)
+      if (strnlen((const char *) tmp, end - tmp) < 4)
         continue;
 
       /* c=IN IP4 10.0.0.1 */
@@ -623,7 +624,7 @@ int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, i
   last_offset = 0;
   offset = 0;
 
-  for (; *c; c++) {
+  for (; (c + 1 < end) && (*c); c++) {
     /* END MESSAGE and START BODY */
     if (*c == '\r' && *(c + 1) == '\n') { /* end of this line */
       //*c = '\0';
@@ -643,7 +644,7 @@ int parseSdp(const unsigned char *body, pfwl_sip_internal_information_t *psip, i
         return -1;
       }
 
-      if (strlen((const char *) tmp) < 4)
+      if (strnlen((const char *) tmp, end - tmp) < 4)
         continue;
 
       /* m=audio 3000 RTP/AVP 8 0 18 101 */
@@ -973,7 +974,7 @@ uint8_t parse_message(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_p
   c = app_data + offset;
   int contentLength = 0;
 
-  for (; *c && c - app_data < data_length; c++) {
+  for (; (c - app_data < data_length) && (*c); c++) {
     /* END of Request line and START of all other headers */
     if (*c == '\r' && *(c + 1) == '\n') { /* end of this line */
 
@@ -985,7 +986,7 @@ uint8_t parse_message(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_p
       /* BODY */
       if (contentLength > 0 && (offset - last_offset) == 2) {
         if (sip_info->hasSdp) {
-          parseSdp(c, sip_info, contentLength);
+          parseSdp(c, &app_data[data_length], sip_info, contentLength);
         } else if (sip_info->hasVqRtcpXR) {
           parseVQRtcpXR(state, flow_info_private, c, extracted_fields_sip);
         }

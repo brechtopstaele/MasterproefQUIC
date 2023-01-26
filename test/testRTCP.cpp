@@ -27,10 +27,12 @@ TEST(RTCPTest, Fields) {
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_RTCP_SENDER_PKT_COUNT);
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_RTCP_SENDER_OCT_COUNT);
   testFields(state);
+  pfwl_terminate(state);
 }
 
 TEST(RTCPTest, FieldsAll) {
   pfwl_state_t *state = pfwl_init();
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_RTCP_SENDER_ALL);
   testFields(state);
+  pfwl_terminate(state);
 }
