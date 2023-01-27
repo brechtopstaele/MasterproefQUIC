@@ -36,5 +36,5 @@ TEST(STUNTest, AddressPort) {
       }
     }
   });
-  EXPECT_TRUE(47);
+  pfwl_terminate(state);
 }
