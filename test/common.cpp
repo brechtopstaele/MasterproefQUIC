@@ -50,7 +50,7 @@ void getProtocols(const char *pcapName, std::vector<uint> &protocols, pfwl_state
   pcap_pkt_t pkt;
 
   while ((pkt = pcap.getNextPacket()).pkt != NULL) {
-    uint timestamp;
+    double timestamp;
     if (pcap_ts) {
       timestamp = pkt.ts;
     } else {
@@ -89,7 +89,7 @@ void getProtocolsCpp(const char *pcapName, std::vector<uint> &protocols, peafowl
   while ((pkt = pcap.getNextPacket()).pkt != NULL) {
     std::string s;
     s.assign((const char *) pkt.pkt, pkt.caplen);
-    uint timestamp;
+    double timestamp;
     if (pcap_ts) {
       timestamp = pkt.ts;
     } else {
