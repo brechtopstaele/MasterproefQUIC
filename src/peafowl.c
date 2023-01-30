@@ -254,7 +254,7 @@ pfwl_status_t pfwl_dissect_from_L2(pfwl_state_t *state, const unsigned char *pkt
                                    pfwl_protocol_l2_t datalink_type, pfwl_dissection_info_t *dissection_info) {
   memset(dissection_info, 0, sizeof(pfwl_dissection_info_t));
   pfwl_status_t status;
-  status = pfwl_dissect_L2(pkt, datalink_type, dissection_info);
+  status = pfwl_dissect_L2_sized(pkt, length, datalink_type, dissection_info);
   if (unlikely(status < PFWL_STATUS_OK)) {
     return status;
   }

@@ -984,10 +984,26 @@ pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state, const unsigned char *pkt
  *        Dissection information about L2 headers will be filled in by this
  * call.
  * @return The status of the identification process.
+ * @deprecated since 1.1.3
+ * @see pfwl_dissect_L2_sized()
  */
-pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t datalink_type,
-                              pfwl_dissection_info_t *dissection_info);
+__attribute__((deprecated)) pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t datalink_type,
+                                                          pfwl_dissection_info_t *dissection_info);
 
+/**
+ * Extracts from the packet the L2 information.
+ * @param packet A pointer to the packet.
+ * @param length The size of the packet.
+ * @param datalink_type The datalink type.
+ * You can convert a PCAP datalink type to a Peafowl datalink type by
+ * calling the function 'pfwl_convert_pcap_dlt'.
+ * @param dissection_info The result of the dissection.
+ *        Dissection information about L2 headers will be filled in by this
+ * call.
+ * @return The status of the identification process.
+ */
+pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, pfwl_protocol_l2_t datalink_type,
+                                    pfwl_dissection_info_t *dissection_info);
 /**
  * Extracts from the packet the L3 information.
  * @param   state The state of the library.

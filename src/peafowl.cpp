@@ -713,7 +713,7 @@ DissectionInfo Peafowl::dissectFromL4(const std::string &pkt, double timestamp, 
 DissectionInfo Peafowl::dissectL2(const std::string &pkt, pfwl_protocol_l2_t datalinkType) {
   pfwl_dissection_info_t info;
   memset(&info, 0, sizeof(info));
-  Status s = pfwl_dissect_L2((const unsigned char *) pkt.c_str(), datalinkType, &info);
+  Status s = pfwl_dissect_L2_sized((const unsigned char *) pkt.c_str(), pkt.size(), datalinkType, &info);
   return DissectionInfo(info, s);
 }
 

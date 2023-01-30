@@ -44,6 +44,7 @@
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,7 +161,8 @@ struct wifi_hdr {
   /* u_int64_t ccmp - for data encription only - check fc.flag */
 } __attribute__((__packed__));
 
-static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type, uint16_t off) {
+static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type, uint16_t off,
+                             uint16_t *dlink_offset_out) {
   uint32_t dlink_offset = off;
 
   // define vlan header
@@ -181,6 +183,11 @@ static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type, uint16_t o
   // VLAN
   case ETHERTYPE_VLAN:
     debug_print("%s\n", "Ethernet type: VLAN\n");
+    if (packet + dlink_offset + sizeof(*vlan_header) > &packet[length]) {
+      debug_print("%s\n", "Malformed VLAN packet. DISCARD\n");
+      return false;
+    }
+
     vlan_header = (struct vlan_hdr *) (packet + dlink_offset);
     type = ntohs(vlan_header->type);
     // double tagging for 802.1Q
@@ -195,22 +202,38 @@ static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type, uint16_t o
   case ETHERTYPE_MPLS_UNI:
   case ETHERTYPE_MPLS_MULTI:
     debug_print("%s\n", "Ethernet type: MPLS\n");
+    if (packet + dlink_offset + sizeof(uint32_t) > &packet[length]) {
+      debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
+      return false;
+    }
     mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
     mpls.u32 = ntohl(mpls.u32);
     dlink_offset += 4;
     // multiple MPLS fields
     while (!mpls.mpls.s) {
+      if (packet + dlink_offset + sizeof(uint32_t) > &packet[length]) {
+        debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
+        return false;
+      }
       mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
       mpls.u32 = ntohl(mpls.u32);
       dlink_offset += 4;
     }
     break;
   }
-  return dlink_offset;
+  *dlink_offset_out = dlink_offset;
+  return true;
 }
 
 pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t datalink_type,
                               pfwl_dissection_info_t *dissection_info) {
+  // assume there is at least 64Bytes available in the packet.
+  // use directly pfwl_dissect_L2_sized instead!
+  return pfwl_dissect_L2_sized(packet, 64, datalink_type, dissection_info);
+}
+
+pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, pfwl_protocol_l2_t datalink_type,
+                                    pfwl_dissection_info_t *dissection_info) {
   memset(dissection_info, 0, sizeof(pfwl_dissection_info_t));
   // check parameters
   if (!packet || datalink_type == PFWL_PROTO_L2_NUM) {
@@ -236,6 +259,10 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
   /** IEEE 802.3 Ethernet - 1 **/
   case PFWL_PROTO_L2_EN10MB:
     debug_print("%s\n", "Datalink type: Ethernet\n");
+    if (length < sizeof(*ether_header)) {
+      debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
     ether_header = (struct ether_header *) (packet);
     // set datalink offset
     dlink_offset = ETHHDR_SIZE;
@@ -247,7 +274,16 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
       eth_type_1 = 1; // ethernet I - followed by llc snap 05DC
     // check for LLC layer with SNAP extension
     if (eth_type_1) {
+      if (dlink_offset >= length) {
+        debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
+        return PFWL_ERROR_L2_PARSING;
+      }
+
       if (packet[dlink_offset] == SNAP) {
+        if (dlink_offset + sizeof(*llc_snap_header) > length) {
+          debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
+          return PFWL_ERROR_L2_PARSING;
+        }
         llc_snap_header = (struct llc_snap_hdr *) (packet + dlink_offset);
         type = llc_snap_header->type; // LLC type is the l3 proto type
         dlink_offset += 8;
@@ -258,6 +294,10 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
   /** Linux Cooked Capture - 113 **/
   case PFWL_PROTO_L2_LINUX_SLL:
     debug_print("%s\n", "Datalink type: Linux Cooked\n");
+    if (dlink_offset + 15u >= length) {
+      debug_print("%s\n", "Malformed Linux Cooked packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
     type = (packet[dlink_offset + 14] << 8) + packet[dlink_offset + 15];
     dlink_offset = 16;
     break;
@@ -270,6 +310,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
   /** Radiotap link-layer - 127 **/
   case PFWL_PROTO_L2_IEEE802_11_RADIO: {
     debug_print("%s\n", "Datalink type: Radiotap\n");
+    if (length < sizeof(*radiotap_header)) {
+      debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
+
     radiotap_header = (struct radiotap_hdr *) packet;
     radiotap_len = radiotap_header->len;
     dlink_offset = radiotap_len;
@@ -284,6 +329,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
     // Check if Flag byte is present
     if (getBits(radiotap_header->present, 1, 1) == 1) {
       // Check Bad FCS presence
+      if (p_radio >= &packet[length]) {
+        debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
+        return PFWL_ERROR_L2_PARSING;
+      }
+
       if (*p_radio == F_BADFCS) {
         debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
         return PFWL_ERROR_L2_PARSING;
@@ -295,6 +345,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
         Once Radiotap is present,
         we must check if Wifi data is present
      **/
+    if (packet + radiotap_len + sizeof(*wifi_header) > &packet[length]) {
+      debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
+
     wifi_header = (struct wifi_hdr *) (packet + radiotap_len);
     // uint8_t ts;   // TYPE/SUBTYPE (the following 3 getBits)
 
@@ -312,6 +367,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
     }
 
     // Check LLC
+    if (packet + wifi_len + sizeof(*llc_snap_header) > &packet[length]) {
+      debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
+
     llc_snap_header = (struct llc_snap_hdr *) (packet + wifi_len);
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
@@ -323,6 +383,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
   }
 
   case PFWL_PROTO_L2_IEEE802_11: {
+    if (packet + radiotap_len + sizeof(*wifi_header) > &packet[length]) {
+      debug_print("%s\n", "Malformed 802.11 packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
+
     wifi_header = (struct wifi_hdr *) (packet + radiotap_len);
     // uint8_t ts;   // TYPE/SUBTYPE (the following 3 getBits)
 
@@ -340,6 +405,11 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
     }
 
     // Check LLC
+    if (packet + wifi_len + sizeof(*llc_snap_header) > &packet[length]) {
+      debug_print("%s\n", "Malformed 802.11 packet. DISCARD\n");
+      return PFWL_ERROR_L2_PARSING;
+    }
+
     llc_snap_header = (struct llc_snap_hdr *) (packet + wifi_len);
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
@@ -392,7 +462,9 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
     break;
   }
 
-  dlink_offset = pfwl_check_dtype(packet, type, dlink_offset);
+  if (!pfwl_check_dtype(packet, length, type, dlink_offset, &dlink_offset)) {
+    return PFWL_ERROR_L2_PARSING;
+  }
   dissection_info->l2.length = dlink_offset;
   return PFWL_STATUS_OK;
 }
