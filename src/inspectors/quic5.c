@@ -447,8 +447,15 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       memcpy(quic_info.dst_conn_id, &app_data[quic_info.header_len], quic_info.dst_conn_id_len);
       quic_info.header_len = quic_info.header_len + quic_info.dst_conn_id_len; /* destination connection id length */
 
+      if (quic_info.header_len >= data_length) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
       quic_info.src_conn_id_len = app_data[quic_info.header_len];
       quic_info.header_len++; // 1 byte source connection length
+
+      if (quic_info.header_len >= data_length) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
 
       if (quic_info.src_conn_id_len > sizeof(quic_info.src_conn_id)) {
         return PFWL_PROTOCOL_NO_MATCHES;
@@ -457,11 +464,23 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       memcpy(quic_info.src_conn_id, &app_data[quic_info.header_len], quic_info.src_conn_id_len);
       quic_info.header_len = quic_info.header_len + quic_info.src_conn_id_len; /* source connection id length */
 
+      if (quic_info.header_len >= data_length) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
+
       uint64_t token_len = 0;
       quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &token_len);
       quic_info.header_len += token_len;
 
+      if (quic_info.header_len >= data_length) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
+
       quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.payload_len);
+
+      if (quic_info.header_len >= data_length) {
+        return PFWL_PROTOCOL_NO_MATCHES;
+      }
 
       if (0 > decrypt_first_packet(&quic_info, app_data, data_length)) {
         return PFWL_PROTOCOL_NO_MATCHES;
