@@ -153,13 +153,19 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
     if (offset + extension_offset > data_length) {
       *next_server_extension = offset + extension_offset - data_length;
       *remaining_extension_len = extensions_len - extension_offset;
-      return 2;
+      goto end;
     }
     u_int16_t extension_id, extension_len;
 
+    if (offset + extension_offset + 1 >= data_length) {
+      goto end;
+    }
     extension_id = ntohs(*((u_int16_t *) &payload[offset + extension_offset]));
     extension_offset += 2;
 
+    if (offset + extension_offset + 1 >= data_length) {
+      goto end;
+    }
     extension_len = ntohs(*((u_int16_t *) &payload[offset + extension_offset]));
     extension_offset += 2;
 
@@ -230,12 +236,19 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
   if ((pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_ELLIPTIC_CURVES) ||
        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_JA3))) {
     if (ellcurves_present) {
+      if (offset + ellcurves_offset + 1 >= data_length) {
+        goto end;
+      }
+
       u_int16_t ell_curves_len = ntohs(get_u16(payload, offset + ellcurves_offset));
       uint16_t next_curve = 0;
       char *curves = state->scratchpad + state->scratchpad_next_byte;
       size_t curves_next_char = 0;
       ellcurves_offset += 2; // Skip the length
       while (next_curve < ell_curves_len) {
+        if (offset + ellcurves_offset + next_curve + 1 >= data_length) {
+          goto end;
+        }
         uint16_t curve_id = ntohs(get_u16(payload, offset + ellcurves_offset + next_curve));
         if (!is_grease(curve_id)) {
           curves_next_char += sprintf(curves + curves_next_char, "%d-", curve_id);
@@ -264,12 +277,18 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
   if ((pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_ELLIPTIC_CURVES_POINT_FMTS) ||
        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_JA3))) {
     if (ellpoints_present) {
+      if (offset + ellpoints_offset >= data_length) {
+        goto end;
+      }
       uint8_t ell_points_len = get_u8(payload, offset + ellpoints_offset);
       uint16_t next_point = 0;
       char *points = state->scratchpad + state->scratchpad_next_byte;
       size_t points_next_char = 0;
       ellpoints_offset += 1; // Skip the length
       while (next_point < ell_points_len) {
+        if (offset + ellpoints_offset + next_point >= data_length) {
+          goto end;
+        }
         uint8_t point_id = get_u8(payload, offset + ellpoints_offset + next_point);
         if (!is_grease(point_id)) {
           points_next_char += sprintf(points + points_next_char, "%d-", point_id);
@@ -319,6 +338,7 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
     pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_JA3, (const unsigned char *) ja3_start, 32);
   }
   // TODO: Everytime we write on scratchpad we should check that the max length is not exceeded
+end:
   return 2;
 }
 
