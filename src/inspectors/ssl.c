@@ -93,9 +93,9 @@ static int check_punycode_string(char *buffer, int len) {
   return 0;
 }
 
-static void stripCertificateTrailer(char *buffer, int *buffer_len) {
+static void stripCertificateTrailer(char *buffer, size_t *buffer_len) {
 
-  int i, is_puny;
+  size_t i;
 
   //  printf("->%s<-\n", buffer);
 
@@ -111,7 +111,7 @@ static void stripCertificateTrailer(char *buffer, int *buffer_len) {
   }
 
   /* check for punycode encoding */
-  is_puny = check_punycode_string(buffer, *buffer_len);
+  int is_puny = check_punycode_string(buffer, *buffer_len);
 
   // not a punycode string - need more checks
   if (is_puny == 0) {
@@ -131,8 +131,10 @@ static void stripCertificateTrailer(char *buffer, int *buffer_len) {
     for (i = *buffer_len; i > 0; i--) {
       if (buffer[i] == '.')
         break;
-      else if (pfwl_isdigit(buffer[i]))
-        buffer[i] = '\0', *buffer_len = i;
+      else if (pfwl_isdigit(buffer[i])) {
+        buffer[i] = '\0';
+        *buffer_len = i;
+      }
     }
   }
 }
@@ -184,6 +186,10 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
       u_int begin = 0, len;
       char *server_name = (char *) &payload[offset + extension_offset];
 
+      if (offset + extension_offset + extension_len >= data_length) {
+        goto end;
+      }
+
       while (begin < extension_len) {
         if ((!pfwl_isprint(server_name[begin])) || pfwl_ispunct(server_name[begin]) || pfwl_isspace(server_name[begin]))
           begin++;
@@ -191,10 +197,10 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           break;
       }
 
-      len = MIN(extension_len - begin, buffer_len - 1);
+      len = buffer_len ? MIN(extension_len - begin, buffer_len - 1) : 0;
       strncpy(buffer, &server_name[begin], len);
       buffer[len] = '\0';
-      stripCertificateTrailer(buffer, (int *) &buffer_len);
+      stripCertificateTrailer(buffer, &buffer_len);
 #if PFWL_DEBUG_SSL
       printf("SNI: %s\n", buffer);
 #endif
@@ -428,7 +434,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           }
 
           if (num_dots >= 2) {
-            stripCertificateTrailer(buffer, (int *) &buffer_len);
+            stripCertificateTrailer(buffer, &buffer_len);
 #if PFWL_DEBUG_SSL
             printf("CERT: %s\n", buffer);
 #endif
