@@ -370,6 +370,9 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
   if (handshake_msg_type == SERVER_HELLO || handshake_msg_type == CLIENT_HELLO) {
     if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_VERSION_HANDSHAKE) ||
         pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_JA3)) {
+      if (10 > data_length) {
+        goto end_notfound;
+      }
       uint16_t vernum = ntohs(get_u16(payload, 9));
       pfwl_field_number_set(fields, PFWL_FIELDS_L7_SSL_VERSION_HANDSHAKE, vernum);
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_SSL_JA3)) {
@@ -417,7 +420,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           }
 
           // len = pfwl_min(server_len-begin, buffer_len-1);
-          len = buffer_len - 1;
+          len = buffer_len ? buffer_len - 1 : 0;
           strncpy(buffer, &server_name[begin], len);
           buffer[len] = '\0';
 
@@ -464,6 +467,9 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
         u_int16_t cypher_len;
         uint cypher_offset;
         if (handshake_msg_type == CLIENT_HELLO) {
+          if (session_id_len + base_offset + 1 + 2 > data_length) {
+            goto end_notfound;
+          }
           cypher_len = ntohs(get_u16(payload, session_id_len + base_offset + 1));
           offset = base_offset + session_id_len + cypher_len + 2;
           cypher_offset = base_offset + session_id_len + 3;
@@ -480,7 +486,10 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           if (cypher_len) {
             char *cyphers = state->scratchpad + state->scratchpad_next_byte;
             size_t cyphers_next_char = 0;
-            for (uint i = 0; i < cypher_len; i += 2) {
+            if (cypher_offset + cypher_len > data_length) {
+              goto end_notfound;
+            }
+            for (uint i = 0; i < cypher_len - 1u; i += 2) {
               uint16_t cypher_id = ntohs(get_u16(payload, cypher_offset + i));
               if (!is_grease(cypher_id)) {
                 cyphers_next_char += sprintf(cyphers + cyphers_next_char, "%d-", cypher_id);
@@ -512,6 +521,9 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           u_int16_t extensions_len;
 
           offset++;
+          if (offset + 1 > data_length) {
+            goto end_notfound;
+          }
           compression_len = payload[offset];
           offset++;
 
@@ -523,6 +535,9 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           offset += compression_len;
 
           if (offset < ssl_length) {
+            if (offset + 2 > data_length) {
+              goto end_notfound;
+            }
             extensions_len = ntohs(*((u_int16_t *) &payload[offset]));
             offset += 2;
 
@@ -538,7 +553,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
       }
     }
   }
-
+end_notfound:
   return (0); /* Not found */
 }
 
