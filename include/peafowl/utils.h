@@ -29,6 +29,7 @@
 
 #include <limits.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <strings.h>
 
 #define PFWL_MAX_UINT_16 65535
@@ -47,8 +48,6 @@
                                       to be used for an array of nb bits. **/
 
 #define get_u8(X, O) (*(uint8_t *) (((uint8_t *) X) + O))
-#define get_u16(X, O) (*(uint16_t *) (((uint8_t *) X) + O))
-#define get_u32(X, O) (*(uint32_t *) (((uint8_t *) X) + O))
 #define get_u64(X, O) (*(uint64_t *) (((uint8_t *) X) + O))
 #define get_u128(X, O) (*(uint128_t *) (((uint8_t *) X) + O))
 
@@ -62,8 +61,22 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 uint8_t pfwl_v6_addresses_equal(struct in6_addr x, struct in6_addr y);
 char *pfwl_strnstr(const char *haystack, const char *needle, size_t len);
+
+inline uint16_t get_u16(const void *buffer, size_t offset) {
+  uint16_t ret;
+  memcpy(&ret, ((const uint8_t *) buffer) + offset, sizeof(ret));
+  return ret;
+}
+
+inline uint32_t get_u32(const void *buffer, size_t offset) {
+  uint32_t ret;
+  memcpy(&ret, ((const uint8_t *) buffer) + offset, sizeof(ret));
+  return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

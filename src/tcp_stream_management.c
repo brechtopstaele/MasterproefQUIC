@@ -225,9 +225,10 @@ static
   to_return.connection_terminated = 0;
   to_return.status = PFWL_TCP_REORDERING_STATUS_IN_ORDER;
 
-  struct tcphdr *tcph = (struct tcphdr *) (pkt);
+  struct tcphdr tcph_copy;
+  memcpy(&tcph_copy, pkt, sizeof(tcph_copy));
   pfwl_direction_t direction = dissection_info->l4.direction;
-  uint32_t received_seq_num = ntohl(tcph->seq);
+  uint32_t received_seq_num = ntohl(tcph_copy.seq);
   uint32_t expected_seq_num = tracking->expected_seq_num[direction];
   /** Automatically wrapped when exceed the 32bit limit. **/
   uint32_t end = received_seq_num + dissection_info->l4.payload_length;
@@ -240,11 +241,11 @@ static
     debug_print("%s\n", "Received in order segment");
     to_return.status = PFWL_TCP_REORDERING_STATUS_IN_ORDER;
     tracking->expected_seq_num[direction] = end;
-    if (tcph->fin == 1) {
+    if (tcph_copy.fin == 1) {
       ++tracking->expected_seq_num[direction];
       SET_BIT(tracking->seen_fin, direction);
     }
-    if (tcph->rst == 1) {
+    if (tcph_copy.rst == 1) {
       ++tracking->expected_seq_num[direction];
       tracking->seen_rst = 1;
     }
@@ -267,16 +268,16 @@ static
       debug_print("%s\n", "The segment has no payload");
       if (!tracking->seen_fin &&
           (!pfwl_reordering_tcp_is_new_segment(received_seq_num, tracking, direction) ||
-           (tracking->last_seq[direction] == tcph->seq && tracking->last_ack[direction] == tcph->ack_seq))) {
+           (tracking->last_seq[direction] == tcph_copy.seq && tracking->last_ack[direction] == tcph_copy.ack_seq))) {
         to_return.status = PFWL_TCP_REORDERING_STATUS_RETRANSMISSION;
       }
-      tracking->last_seq[direction] = tcph->seq;
-      tracking->last_ack[direction] = tcph->ack_seq;
+      tracking->last_seq[direction] = tcph_copy.seq;
+      tracking->last_ack[direction] = tcph_copy.ack_seq;
       return to_return;
     }
 
-    tracking->last_seq[direction] = tcph->seq;
-    tracking->last_ack[direction] = tcph->ack_seq;
+    tracking->last_seq[direction] = tcph_copy.seq;
+    tracking->last_ack[direction] = tcph_copy.ack_seq;
 
     /**
      * If there was out of order segments and this segment fills an
@@ -362,17 +363,18 @@ pfwl_tcp_reordering_reordered_segment_t pfwl_reordering_tcp_track_connection(pfw
   to_return.connection_terminated = 0;
   to_return.status = PFWL_TCP_REORDERING_STATUS_IN_ORDER;
 
-  struct tcphdr *tcph = (struct tcphdr *) pkt;
+  struct tcphdr tcph_copy;
+  memcpy(&tcph_copy, pkt, sizeof(tcph_copy));
 
   if (tracking->seen_ack) {
     debug_print("%s\n", "Connection already established, check "
                         "sequence numbers");
 
     return pfwl_reordering_tcp_analyze_sequence_numbers(pkt, dissection_info, tracking);
-  } else if (tcph->syn != 0 && tcph->ack == 0 && tracking->seen_syn == 0 && tracking->seen_syn_ack == 0 &&
+  } else if (tcph_copy.syn != 0 && tcph_copy.ack == 0 && tracking->seen_syn == 0 && tracking->seen_syn_ack == 0 &&
              tracking->seen_ack == 0) {
     tracking->seen_syn = 1;
-    tracking->expected_seq_num[dissection_info->l4.direction] = ntohl(tcph->seq) + 1;
+    tracking->expected_seq_num[dissection_info->l4.direction] = ntohl(tcph_copy.seq) + 1;
 
     debug_print("%s\n", "Syn received.");
     debug_print("Chosen sequence number: %" PRIu32 " for direction: "
@@ -381,10 +383,10 @@ pfwl_tcp_reordering_reordered_segment_t pfwl_reordering_tcp_track_connection(pfw
 
     to_return.status = PFWL_TCP_REORDERING_STATUS_IN_ORDER;
     return to_return;
-  } else if (tcph->syn != 0 && tcph->ack != 0 && tracking->seen_syn == 1 && tracking->seen_syn_ack == 0 &&
+  } else if (tcph_copy.syn != 0 && tcph_copy.ack != 0 && tracking->seen_syn == 1 && tracking->seen_syn_ack == 0 &&
              tracking->seen_ack == 0) {
     tracking->seen_syn_ack = 1;
-    tracking->expected_seq_num[dissection_info->l4.direction] = ntohl(tcph->seq) + 1;
+    tracking->expected_seq_num[dissection_info->l4.direction] = ntohl(tcph_copy.seq) + 1;
 
     debug_print("%s\n", "SynAck received.");
     debug_print("Chosen sequence number: %" PRIu32 " for direction: "
@@ -393,7 +395,7 @@ pfwl_tcp_reordering_reordered_segment_t pfwl_reordering_tcp_track_connection(pfw
 
     to_return.status = PFWL_TCP_REORDERING_STATUS_IN_ORDER;
     return to_return;
-  } else if (tcph->syn == 0 && tcph->ack == 1 && tracking->seen_syn == 1 && tracking->seen_syn_ack == 1 &&
+  } else if (tcph_copy.syn == 0 && tcph_copy.ack == 1 && tracking->seen_syn == 1 && tracking->seen_syn_ack == 1 &&
              tracking->seen_ack == 0) {
     debug_print("%s\n", "Ack received, handshake concluded.");
     tracking->seen_ack = 1;
@@ -418,12 +420,12 @@ pfwl_tcp_reordering_reordered_segment_t pfwl_reordering_tcp_track_connection(pfw
      */
     to_return.status = PFWL_TCP_REORDERING_STATUS_OUT_OF_ORDER;
 
-    uint32_t seq = ntohl(tcph->seq);
-    uint32_t ack = ntohl(tcph->ack_seq);
+    uint32_t seq = ntohl(tcph_copy.seq);
+    uint32_t ack = ntohl(tcph_copy.ack_seq);
     debug_print("NOSYN branch. Direction: %d\n", dissection_info->l4.direction);
 
     if (!BIT_IS_SET(tracking->first_packet_arrived, dissection_info->l4.direction)) {
-      if (!tcph->syn)
+      if (!tcph_copy.syn)
         tracking->expected_seq_num[dissection_info->l4.direction] = seq + dissection_info->l4.payload_length;
       else
         tracking->expected_seq_num[dissection_info->l4.direction] = seq + 1;

@@ -84,8 +84,9 @@ uint8_t pfwl_skip_L7_parsing_by_port(pfwl_state_t* state, uint8_t l4prot,
 
 static void parse_tcp_opt_hdrs(pfwl_state_t *state, const unsigned char *pkt, size_t length, pfwl_flow_t *flow,
                                pfwl_direction_t direction) {
-  struct tcphdr *tcp = (struct tcphdr *) pkt;
-  if (tcp->doff > 5 && state->stats_to_compute[PFWL_STAT_L4_TCP_WINDOW_SCALING]) {
+  struct tcphdr tcp_copy;
+  memcpy(&tcp_copy, pkt, sizeof(tcp_copy));
+  if (tcp_copy.doff > 5 && state->stats_to_compute[PFWL_STAT_L4_TCP_WINDOW_SCALING]) {
     const unsigned char *hdr = pkt + sizeof(struct tcphdr);
     while (hdr < pkt + length) {
       uint8_t type = get_u8(hdr, 0);
@@ -115,16 +116,17 @@ pfwl_status_t mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *
   uint8_t syn = 0;
   switch (dissection_info->l4.protocol) {
   case IPPROTO_TCP: {
-    struct tcphdr *tcp = (struct tcphdr *) pkt;
+    struct tcphdr tcp_copy;
+    memcpy(&tcp_copy, pkt, sizeof(tcp_copy));
 #ifdef PFWL_ENABLE_L4_TRUNCATION_PROTECTION
-    if (unlikely(sizeof(struct tcphdr) > length || tcp->doff * 4 > length)) {
+    if (unlikely(sizeof(struct tcphdr) > length || tcp_copy.doff * 4 > length)) {
       return PFWL_ERROR_L4_PARSING;
     }
 #endif
-    dissection_info->l4.port_src = tcp->source;
-    dissection_info->l4.port_dst = tcp->dest;
-    dissection_info->l4.length = (tcp->doff * 4);
-    syn = tcp->syn;
+    dissection_info->l4.port_src = tcp_copy.source;
+    dissection_info->l4.port_dst = tcp_copy.dest;
+    dissection_info->l4.length = (tcp_copy.doff * 4);
+    syn = tcp_copy.syn;
   } break;
   case IPPROTO_UDP: {
     struct udphdr *udp = (struct udphdr *) pkt;
@@ -153,25 +155,26 @@ pfwl_status_t mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *
   pfwl_direction_t direction = dissection_info->l4.direction;
   // Set flags statistics
   if (dissection_info->l4.protocol == IPPROTO_TCP) {
-    struct tcphdr *tcp = (struct tcphdr *) pkt;
-    if (tcp->syn) {
+    struct tcphdr tcp_copy;
+    memcpy(&tcp_copy, pkt, sizeof(tcp_copy));
+    if (tcp_copy.syn) {
       flow->info.statistics[PFWL_STAT_L4_TCP_COUNT_SYN][direction]++;
     }
-    if (tcp->fin) {
+    if (tcp_copy.fin) {
       flow->info.statistics[PFWL_STAT_L4_TCP_COUNT_FIN][direction]++;
     }
-    if (tcp->rst) {
+    if (tcp_copy.rst) {
       flow->info.statistics[PFWL_STAT_L4_TCP_COUNT_RST][direction]++;
     }
-    if (tcp->window == 0) {
+    if (tcp_copy.window == 0) {
       flow->info.statistics[PFWL_STAT_L4_TCP_COUNT_ZERO_WINDOW][direction]++;
     }
-    if (tcp->syn && tcp->ack) {
-      flow->info_private.synack_acknum = tcp->ack_seq;
+    if (tcp_copy.syn && tcp_copy.ack) {
+      flow->info_private.synack_acknum = tcp_copy.ack_seq;
       flow->info.statistics[PFWL_STAT_L4_TCP_RTT_SYN_ACK][1 - direction] =
           timestamp - flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][1 - direction];
     }
-    if (tcp->seq == flow->info_private.synack_acknum && direction == PFWL_DIRECTION_OUTBOUND) {
+    if (tcp_copy.seq == flow->info_private.synack_acknum && direction == PFWL_DIRECTION_OUTBOUND) {
       flow->info.statistics[PFWL_STAT_L4_TCP_RTT_SYN_ACK][1 - direction] =
           timestamp - flow->info.statistics[PFWL_STAT_TIMESTAMP_LAST][1 - direction];
     }

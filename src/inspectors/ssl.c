@@ -162,13 +162,13 @@ static int processExtensions(pfwl_state_t *state, pfwl_flow_info_private_t *flow
     if (offset + extension_offset + 1 >= data_length) {
       goto end;
     }
-    extension_id = ntohs(*((u_int16_t *) &payload[offset + extension_offset]));
+    extension_id = ntohs(get_u16(payload, offset + extension_offset));
     extension_offset += 2;
 
     if (offset + extension_offset + 1 >= data_length) {
       goto end;
     }
-    extension_len = ntohs(*((u_int16_t *) &payload[offset + extension_offset]));
+    extension_len = ntohs(get_u16(payload, offset + extension_offset));
     extension_offset += 2;
 
 #if PFWL_DEBUG_SSL
@@ -538,7 +538,7 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
             if (offset + 2 > data_length) {
               goto end_notfound;
             }
-            extensions_len = ntohs(*((u_int16_t *) &payload[offset]));
+            extensions_len = ntohs(get_u16(payload, offset));
             offset += 2;
 
 #if PFWL_DEBUG_SSL

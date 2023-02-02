@@ -432,7 +432,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       // size_t version_offset 		= 0;
       // version_offset = 1; // 1 byte
       quic_info.header_len++; // First byte header
-      quic_info.version = ntohl(*(uint32_t *) (&app_data[1]));
+      quic_info.version = ntohl(get_u32(app_data, 1));
 
       // uint32_t *t = (uint32_t *)&app_data[1];
       quic_info.header_len += 4; /* version (4 bytes) */
