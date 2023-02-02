@@ -448,12 +448,13 @@ static
 unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
                                                     uint32_t current_time, uint16_t offset, uint8_t more_fragments,
                                                     int) {
-  struct iphdr *iph = (struct iphdr *) data;
+  struct iphdr iph_copy;
+  memcpy(&iph_copy, data, sizeof(iph_copy));
 
   pfwl_ipv4_fragmentation_source_t *source;
   pfwl_ipv4_fragmentation_flow_t *flow;
 
-  uint16_t tot_len = ntohs(iph->tot_len);
+  uint16_t tot_len = ntohs(iph_copy.tot_len);
 /**
  * Host are required to do not fragment datagrams with a total
  * size up to 576 byte. If we received a fragment with a size <576
@@ -467,7 +468,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
   }
 #endif
 
-  uint8_t ihl = iph->ihl * 4;
+  uint8_t ihl = iph_copy.ihl * 4;
   uint16_t fragment_size = tot_len - ihl;
   /** (end-1) is the last byte of the fragment. **/
 
@@ -481,7 +482,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
 #if PFWL_THREAD_SAFETY_ENABLED == 1
   ff::spin_lock(state->lock);
 #endif
-  source = pfwl_ipv4_fragmentation_find_or_create_source(state, iph->saddr);
+  source = pfwl_ipv4_fragmentation_find_or_create_source(state, iph_copy.saddr);
   if (unlikely(source == NULL)) {
     debug_print("%s\n", "ERROR: Impossible to create the source.");
 #if PFWL_THREAD_SAFETY_ENABLED == 1
@@ -529,7 +530,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
   }
 
   /* Find the flow. */
-  flow = pfwl_ipv4_fragmentation_find_or_create_flow(state, source, iph, current_time);
+  flow = pfwl_ipv4_fragmentation_find_or_create_flow(state, source, &iph_copy, current_time);
   debug_print("%s\n", "Flow found or created.");
 
   if (unlikely(flow == NULL)) {
@@ -569,7 +570,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
     }
     state->total_used_mem += ihl;
     source->source_used_mem += ihl;
-    memcpy(flow->iph, iph, ihl);
+    memcpy(flow->iph, &iph_copy, ihl);
   }
 
   /**
