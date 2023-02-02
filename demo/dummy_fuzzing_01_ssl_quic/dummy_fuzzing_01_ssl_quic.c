@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
 
   if (handle == NULL) {
     fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
+    pfwl_terminate(state);
     return (2);
   }
 
