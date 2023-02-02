@@ -780,7 +780,7 @@ int light_parse_message(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info
 
   psip->contentLength = 0;
 
-  if (data_length <= 2) {
+  if (data_length < 8) {
     return PFWL_PROTOCOL_NO_MATCHES;
   }
 
