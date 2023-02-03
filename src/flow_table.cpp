@@ -183,54 +183,54 @@ static inline pfwl_flow_t *get_next_expiring_flow(uint32_t now, pfwl_timestamp_u
 #ifndef PFWL_DEBUG
 static
 #endif
-    uint8_t
-    v4_equals(pfwl_flow_t *flow, pfwl_dissection_info_t *pkt_info) {
-  return ((flow->info.addr_src.ipv4 == pkt_info->l3.addr_src.ipv4 &&
-           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_dst.ipv4 && flow->info.port_src == pkt_info->l4.port_src &&
-           flow->info.port_dst == pkt_info->l4.port_dst) ||
-          (flow->info.addr_src.ipv4 == pkt_info->l3.addr_dst.ipv4 &&
-           flow->info.addr_dst.ipv4 == pkt_info->l3.addr_src.ipv4 && flow->info.port_src == pkt_info->l4.port_dst &&
-           flow->info.port_dst == pkt_info->l4.port_src)) &&
-         flow->info.protocol_l4 == pkt_info->l4.protocol;
+    bool
+    v4_equals(const pfwl_flow_t &flow, const pfwl_dissection_info_t &pkt_info) {
+  return ((flow.info.addr_src.ipv4 == pkt_info.l3.addr_src.ipv4 &&
+           flow.info.addr_dst.ipv4 == pkt_info.l3.addr_dst.ipv4 && flow.info.port_src == pkt_info.l4.port_src &&
+           flow.info.port_dst == pkt_info.l4.port_dst) ||
+          (flow.info.addr_src.ipv4 == pkt_info.l3.addr_dst.ipv4 &&
+           flow.info.addr_dst.ipv4 == pkt_info.l3.addr_src.ipv4 && flow.info.port_src == pkt_info.l4.port_dst &&
+           flow.info.port_dst == pkt_info.l4.port_src)) &&
+         flow.info.protocol_l4 == pkt_info.l4.protocol;
 }
 
 #ifndef PFWL_DEBUG
 static
 #endif
-    uint8_t
-    v6_equals(pfwl_flow_t *flow, pfwl_dissection_info_t *pkt_info) {
+    bool
+    v6_equals(const pfwl_flow_t &flow, const pfwl_dissection_info_t &pkt_info) {
   uint8_t i;
 
   /*1: src=src and dst=dst. 2: src=dst and dst=src. */
   uint8_t direction = 0;
 
   for (i = 0; i < 16; i++) {
-    if (direction != 2 && pkt_info->l3.addr_src.ipv6.s6_addr[i] == flow->info.addr_src.ipv6.s6_addr[i] &&
-        pkt_info->l3.addr_dst.ipv6.s6_addr[i] == flow->info.addr_dst.ipv6.s6_addr[i]) {
+    if (direction != 2 && pkt_info.l3.addr_src.ipv6.s6_addr[i] == flow.info.addr_src.ipv6.s6_addr[i] &&
+        pkt_info.l3.addr_dst.ipv6.s6_addr[i] == flow.info.addr_dst.ipv6.s6_addr[i]) {
       direction = 1;
-    } else if (direction != 1 && pkt_info->l3.addr_src.ipv6.s6_addr[i] == flow->info.addr_dst.ipv6.s6_addr[i] &&
-               pkt_info->l3.addr_dst.ipv6.s6_addr[i] == flow->info.addr_src.ipv6.s6_addr[i]) {
+    } else if (direction != 1 && pkt_info.l3.addr_src.ipv6.s6_addr[i] == flow.info.addr_dst.ipv6.s6_addr[i] &&
+               pkt_info.l3.addr_dst.ipv6.s6_addr[i] == flow.info.addr_src.ipv6.s6_addr[i]) {
       direction = 2;
     } else
-      return 0;
+      return false;
   }
 
   if (direction == 1)
-    return flow->info.port_src == pkt_info->l4.port_src && flow->info.port_dst == pkt_info->l4.port_dst &&
-           flow->info.protocol_l4 == pkt_info->l4.protocol;
+    return flow.info.port_src == pkt_info.l4.port_src && flow.info.port_dst == pkt_info.l4.port_dst &&
+           flow.info.protocol_l4 == pkt_info.l4.protocol;
   else if (direction == 2)
-    return flow->info.port_src == pkt_info->l4.port_dst && flow->info.port_dst == pkt_info->l4.port_src &&
-           flow->info.protocol_l4 == pkt_info->l4.protocol;
+    return flow.info.port_src == pkt_info.l4.port_dst && flow.info.port_dst == pkt_info.l4.port_src &&
+           flow.info.protocol_l4 == pkt_info.l4.protocol;
   else
-    return 0;
+    return false;
 }
 
 #ifndef PFWL_DEBUG
 static
 #endif
-    uint8_t
-    flow_equals(pfwl_flow_t *flow, pfwl_dissection_info_t *pkt_info) {
-  if (pkt_info->l3.protocol == PFWL_PROTO_L3_IPV4) {
+    bool
+    flow_equals(const pfwl_flow_t &flow, const pfwl_dissection_info_t &pkt_info) {
+  if (pkt_info.l3.protocol == PFWL_PROTO_L3_IPV4) {
     return v4_equals(flow, pkt_info);
   } else {
     return v6_equals(flow, pkt_info);
@@ -498,7 +498,7 @@ void print_flow(ipv4_flow_t* iterator) {
 }
 #endif
 
-void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, char *protocols_to_inspect,
+void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, const char *protocols_to_inspect,
                                   uint8_t tcp_reordering_enabled) {
   bzero(flow_info_private, sizeof(pfwl_flow_info_private_t));
   int i;
@@ -524,7 +524,7 @@ static void pfwl_init_flow_info_public_internal(pfwl_flow_info_t *flow_info) {
   flow_info->statistics[PFWL_STAT_L4_TCP_WINDOW_SCALING][1] = -1;
 }
 
-void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
+void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, const char *protocols_to_inspect,
                     uint8_t tcp_reordering_enabled, uint64_t id, uint32_t id_hash, uint16_t thread_id) {
   pfwl_flow_info_t *info = &(flow->info);
   pfwl_flow_info_private_t *info_private = &(flow->info_private);
@@ -549,9 +549,9 @@ void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_
 }
 
 pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, uint16_t partition_id, uint32_t index,
-                                                    pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
-                                                    uint8_t tcp_reordering_enabled, uint32_t timestamp, uint8_t syn,
-                                                    pfwl_timestamp_unit_t unit) {
+                                                    pfwl_dissection_info_t *dissection_info,
+                                                    const char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
+                                                    uint32_t timestamp, uint8_t syn, pfwl_timestamp_unit_t unit) {
   debug_print("%s\n", "[flow_table.c]: "
                       "pfwl_flow_table_find_or_create_flow_v4 invoked.");
   pfwl_flow_table_partition_t &partition = db->partitions[partition_id];
@@ -564,7 +564,7 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, uint1
   /** Flow searching. **/
   pfwl_flow_t *head = &(db->table[index]);
   pfwl_flow_t *iterator = head->next;
-  while (iterator != head && !flow_equals(iterator, dissection_info)) {
+  while (iterator != head && !flow_equals(*iterator, *dissection_info)) {
     iterator = iterator->next;
   }
 
@@ -683,7 +683,7 @@ pfwl_flow_t *mc_pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, uint1
   return iterator;
 }
 
-uint32_t pfwl_compute_v4_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
+uint32_t pfwl_compute_v4_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH
   uint32_t row = v4_fnv_hash_function(pkt_info) % db->total_size;
 #elif PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH
@@ -697,13 +697,13 @@ uint32_t pfwl_compute_v4_hash_function(pfwl_flow_table_t *db, const pfwl_dissect
 }
 
 pfwl_flow_t *pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, pfwl_dissection_info_t *pkt_info,
-                                                 char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
+                                                 const char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
                                                  double timestamp, uint8_t syn, pfwl_timestamp_unit_t unit) {
   return mc_pfwl_flow_table_find_or_create_flow(db, 0, pfwl_compute_v4_hash_function(db, pkt_info), pkt_info,
                                                 protocols_to_inspect, tcp_reordering_enabled, timestamp, syn, unit);
 }
 
-uint32_t pfwl_compute_v6_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
+uint32_t pfwl_compute_v6_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info) {
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH
   uint32_t row = v6_fnv_hash_function(pkt_info) % db->total_size;
 #elif PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH
@@ -716,12 +716,12 @@ uint32_t pfwl_compute_v6_hash_function(pfwl_flow_table_t *db, const pfwl_dissect
   return row;
 }
 
-pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, pfwl_dissection_info_t *pkt_info) {
+pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, const pfwl_dissection_info_t *pkt_info) {
   pfwl_flow_t *head = &(db->table[index]);
   pfwl_flow_t *iterator = head->next;
 
   /** Flow searching. **/
-  while (iterator != head && !flow_equals(iterator, pkt_info)) {
+  while (iterator != head && !flow_equals(*iterator, *pkt_info)) {
     iterator = iterator->next;
   }
 

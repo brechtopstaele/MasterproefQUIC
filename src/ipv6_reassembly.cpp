@@ -449,7 +449,8 @@ unsigned char *pfwl_reordering_manage_ipv6_fragment(pfwl_ipv6_fragmentation_stat
   pfwl_ipv6_fragmentation_source_t *source;
   pfwl_ipv6_fragmentation_flow_t *flow;
 
-  struct ip6_hdr *ip6 = (struct ip6_hdr *) unfragmentable_start;
+  struct ip6_hdr ip6_copy;
+  memcpy(&ip6_copy, unfragmentable_start, sizeof(ip6_copy));
 /**
  * Host are required to do not fragment datagrams with a total size
  * up to 576 byte. If we received a fragment with a size <576 it is
@@ -475,7 +476,7 @@ unsigned char *pfwl_reordering_manage_ipv6_fragment(pfwl_ipv6_fragmentation_stat
 #if PFWL_THREAD_SAFETY_ENABLED == 1
   ff::spin_lock(state->lock);
 #endif
-  source = pfwl_ipv6_fragmentation_find_or_create_source(state, ip6->ip6_src);
+  source = pfwl_ipv6_fragmentation_find_or_create_source(state, ip6_copy.ip6_src);
 
   if (unlikely(source == NULL)) {
     debug_print("%s\n", "ERROR: Impossible to create the source. "
@@ -528,7 +529,7 @@ unsigned char *pfwl_reordering_manage_ipv6_fragment(pfwl_ipv6_fragmentation_stat
   }
 
   /* Find the flow. */
-  flow = pfwl_ipv6_fragmentation_find_or_create_flow(state, source, identification, ip6->ip6_dst, current_time);
+  flow = pfwl_ipv6_fragmentation_find_or_create_flow(state, source, identification, ip6_copy.ip6_dst, current_time);
 
   if (unlikely(flow == NULL)) {
     debug_print("%s\n", "ERROR: Impossible to create the flow.");

@@ -317,10 +317,10 @@ void pflw_flow_table_set_flow_termination_callback(pfwl_flow_table_t *db,
 
 void pfwl_flow_table_delete(pfwl_flow_table_t *db, pfwl_timestamp_unit_t unit);
 
-pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, pfwl_dissection_info_t *pkt_info);
+pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, const pfwl_dissection_info_t *pkt_info);
 
 pfwl_flow_t *pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, pfwl_dissection_info_t *pkt_info,
-                                                 char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
+                                                 const char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
                                                  double timestamp, uint8_t syn, pfwl_timestamp_unit_t unit);
 
 void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db, pfwl_flow_t *to_delete, pfwl_timestamp_unit_t unit);
@@ -330,13 +330,13 @@ void pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db, pfwl_flow_t *to_de
  * They are used directly only in mc_dpi. Should never be used directly
  * by the user.
  **/
-uint32_t pfwl_compute_v4_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
+uint32_t pfwl_compute_v4_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
 
-uint32_t pfwl_compute_v6_hash_function(pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
+uint32_t pfwl_compute_v6_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
 
-void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, char *protocols_to_inspect,
+void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, const char *protocols_to_inspect,
                                   uint8_t tcp_reordering_enabled);
-void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, char *protocols_to_inspect,
+void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, const char *protocols_to_inspect,
                     uint8_t tcp_reordering_enabled, uint64_t id, uint32_t id_hash, uint16_t thread_id);
 
 void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table, uint16_t num_partitions);

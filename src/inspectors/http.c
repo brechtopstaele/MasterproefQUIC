@@ -160,6 +160,10 @@ static
     real_length = infos->temp_buffer_size;
     infos->temp_buffer_dirty = 1;
   }
+
+  if (infos->headers_length == 0) {
+    return 1;
+  }
   infos->headers[infos->headers_length - 1].second.string.value = real_data;
   infos->headers[infos->headers_length - 1].second.string.length = real_length;
   return 0;

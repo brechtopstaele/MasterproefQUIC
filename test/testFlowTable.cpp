@@ -6,6 +6,7 @@
 
 static pfwl_dissection_info_t initPktInfo(uint id, pfwl_direction_t dir) {
   pfwl_dissection_info_t r;
+  r.l2.protocol = PFWL_PROTO_L2_EN10MB;
   r.l2.length = 0;
   r.l3.length = 0;
   r.l3.addr_src.ipv4 = id;

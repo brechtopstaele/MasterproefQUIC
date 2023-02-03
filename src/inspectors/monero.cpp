@@ -82,7 +82,7 @@ uint8_t check_monero(pfwl_state_t *, const unsigned char *app_data, size_t data_
   // Magic number: https://github.com/monero-project/monero/blob/master/src/p2p/p2p_protocol_defs.h
   if (data_length < sizeof(uint32_t))
     return PFWL_PROTOCOL_MORE_DATA_NEEDED;
-  if (*((uint32_t *) app_data) == MONERO_MAGIC_COOKIE) {
+  if (get_u32(app_data, 0) == MONERO_MAGIC_COOKIE) {
     return PFWL_PROTOCOL_MATCHES;
   } else if (flow_info_private->info_public->protocols_l7_num) {
     if (flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==

@@ -160,9 +160,10 @@ static
     pfwl_reordering_tcp_analyze_out_of_order(const unsigned char *pkt, pfwl_dissection_info_t *dissection_info,
                                              pfwl_flow_info_private_t *tracking, uint32_t received_seq_num) {
   uint32_t end = received_seq_num + dissection_info->l4.payload_length;
-  struct tcphdr *tcph = (struct tcphdr *) (pkt);
+  struct tcphdr tcph_copy;
+  memcpy(&tcph_copy, pkt, sizeof(tcph_copy));
 
-  if (tcph->rst == 1) {
+  if (tcph_copy.rst == 1) {
     tracking->seen_rst = 1;
   }
   /**
@@ -174,7 +175,7 @@ static
 
   if (dissection_info->l4.payload_length == 0) {
     debug_print("%s\n", "The segment has no payload");
-    if (tcph->fin == 1 && !BIT_IS_SET(tracking->seen_fin, dissection_info->l4.direction) &&
+    if (tcph_copy.fin == 1 && !BIT_IS_SET(tracking->seen_fin, dissection_info->l4.direction) &&
         (frag = pfwl_reassembly_insert_fragment(&(tracking->segments[dissection_info->l4.direction]),
                                                 pkt + dissection_info->l4.length, received_seq_num, end, &dummy,
                                                 &dummy))) {
@@ -187,7 +188,7 @@ static
 
   frag = pfwl_reassembly_insert_fragment(&(tracking->segments[dissection_info->l4.direction]),
                                          pkt + dissection_info->l4.length, received_seq_num, end, &dummy, &dummy);
-  if (frag && tcph->fin == 1) {
+  if (frag && tcph_copy.fin == 1) {
     frag->tcp_fin = 1;
     SET_BIT(tracking->seen_fin, dissection_info->l4.direction);
   }
@@ -333,11 +334,13 @@ static
 
 uint8_t pfwl_reordering_tcp_track_connection_light(const unsigned char *pkt, pfwl_dissection_info_t *dissection_info,
                                                    pfwl_flow_info_private_t *tracking) {
-  struct tcphdr *tcph = (struct tcphdr *) pkt;
-  if (tcph->fin == 1) {
+  struct tcphdr tcph_copy;
+  memcpy(&tcph_copy, pkt, sizeof(tcph_copy));
+
+  if (tcph_copy.fin == 1) {
     SET_BIT(tracking->seen_fin, dissection_info->l4.direction);
   }
-  if (tcph->rst == 1) {
+  if (tcph_copy.rst == 1) {
     tracking->seen_rst = 1;
   }
   /**

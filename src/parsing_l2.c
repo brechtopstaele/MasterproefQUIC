@@ -206,7 +206,7 @@ static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type,
       debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
       return false;
     }
-    mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
+    mpls.u32 = get_u32(packet, dlink_offset);
     mpls.u32 = ntohl(mpls.u32);
     dlink_offset += 4;
     // multiple MPLS fields
@@ -215,7 +215,7 @@ static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type,
         debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
         return false;
       }
-      mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
+      mpls.u32 = get_u32(packet, dlink_offset);
       mpls.u32 = ntohl(mpls.u32);
       dlink_offset += 4;
     }

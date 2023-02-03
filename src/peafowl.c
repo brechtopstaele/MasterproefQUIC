@@ -388,6 +388,8 @@ uint8_t pfwl_field_add_L7_internal(pfwl_state_t *state, pfwl_field_id_t field, u
 }
 
 uint8_t pfwl_field_add_L7(pfwl_state_t *state, pfwl_field_id_t field) {
+  if (!state)
+    return 1;
   return pfwl_field_add_L7_internal(state, field, state->fields_to_extract, state->fields_to_extract_num);
 }
 

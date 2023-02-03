@@ -116,7 +116,7 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
   size_t pointer = 0;
   // uint16_t 	list_len = ntohs(*(uint16_t *)(data));
   // size_t 		type 	= data[2];
-  uint16_t server_len = ntohs(*(uint16_t *) (data + 3));
+  uint16_t server_len = ntohs(get_u16(data, 3));
   pointer = 2 + 1 + 2;
 
   char *scratchpad = state->scratchpad + state->scratchpad_next_byte;
@@ -130,7 +130,7 @@ static void parse_ec(const unsigned char *data, const unsigned char *data_end, u
   // skip len
   data += 2;
   while (data + 1 < data_end && (*nbr_ec < MAX_EC)) {
-    uint16_t ec_value = ntohs(*((uint16_t *) data));
+    uint16_t ec_value = ntohs(get_u16(data, 0));
     ec[*nbr_ec] = ec_value;
     (*nbr_ec)++;
     data += 2;
@@ -163,9 +163,9 @@ void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size
   unsigned int nbr_ecpf = 0;
 
   for (pointer = 0; pointer < len; pointer += TLVlen) {
-    uint16_t TLVtype = ntohs(*(uint16_t *) (&data[pointer]));
+    uint16_t TLVtype = ntohs(get_u16(data, pointer));
     pointer += 2;
-    TLVlen = ntohs(*(uint16_t *) (&data[pointer]));
+    TLVlen = ntohs(get_u16(data, pointer));
     pointer += 2;
     // printf("TLV %02d TLV Size %02d\n", TLVtype, TLVlen);
 
@@ -437,12 +437,12 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
     tls_pointer += 1;
 
     /* Cipher suites and length */
-    uint16_t cipher_suite_len = ntohs(*(uint16_t *) (&proper_tls_data[tls_pointer]));
+    uint16_t cipher_suite_len = ntohs(get_u16(proper_tls_data, tls_pointer));
     tls_pointer += 2;
 
     /* use content of cipher suite for building the JA3 hash */
     for (size_t i = 0; i < cipher_suite_len; i += 2) {
-      uint16_t cipher_suite = ntohs(*(uint16_t *) (proper_tls_data + tls_pointer + i));
+      uint16_t cipher_suite = ntohs(get_u16(proper_tls_data, tls_pointer + i));
       if (is_grease(cipher_suite)) {
         continue; // skip grease value
       }
@@ -462,7 +462,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
     tls_pointer += compression_methods_len;
 
     /* Extension length */
-    uint16_t ext_len = ntohs(*(uint16_t *) (&proper_tls_data[tls_pointer]));
+    uint16_t ext_len = ntohs(get_u16(proper_tls_data, tls_pointer));
     tls_pointer += 2;
 
     /* Add Extension length to the ja3 string */
