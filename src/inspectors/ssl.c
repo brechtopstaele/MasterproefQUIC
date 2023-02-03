@@ -420,31 +420,33 @@ static int getSSLcertificate(pfwl_state_t *state, pfwl_flow_info_private_t *flow
           }
 
           // len = pfwl_min(server_len-begin, buffer_len-1);
-          len = buffer_len ? buffer_len - 1 : 0;
-          strncpy(buffer, &server_name[begin], len);
-          buffer[len] = '\0';
+          if (buffer_len > 0) {
+            len = buffer_len - 1;
+            strncpy(buffer, &server_name[begin], len);
+            buffer[len] = '\0';
 
-          /* We now have to check if this looks like an IP address or host name */
-          for (j = 0, num_dots = 0; j < len; j++) {
-            if (!pfwl_isprint((buffer[j]))) {
-              num_dots = 0; /* This is not what we look for */
-              break;
-            } else if (buffer[j] == '.') {
-              num_dots++;
-              if (num_dots >= 2)
+            /* We now have to check if this looks like an IP address or host name */
+            for (j = 0, num_dots = 0; j < len; j++) {
+              if (!pfwl_isprint((buffer[j]))) {
+                num_dots = 0; /* This is not what we look for */
                 break;
+              } else if (buffer[j] == '.') {
+                num_dots++;
+                if (num_dots >= 2)
+                  break;
+              }
             }
-          }
 
-          if (num_dots >= 2) {
-            stripCertificateTrailer(buffer, &buffer_len);
+            if (num_dots >= 2) {
+              stripCertificateTrailer(buffer, &buffer_len);
 #if PFWL_DEBUG_SSL
-            printf("CERT: %s\n", buffer);
+              printf("CERT: %s\n", buffer);
 #endif
-            // Do not set from buffer since is allocated on stack.
-            pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_CERTIFICATE, (const unsigned char *) &server_name[begin],
-                                  buffer_len);
-            return (1 /* Server Certificate */);
+              // Do not set from buffer since is allocated on stack.
+              pfwl_field_string_set(fields, PFWL_FIELDS_L7_SSL_CERTIFICATE, (const unsigned char *) &server_name[begin],
+                                    buffer_len);
+              return (1 /* Server Certificate */);
+            }
           }
         }
       }
