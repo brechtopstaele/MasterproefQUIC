@@ -219,7 +219,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
         pq += ((const unsigned char *) r - temp + 1); // end of Name
         // check Query Type
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_QUERY_TYPE)) {
-          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(*(uint16_t *) pq));
+          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(get_u16(pq, 0)));
         }
       }
     }
@@ -250,7 +250,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
         pq += ((const unsigned char *) r - temp + 1); // end of Name
         // check Query Type
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_QUERY_TYPE)) {
-          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(*(uint16_t *) pq));
+          pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(get_u16(pq, 0)));
         }
 
         pq += 4; // Type(2) + Class(2)

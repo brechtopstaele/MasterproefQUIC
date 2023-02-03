@@ -335,9 +335,17 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
   phton64(nonce + sizeof(nonce) - 8, pntoh64(nonce + sizeof(nonce) - 8) ^ quic_info->packet_number);
 
   /* Initial packets are protected with AEAD_AES_128_GCM. */
-  quic_info->decrypted_payload_len = aes_gcm_decrypt(
-      quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), header, quic_info->header_len,
-      atag, quic_info->quic_key, nonce, sizeof(nonce), quic_info->decrypted_payload);
+  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), header,
+                            quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
+                            quic_info->decrypted_payload);
+  if (ret < 0) {
+    free(quic_info->decrypted_payload);
+    quic_info->decrypted_payload = NULL;
+    free(header);
+    return -1;
+  }
+
+  quic_info->decrypted_payload_len = ret;
   free(header);
   return 0;
 }
