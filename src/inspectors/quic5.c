@@ -39,6 +39,7 @@
 #include "quic_utils.h"
 
 #define MAX_CONNECTION_ID_LENGTH 	20
+#define MAX_TOKEN_LENGTH		70
 #define MAX_STRING_LENGTH	 	256
 #define MAX_SALT_LENGTH			20
 #define MAX_LABEL_LENGTH		32
@@ -55,6 +56,8 @@ typedef struct {
 	uint32_t version;
 	size_t packet_number;
 	size_t packet_number_len;
+	size_t token_len;
+	unsigned char token[MAX_TOKEN_LENGTH];
 	size_t payload_len;
 	
 	unsigned char *decrypted_payload;
@@ -100,7 +103,13 @@ typedef enum {
 	VER_DRAFT27=0xff00001b,
 	VER_DRAFT28=0xff00001c,
 	VER_DRAFT29=0xff00001d,
+	VER_DRAFT30=0xff00001e,
+	VER_DRAFT31=0xff00001f,
+	VER_DRAFT32=0xff000020,
+	VER_DRAFT33=0xff000021,
+	VER_DRAFT34=0xff000022,
 	VER_RFC9000=0x00000001, //Added IETF RFC9000 version
+	VER_2=0x6b3343cf, //Version 2 draft 10
 } quic_version_t;
 
 #define PFWL_DEBUG_DISS_QUIC 1
@@ -149,11 +158,20 @@ static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const 
 		case VER_DRAFT27:
 		case VER_DRAFT28:
 		case VER_DRAFT29:
+		case VER_DRAFT30:
+		case VER_DRAFT31:
+		case VER_DRAFT32:
+		case VER_DRAFT33:
+		case VER_DRAFT34:
 			len = snprintf(ver, ver_len, "draft-%d", qver & 0xff);
 			break;
 
 		case VER_RFC9000:
-			len = snprintf(ver, ver_len, "IETF RFC 9000"); //Added RFC 9000 version
+			len = snprintf(ver, ver_len, "IETF RFC 9000 QUIC version 1"); //Added RFC 9000 version
+			break;
+
+		case VER_2:
+			len = snprintf(ver, ver_len, "QUIC version 2 draft"); //Added version 2 (which at time of adding is still in draft)
 			break;
 
 		case VER_MVFST_27:
@@ -187,6 +205,8 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
 	static const uint8_t draft22_salt[MAX_SALT_LENGTH] = { 0x7f, 0xbc, 0xdb, 0x0e, 0x7c, 0x66, 0xbb, 0xe9, 0x19, 0x3a, 0x96, 0xcd, 0x21, 0x51, 0x9e, 0xbd, 0x7a, 0x02, 0x64, 0x4a };
  	static const uint8_t draft23_salt[MAX_SALT_LENGTH] = { 0xc3, 0xee, 0xf7, 0x12, 0xc7, 0x2e, 0xbb, 0x5a, 0x11, 0xa7, 0xd2, 0x43, 0x2b, 0xb4, 0x63, 0x65, 0xbe, 0xf9, 0xf5, 0x02 };
 	static const uint8_t draft29_salt[MAX_SALT_LENGTH] = { 0xaf, 0xbf, 0xec, 0x28, 0x99, 0x93, 0xd2, 0x4c, 0x9e, 0x97, 0x86, 0xf1, 0x9c, 0x61, 0x11, 0xe0, 0x43, 0x90, 0xa8, 0x99 };
+	static const uint8_t rfc9000_salt[MAX_SALT_LENGTH] = { 0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17, 0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a }; //Added salt from [QUIC-TLS] specification rfc9001													
+	
 	const uint8_t	*salt; 
 
 	switch (quic_info->version) {
@@ -224,6 +244,11 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
 
 		case VER_DRAFT29:
 			salt = draft29_salt;
+			quic_info->has_tls13_record = 1;
+			break;
+
+		case VER_RFC9000:
+			salt = rfc9000_salt;
 			quic_info->has_tls13_record = 1;
 			break;
 
@@ -401,9 +426,11 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 		//size_t unused_bits = app_data[0] & 0xC0;
 		//int has_version = app_data[0] & 0x01;
 
+		//Masks for first header byte
 		size_t header_form = (app_data[0] & 0x80) >> 7; // 1000 0000
-		//size_t bit2 = (app_data[0] & 0x40) >> 6; // 0100 0000
-		//size_t bit3 = (app_data[0] & 0x20) >> 5; // 0010 0000
+		size_t fixed_bit = (app_data[0] & 0x40) >> 6; // 0100 0000
+		size_t packet_type = (app_data[0] & 0x30) >> 4; // 0011 0000
+		printf("%lu \n", packet_type);
 		//size_t bit4 = (app_data[0] & 0x10) >> 4; // 0001 0000
 		//size_t bit5 = (app_data[0] & 0x08) >> 3; // 0000 1000
 		//size_t bit6 = (app_data[0] & 0x04) >> 2; // 0000 0100
@@ -420,20 +447,25 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			quic_info.header_len += 4; /* version (4 bytes) */
 
 			quic_info.dst_conn_id_len = app_data[quic_info.header_len];
-			quic_info.header_len++; //1 byte destionation connection length 
+			quic_info.header_len++; //1 byte destination connection length 
 
 			memcpy(quic_info.dst_conn_id, &app_data[quic_info.header_len], quic_info.dst_conn_id_len);
 			quic_info.header_len = quic_info.header_len + quic_info.dst_conn_id_len; /* destination connection id length */
-
+			printf("DCID: %s\n", quic_info.dst_conn_id);
 			quic_info.src_conn_id_len = app_data[quic_info.header_len];
 			quic_info.header_len++; //1 byte source connection length 
 
 			memcpy(quic_info.src_conn_id, &app_data[quic_info.header_len], quic_info.src_conn_id_len);
 			quic_info.header_len = quic_info.header_len + quic_info.src_conn_id_len; /* source connection id length */ 	
 
-			size_t token_len = 0;
-			quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &token_len);
-			quic_info.header_len += token_len;
+			quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.token_len); /* token length length */
+			printf("Token length: %d\n", quic_info.token_len); //Klopt
+			//printf("Token : %s\n", app_data[quic_info.header_len]); WERKT
+			
+			printf("Memcopy: %d\n", memcpy(quic_info.token, &app_data[quic_info.header_len], quic_info.token_len)); /* save token to quic_info struct */
+			quic_info.token[quic_info.token_len] = '\0';
+			printf("Token hier: %s\n", quic_info.token);
+			quic_info.header_len += quic_info.token_len; /* token length */
 
 			quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.payload_len);
 
@@ -450,6 +482,15 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			size_t ver_str_len = quic_version_tostring(quic_info.version, scratchpad, 32);
 			pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, scratchpad, ver_str_len);
 			state->scratchpad_next_byte += ver_str_len;
+		}
+
+		if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_TOKEN)) {
+			scratchpad = state->scratchpad + state->scratchpad_next_byte;
+			memcpy(scratchpad, &quic_info.token, quic_info.token_len);
+			printf("Token: %s\n", quic_info.token);
+			printf("Token: %s\n", scratchpad);
+			pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, scratchpad, quic_info.token_len);
+			state->scratchpad_next_byte += quic_info.token_len;
 		}
 
 
