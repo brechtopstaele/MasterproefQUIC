@@ -52,8 +52,8 @@ uint8_t check_bitcoin(pfwl_state_t *state, const unsigned char *app_data, size_t
   if (data_length < sizeof(uint32_t))
     return PFWL_PROTOCOL_MORE_DATA_NEEDED;
 
-  if ((*((uint32_t *) app_data) == pfwl_bitcoin_magic_1 || *((uint32_t *) app_data) == pfwl_bitcoin_magic_2 ||
-       *((uint32_t *) app_data) == pfwl_bitcoin_magic_3 || *((uint32_t *) app_data) == pfwl_bitcoin_magic_4)) {
+  if ((get_u32(app_data, 0) == pfwl_bitcoin_magic_1 || get_u32(app_data, 0) == pfwl_bitcoin_magic_2 ||
+       get_u32(app_data, 0) == pfwl_bitcoin_magic_3 || get_u32(app_data, 0) == pfwl_bitcoin_magic_4)) {
     return PFWL_PROTOCOL_MATCHES;
   }
   return PFWL_PROTOCOL_NO_MATCHES;

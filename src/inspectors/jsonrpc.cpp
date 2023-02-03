@@ -124,8 +124,9 @@ JsonRpcOverHttpCheck check_jsonrpc_over_http(pfwl_dissection_info_t *pkt_info,
                                              pfwl_flow_info_private_t *flow_info_private,
                                              const unsigned char *&http_body, size_t &http_body_length) {
   debug_print("%s", "Checking json over http\n");
-  if (flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
-      PFWL_PROTO_L7_HTTP) {
+  if (flow_info_private->info_public->protocols_l7_num &&
+      flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+          PFWL_PROTO_L7_HTTP) {
     // Previous protocol was HTTP, let's check if it was carrying json stuff
     debug_print("%s", "Previous proto was HTTP\n");
     int64_t http_method;
@@ -153,7 +154,8 @@ JsonRpcOverHttpCheck check_jsonrpc_over_http(pfwl_dissection_info_t *pkt_info,
       debug_print("%s", "HTTP method was not POST but may be POST in the future\n");
       return JRPC_HTTP_MORE_DATA;
     }
-  } else if (BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_HTTP) &&
+  } else if (flow_info_private->info_public->protocols_l7_num &&
+             BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_HTTP) &&
              flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
                  PFWL_PROTO_L7_NOT_DETERMINED) {
     // Could still become HTTP

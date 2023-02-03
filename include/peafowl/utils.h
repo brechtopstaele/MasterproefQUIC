@@ -48,7 +48,6 @@
                                       to be used for an array of nb bits. **/
 
 #define get_u8(X, O) (*(uint8_t *) (((uint8_t *) X) + O))
-#define get_u64(X, O) (*(uint64_t *) (((uint8_t *) X) + O))
 #define get_u128(X, O) (*(uint128_t *) (((uint8_t *) X) + O))
 
 #define PFWL_MIN(x, y)      \
@@ -73,6 +72,12 @@ inline uint16_t get_u16(const void *buffer, size_t offset) {
 
 inline uint32_t get_u32(const void *buffer, size_t offset) {
   uint32_t ret;
+  memcpy(&ret, ((const uint8_t *) buffer) + offset, sizeof(ret));
+  return ret;
+}
+
+inline uint64_t get_u64(const void *buffer, size_t offset) {
+  uint64_t ret;
   memcpy(&ret, ((const uint8_t *) buffer) + offset, sizeof(ret));
   return ret;
 }

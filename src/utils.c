@@ -55,3 +55,4 @@ char *pfwl_strnstr(const char *haystack, const char *needle, size_t len) {
 
 extern inline uint16_t get_u16(const void *buffer, size_t offset);
 extern inline uint32_t get_u32(const void *buffer, size_t offset);
+extern inline uint64_t get_u64(const void *buffer, size_t offset);
