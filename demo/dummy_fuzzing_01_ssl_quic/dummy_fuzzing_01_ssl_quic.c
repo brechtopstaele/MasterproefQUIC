@@ -61,17 +61,19 @@ int main(int argc, char **argv) {
   const u_char *packet;
   struct pcap_pkthdr header;
 
-  pfwl_protocol_l7_disable_all(state);
+  // pfwl_protocol_l7_disable_all(state);
   pfwl_protocol_l7_enable(state, PFWL_PROTO_L7_SSL);
   pfwl_protocol_l7_enable(state, PFWL_PROTO_L7_QUIC);
   pfwl_protocol_l7_enable(state, PFWL_PROTO_L7_QUIC5);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_JA3);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_HANDSHAKE_TYPE);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
-
+  for (int i = 0; i < PFWL_FIELDS_L7_NUM; ++i)
+    pfwl_field_add_L7(state, i);
+  /*  pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_JA3);
+    pfwl_field_add_L7(state, PFWL_FIELDS_L7_SSL_HANDSHAKE_TYPE);
+    pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
+    pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI);
+    pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
+    pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
+  */
   pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
   while ((packet = pcap_next(handle, &header)) != NULL) {
     pfwl_dissection_info_t r;
