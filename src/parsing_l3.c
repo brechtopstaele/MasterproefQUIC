@@ -352,6 +352,10 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
     dissection_info->l3.refrag_pkt = pkt;
     dissection_info->l3.refrag_pkt_len = length;
   }
+
+  if (dissection_info->l3.length > length)
+    return PFWL_ERROR_L3_PARSING;
+
   dissection_info->l3.payload_length = length - dissection_info->l3.length;
   return to_return;
 }
