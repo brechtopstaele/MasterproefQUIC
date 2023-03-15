@@ -42,6 +42,7 @@
  *	 GREASE_TABLE Ref: 
  * 		- https://tools.ietf.org/html/draft-davidben-tls-grease-00
  * 		- https://tools.ietf.org/html/draft-davidben-tls-grease-01
+ * 		- https://datatracker.ietf.org/doc/html/rfc8701
  *
  * 	switch grease-table is much faster than looping and testing a lookup grease table 
  *
@@ -99,6 +100,22 @@ void tls13_parse_quic_transport_params(pfwl_state_t *state, const unsigned char 
 	}
 }
 
+void tls13_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+ unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
+	size_t		pointer = 0;
+	size_t 		TLVlen 	= 0;
+
+	size_t grps_len = ntohs(*(uint16_t *)(&data[pointer]));
+	pointer += 2;
+
+	for (pointer; pointer < grps_len+2; pointer += 2) {
+		size_t		supgrp = 0;
+		supgrp = ntohs(*(uint16_t *)(&data[pointer]));
+	 	*ja3_supgrps_string_len += sprintf(ja3_supgrps_string + *ja3_supgrps_string_len, "%u-", supgrp);
+	}
+
+}
+
 void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
 	size_t		pointer = 0;
 	//uint16_t 	list_len = ntohs(*(uint16_t *)(data));
@@ -113,7 +130,7 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
 }
 
 void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
-	unsigned char *ja3_string, size_t *ja3_string_len) {
+	unsigned char *ja3_string, size_t *ja3_string_len, unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
 	size_t pointer;
 	size_t TLVlen;
 
@@ -152,7 +169,11 @@ void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size
 					tls13_parse_servername(state, data + pointer, TLVlen, pkt_info, flow_info_private);
 				}
 				break;
-				/* Extension quic transport parameters */
+			/* supported_groups */
+			case 10:
+				tls13_parse_supported_groups(state, data + pointer, TLVlen, pkt_info, flow_info_private, ja3_supgrps_string, ja3_supgrps_string_len);
+				break; 
+			/* Extension quic transport parameters */
 			case 65445:
 				tls13_parse_quic_transport_params(state, data + pointer, TLVlen, pkt_info, flow_info_private);
 				break;
@@ -171,6 +192,9 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	/* Finger printing */
 	unsigned char ja3_string[1024];
 	size_t ja3_string_len;
+
+	unsigned char ja3_supgrps_string[100];
+	size_t ja3_supgrps_string_len = 0;
 
 	size_t 		tls_pointer	= 0;
 
@@ -237,11 +261,18 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		unsigned const char *ext_data = tls_data + tls_pointer;
 
 		/* lets iterate over the exention list */
-		tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",,");
+		tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+
+		/* add supported groups to JA3 string */
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, ja3_supgrps_string);
+		if(ja3_supgrps_string_len){
+			ja3_string_len--; //Remove last dash from supported groups string
+		}
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
 	}
 	//printf("JA3 String %s\n", ja3_string);
-        char *md5sum = state->scratchpad + state->scratchpad_next_byte;
+    char *md5sum = state->scratchpad + state->scratchpad_next_byte;
 	size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5sum);
         
 	pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, md5sum, md5sum_len);
