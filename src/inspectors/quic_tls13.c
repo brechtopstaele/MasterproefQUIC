@@ -35,6 +35,7 @@
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include "quic_tls13.h"
+#include "quic_tls_fingerprinting.h"
 #include "quic_utils.h"
 #include "quic_ssl_utils.h"
 
@@ -216,6 +217,8 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	tls_pointer += 3;
 
 	uint16_t tls_version = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+	unsigned char tls_version_hex[4];
+    sprintf(tls_version_hex, "%04x", tls_version);
 	tls_pointer += 2;
 
 	/* Build JA3 string */
@@ -228,11 +231,14 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		/* skipping legacy_session_id one byte */
 		tls_pointer += 1;
 
+		parse_ja3_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, ja3_string, &ja3_string_len, tls_version);
+		
 		/* Cipher suites and length */
 		uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
 		tls_pointer += 2;
 
 		/* use content of cipher suite for building the JA3 hash */
+		
 		for (size_t i = 0; i < cipher_suite_len; i += 2) {
 			uint16_t cipher_suite = ntohs(*(uint16_t *)(tls_data + tls_pointer + i));
 			if(is_grease(cipher_suite)) {

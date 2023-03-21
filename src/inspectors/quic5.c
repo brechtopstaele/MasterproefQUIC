@@ -36,6 +36,7 @@
 #include <openssl/evp.h>
 #include "quic_ssl_utils.h"
 #include "quic_tls13.h"
+#include "quic_tls_fingerprinting.h"
 #include "quic_utils.h"
 
 #define MAX_CONNECTION_ID_LENGTH 	20
@@ -451,7 +452,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 
 			memcpy(quic_info.dst_conn_id, &app_data[quic_info.header_len], quic_info.dst_conn_id_len);
 			quic_info.header_len = quic_info.header_len + quic_info.dst_conn_id_len; /* destination connection id length */
-			printf("DCID: %s\n", quic_info.dst_conn_id);
+			printf("DCID: 0x%.02x\n", /*(unsigned char)*/ quic_info.dst_conn_id);
 			quic_info.src_conn_id_len = app_data[quic_info.header_len];
 			quic_info.header_len++; //1 byte source connection length 
 

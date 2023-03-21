@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 						res1	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, &sni);
 						res2    = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid);
 						res3    = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &ja3);
-						res4	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, &token);
+						//res4	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, &token);
 						printf("RES %d %d %d %d %d\n", res, res1, res2, res3, res4);
 						if (!res) {
 							printf("Quic Version: %.*s\n", version.length, version.value);
@@ -119,11 +119,11 @@ int main(int argc, char** argv){
 							printf("Quic JA3: unknown\n");
 						}
 
-						if (!res4) {
+						/*if (!res4) {
 							printf("Quic token: %.*s\n", token.length, token.value);
 						} else {
 							printf("Quic token: unknown\n");
-						}
+						}*/
 						first_packet = 0;
 					}
 				}else{
