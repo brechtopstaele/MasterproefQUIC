@@ -30,35 +30,28 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-#ifdef HAVE_OPENSSL
 /* JA3 Fingerprinting */
 void ja3_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
  unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len);
 void ja3_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 	unsigned char *ja3_string, size_t *ja3_string_len, unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len);
-void parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *ja3_string, size_t *ja3_string_len, uint16_t tls_version);
+size_t parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+ unsigned char *ja3_string, uint16_t tls_version);
 
 /* Joy Fingerprinting */
 void joy_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 	unsigned char *joy_string, size_t *joy_string_len);
-void parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *joy_string, size_t *joy_string_len, uint16_t tls_version);
+size_t parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+ unsigned char *joy_string, uint16_t tls_version);
 
 /* NPF Fingerprinting */
 void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
  unsigned char *npf_string, size_t *npf_string_len);
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 	unsigned char *npf_string, size_t *npf_string_len);
-void parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *npf_string, size_t *npf_string_len, uint16_t tls_version, uint16_t quic_version);
+size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+ unsigned char *npf_string, uint16_t tls_version, uint16_t quic_version);
 
-char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private);
-char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private);
-char* parse_npf_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private);
-
-#else
-	uint8_t check_tls13(pfwl_state_t *state, const unsigned char *app_data,
-			size_t data_length, pfwl_dissection_info_t *pkt_info,
-			pfwl_flow_info_private_t *flow_info_private);
-#endif
+char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *ja3_string, size_t *ja3_string_len);
+char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string, size_t *joy_string_len);
+char* parse_npf_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string, size_t *npf_string_len);

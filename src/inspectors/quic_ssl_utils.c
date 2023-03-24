@@ -34,6 +34,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/kdf.h>
+#include <openssl/sha.h>
 
 #include "quic_ssl_utils.h"
 
@@ -469,6 +470,13 @@ int md5_digest_message(const unsigned char *message, size_t message_len, unsigne
 
 	EVP_MD_CTX_free(mdctx);
 	return digest_len;
+}
+
+int sha256_digest_message(const unsigned char *message, size_t message_len, unsigned char *digest) {
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, message, message_len);
+    SHA256_Final(digest, &sha256);
 }
 
 #endif

@@ -465,7 +465,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			
 			printf("Memcopy: %d\n", memcpy(quic_info.token, &app_data[quic_info.header_len], quic_info.token_len)); /* save token to quic_info struct */
 			quic_info.token[quic_info.token_len] = '\0';
-			printf("Token hier: %s\n", quic_info.token);
+			//printf("Token hier: %s\n", quic_info.token);
 			quic_info.header_len += quic_info.token_len; /* token length */
 
 			quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.payload_len);
@@ -488,8 +488,8 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 		if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_TOKEN)) {
 			scratchpad = state->scratchpad + state->scratchpad_next_byte;
 			memcpy(scratchpad, &quic_info.token, quic_info.token_len);
-			printf("Token: %s\n", quic_info.token);
-			printf("Token: %s\n", scratchpad);
+			//printf("Token: %s\n", quic_info.token);
+			//printf("Token: %s\n", scratchpad);
 			pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, scratchpad, quic_info.token_len);
 			state->scratchpad_next_byte += quic_info.token_len;
 		}
@@ -506,7 +506,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data,
 			/* According to wireshark chlo_start could also be quic_info.decrypted_payload + 2 (frame_type || offset) + crypto_data_len */
 
 			if (quic_info.has_tls13_record) {
-				check_tls13(state, quic_info.decrypted_payload, quic_info.decrypted_payload_len, pkt_info, flow_info_private);
+				check_tls13(state, quic_info.decrypted_payload, quic_info.decrypted_payload_len, pkt_info, flow_info_private, quic_info.version);
 			} else {
 				/* PLZ Move me to a function */
 				const unsigned char* chlo_start = (const unsigned char*) pfwl_strnstr((const char*) quic_info.decrypted_payload, "CHLO", quic_info.decrypted_payload_len);

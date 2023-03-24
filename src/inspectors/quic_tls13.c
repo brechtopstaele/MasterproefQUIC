@@ -189,10 +189,16 @@ void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size
 	}
 }
 
-uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t tls_data_length, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t tls_data_length, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, uint32_t quic_version) {
 	/* Finger printing */
 	unsigned char ja3_string[1024];
 	size_t ja3_string_len;
+
+	unsigned char joy_string[1024];
+	size_t joy_string_len;
+
+	unsigned char npf_string[1024];
+	size_t npf_string_len;
 
 	unsigned char ja3_supgrps_string[100];
 	size_t ja3_supgrps_string_len = 0;
@@ -222,7 +228,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	tls_pointer += 2;
 
 	/* Build JA3 string */
-	ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
+	//ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
 
 	if (handshake_type == 1) { /* We only inspect client hello which has a type equal to 1 */	
 		/* skipping random data 32 bytes */
@@ -231,59 +237,64 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		/* skipping legacy_session_id one byte */
 		tls_pointer += 1;
 
-		parse_ja3_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, ja3_string, &ja3_string_len, tls_version);
-		
+		ja3_string_len = parse_ja3_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, ja3_string, tls_version);
+		printf("JA3: %s \n\n", ja3_string);
+		joy_string_len = parse_joy_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, joy_string, tls_version);
+		printf("JOY: %s \n\n", joy_string);
+		npf_string_len = parse_npf_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, npf_string, tls_version, quic_version);
+		printf("NPF: %s \n\n", npf_string);
+
 		/* Cipher suites and length */
-		uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+		/*uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
 		tls_pointer += 2;
 
 		/* use content of cipher suite for building the JA3 hash */
 		
-		for (size_t i = 0; i < cipher_suite_len; i += 2) {
+		/*for (size_t i = 0; i < cipher_suite_len; i += 2) {
 			uint16_t cipher_suite = ntohs(*(uint16_t *)(tls_data + tls_pointer + i));
 			if(is_grease(cipher_suite)) {
 				continue; // skip grease value
 			}
-			ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
+			//ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
 		}
 		if (cipher_suite_len) {
-			ja3_string_len--; //remove last dash (-) from ja3_string
+			//ja3_string_len--; //remove last dash (-) from ja3_string
 		}
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+		//ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
 		tls_pointer += cipher_suite_len;
 
 		/* compression methods length */
-		size_t compression_methods_len = tls_data[tls_pointer];
+		/*size_t compression_methods_len = tls_data[tls_pointer];
 		tls_pointer++;
 
 		/* Skip compression methods */
-		tls_pointer += compression_methods_len;
+		/*tls_pointer += compression_methods_len;
 
 		/* Extension length */
-		uint16_t ext_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+		/*uint16_t ext_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
 		tls_pointer += 2;
 
 		/* Add Extension length to the ja3 string */
-		unsigned const char *ext_data = tls_data + tls_pointer;
+		/*unsigned const char *ext_data = tls_data + tls_pointer;
 
 		/* lets iterate over the exention list */
-		tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+		//tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
+		//ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
 
 		/* add supported groups to JA3 string */
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ja3_supgrps_string);
-		if(ja3_supgrps_string_len){
+		//ja3_string_len += sprintf(ja3_string + ja3_string_len, ja3_supgrps_string);
+		/*if(ja3_supgrps_string_len){
 			ja3_string_len--; //Remove last dash from supported groups string
 		}
-		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");*/
 	}
 	//printf("JA3 String %s\n", ja3_string);
-    char *md5sum = state->scratchpad + state->scratchpad_next_byte;
+    /*char *md5sum = state->scratchpad + state->scratchpad_next_byte;
 	size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5sum);
         
 	pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, md5sum, md5sum_len);
         state->scratchpad_next_byte += md5sum_len;
-
+*/
 	//printf("JA3:");
 	//debug_print_rawfield(md5sum, 0, md5sum_len);
 	return PFWL_PROTOCOL_MATCHES;

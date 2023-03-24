@@ -30,13 +30,47 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-#ifdef HAVE_OPENSSL
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
+#include "quic_tls_fingerprinting.h"
 #include "quic_tls13.h"
 #include "quic_utils.h"
 #include "quic_ssl_utils.h"
+
+/*
+ *	 GREASE_TABLE Ref: 
+ * 		- https://tools.ietf.org/html/draft-davidben-tls-grease-00
+ * 		- https://tools.ietf.org/html/draft-davidben-tls-grease-01
+ * 		- https://datatracker.ietf.org/doc/html/rfc8701
+ *
+ * 	switch grease-table is much faster than looping and testing a lookup grease table 
+ *
+ */
+static unsigned int is_grease(uint32_t x){
+	switch(x) {
+		case 0x0a0a:
+		case 0x1a1a:
+		case 0x2a2a:
+		case 0x3a3a:
+		case 0x4a4a:
+		case 0x5a5a:
+		case 0x6a6a:
+		case 0x7a7a:
+		case 0x8a8a:
+		case 0x9a9a:
+		case 0xaaaa:
+		case 0xbaba:
+		case 0xcaca:
+		case 0xdada:
+		case 0xeaea:
+		case 0xfafa:
+			return 1;
+		default:
+			return 0;
+	}
+	return 0;
+}
 
 void ja3_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
  unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
@@ -102,14 +136,15 @@ void ja3_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 	}
 }
 
-void parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *ja3_string, size_t *ja3_string_len,
- uint16_t tls_version){
+size_t parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info,
+ pfwl_flow_info_private_t *flow_info_private, unsigned char *ja3_string, uint16_t tls_version){
     /*JA3 Finger printing 
       Documentation:
       https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967/
     */
 
     size_t pointer = 0;
+	size_t ja3_string_len;
 
 	unsigned char ja3_supgrps_string[100];
 	size_t ja3_supgrps_string_len = 0;
@@ -118,36 +153,35 @@ void parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len
 	ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
 
 	/* Cipher suites and length */
-	uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&tls_data[pointer]));
+	uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&data[pointer]));
 	pointer += 2;
 
 	/* use content of cipher suite for building the JA3 hash */
     for (size_t i = 0; i < cipher_suite_len; i += 2) {
-        uint16_t cipher_suite = ntohs(*(uint16_t *)(tls_data + tls_pointer + i));
+        uint16_t cipher_suite = ntohs(*(uint16_t *)(data + pointer + i));
         if(is_grease(cipher_suite)) {
             continue; // skip grease value
         }
-        ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
     }
     if (cipher_suite_len) {
         ja3_string_len--; //remove last dash (-) from ja3_string
     }
     ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
-    tls_pointer += cipher_suite_len;
+    pointer += cipher_suite_len;
 
     /* compression methods length */
-    size_t compression_methods_len = tls_data[tls_pointer];
-    tls_pointer++;
+    size_t compression_methods_len = data[pointer];
+    pointer++;
 
     /* Skip compression methods */
-    tls_pointer += compression_methods_len;
+    pointer += compression_methods_len;
 
     /* Extension length */
-    uint16_t ext_len = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
-    tls_pointer += 2;
+    uint16_t ext_len = ntohs(*(uint16_t *)(&data[pointer]));
+    pointer += 2;
 
     /* Add Extension length to the ja3 string */
-    unsigned const char *ext_data = tls_data + tls_pointer;
+    unsigned const char *ext_data = data + pointer;
 
     /* lets iterate over the exention list */
     ja3_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
@@ -159,6 +193,7 @@ void parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len
         ja3_string_len--; //Remove last dash from supported groups string
     }
     ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+	return ja3_string_len;
 }
 
 void joy_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
@@ -207,13 +242,23 @@ void joy_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
             /* supported_versions */
             case 43: 
             /* psk_key_exchange_modes */
-            case 45:
-				unsigned char *data[TLVlen];
-				for(int i = 0; i<TLVlen; i++) {
-					sprintf(data + i, "%1x");
-				}
-                *joy_string_len += sprintf(joy_string + *joy_string_len, "(%04x%04x%s)", TLVtype, TLVlen, data);
+            case 45: {
+				unsigned char content[TLVlen];
+				memcpy(content, data+pointer, TLVlen);
+				/*for(int i = 0; i<TLVlen; i++) {
+					sprintf(content + i, "%1x", *data + pointer + i);
+				}*/
+				unsigned char *a = content;
+				int num = 0;
+				do {
+					int b = *a=='1'?1:0;
+					num = (num<<1)|b;
+					a++;
+				} while (*a);
+				printf("HEX string content: %02x \n", num);
+                //*joy_string_len += sprintf(joy_string + *joy_string_len, "(%04x%04x%s)", TLVtype, TLVlen, content);
                 break;
+			}
 			default:
 				*joy_string_len += sprintf(joy_string + *joy_string_len, "(%04x%04x)", TLVtype, TLVlen);
 				break;
@@ -221,14 +266,15 @@ void joy_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 	}
 }
 
-void parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string,
- size_t *joy_string_len, uint16_t tls_version){
+size_t parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string,
+ uint16_t tls_version){
     /*Joy Finger printing 
       Documentation:
       https://github.com/cisco/joy/blob/master/doc/using-joy-fingerprinting-00.pdf
     */
 
     size_t pointer = 0;
+	size_t joy_string_len;
 
 	/* Build Joy string */
 	joy_string_len = sprintf(joy_string, "(%04x)(", tls_version);
@@ -245,7 +291,7 @@ void parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len
         }
         joy_string_len += sprintf(joy_string + joy_string_len, "%04x", cipher_suite);
     }
-    ja3_string_len += sprintf(joy_string + joy_string_len, ")(");
+    joy_string_len += sprintf(joy_string + joy_string_len, ")(");
     pointer += cipher_suite_len;
 
     /* compression methods length */
@@ -265,9 +311,11 @@ void parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t len
     /* lets iterate over the exention list */
     joy_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, joy_string, &joy_string_len);
     joy_string_len += sprintf(joy_string + joy_string_len, ")");
+	return joy_string_len;
 }
 
-void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string, size_t *npf_string_len) {
+void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
+unsigned char *npf_string, size_t *npf_string_len) {
 	size_t		pointer = 0;
 	size_t 		TLVlen 	= 0;
 	for (pointer = 0; pointer <len; pointer += TLVlen) {
@@ -279,17 +327,8 @@ void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_di
 
 		size_t content = 0;
 		content = ntohs(*(uint16_t *)(&data[pointer]));
-		*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x%s)", TLVtype, TLVlen, content);
-
-		switch(TLVtype) {
-			case 0x3129:
-				if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_UAID)) {
-					tls13_parse_google_user_agent(state, data + pointer, TLVlen, pkt_info, flow_info_private);
-				}
-			default:
-				break;
-		}
-
+		//printf("(%04x%04x%0.2x)", TLVtype, TLVlen, content);
+		//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x%0.2x)", TLVtype, TLVlen, content);
 	}
 }
 
@@ -345,12 +384,14 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0x002d:
 			case 0x0032:
 			case 0x5500:
+			{
 				unsigned char *data[TLVlen];
 				for(int i = 0; i<TLVlen; i++) {
 					sprintf(data + i, "%1x");
 				}
                 *npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x%s)", TLVtype, TLVlen, data);
                 break;
+			}
 
 			//TODO: lexographic sorting of extensions
 
@@ -358,7 +399,7 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0x0039:
 			case 0xffa5:
 				*npf_string_len += sprintf(npf_string + *npf_string_len, "((%02x)[", TLVtype);
-				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, npf_string, npf_string_len);
+				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, npf_string, &npf_string_len);
 				*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
 				break;
 
@@ -369,17 +410,18 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 	}
 }
 
-void parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string,
- size_t *npf_string_len, uint16_t tls_version, uint16_t quic_version){
+size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string,
+ uint16_t tls_version, uint16_t quic_version){
 	/*NPF Finger printing 
       Documentation:
       https://github.com/cisco/mercury/blob/main/doc/npf.md
     */
 
     size_t pointer = 0;
+	size_t npf_string_len;
 
 	/* Build NPF string */
-	npf_string_len = sprintf(npf_string, "quic/(%04x)(%04x)(", quic_version, tls_version);
+	npf_string_len = sprintf(npf_string, "quic/(%08x)(%04x)(", quic_version, tls_version);
 
 	/* Cipher suites and length */
 	uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&data[pointer]));
@@ -413,11 +455,11 @@ void parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len
     /* lets iterate over the exention list */
     npf_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, npf_string, &npf_string_len);
     npf_string_len += sprintf(npf_string + npf_string_len, "]");
+	return npf_string_len;
 }
 
-char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private){
-    //printf("JA3 String %s\n", ja3_string);
-    char *md5sum = state->scratchpad + state->scratchpad_next_byte;
+char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *ja3_string, size_t *ja3_string_len){
+	char *md5sum = state->scratchpad + state->scratchpad_next_byte;
 	size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5sum);
         
 	pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, md5sum, md5sum_len);
@@ -425,12 +467,14 @@ char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len,
 
 	//printf("JA3:");
 	//debug_print_rawfield(md5sum, 0, md5sum_len);
-}
-char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private);
-char* parse_npf_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private);
+};
 
-#else
-	uint8_t check_tls13(pfwl_state_t *state, const unsigned char *app_data,
-			size_t data_length, pfwl_dissection_info_t *pkt_info,
-			pfwl_flow_info_private_t *flow_info_private);
-#endif
+char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string, size_t *joy_string_len){
+	char *sha256sum = state->scratchpad + state->scratchpad_next_byte;
+	size_t sha256sum_len = sha256_digest_message(joy_string, joy_string_len, sha256sum);
+};
+
+char* parse_npf_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string, size_t *npf_string_len){
+	char *sha256sum = state->scratchpad + state->scratchpad_next_byte;
+	size_t sha256sum_len = sha256_digest_message(npf_string, npf_string_len, sha256sum);
+};
