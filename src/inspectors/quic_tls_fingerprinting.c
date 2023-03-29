@@ -243,20 +243,16 @@ void joy_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
             case 43: 
             /* psk_key_exchange_modes */
             case 45: {
-				unsigned char content[TLVlen];
-				memcpy(content, data+pointer, TLVlen);
-				/*for(int i = 0; i<TLVlen; i++) {
-					sprintf(content + i, "%1x", *data + pointer + i);
-				}*/
-				unsigned char *a = content;
-				int num = 0;
-				do {
-					int b = *a=='1'?1:0;
-					num = (num<<1)|b;
-					a++;
-				} while (*a);
-				printf("HEX string content: %02x \n", num);
-                //*joy_string_len += sprintf(joy_string + *joy_string_len, "(%04x%04x%s)", TLVtype, TLVlen, content);
+				*joy_string_len += sprintf(joy_string + *joy_string_len, "(%04x%04x", TLVtype, TLVlen);
+				for (int i = 0; i<TLVlen; i+=2) {
+					size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
+					*joy_string_len += sprintf(joy_string + *joy_string_len, "%04x", content);
+				}
+				/* If length of the extension is uneven, remove last extra byte */
+				if (TLVlen%2) {
+						*joy_string_len -= 2;
+					}
+				*joy_string_len += sprintf(joy_string + *joy_string_len, ")", TLVtype, TLVlen);
                 break;
 			}
 			default:
@@ -321,14 +317,18 @@ unsigned char *npf_string, size_t *npf_string_len) {
 	for (pointer = 0; pointer <len; pointer += TLVlen) {
 		size_t		TLVtype = 0;
 		pointer += quic_get_variable_len(data, pointer, &TLVtype);
+		printf("type: %lu \n", TLVtype);
+		TLVtype = ntohs((uint16_t)TLVtype);
+		printf("type noths: %lu, %02x \n", TLVtype, TLVtype);
 		TLVlen = data[pointer];
 		pointer++;
-		//printf("parameter TLV %08X TLV Size %02d\n", TLVtype, TLVlen);
-
-		size_t content = 0;
-		content = ntohs(*(uint16_t *)(&data[pointer]));
-		//printf("(%04x%04x%0.2x)", TLVtype, TLVlen, content);
-		//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x%0.2x)", TLVtype, TLVlen, content);
+		/* Check for GREASE */
+		if(TLVtype%31 == 27) {
+			*npf_string_len += sprintf(npf_string + *npf_string_len, "(1b)");
+		}
+		else{
+			*npf_string_len += sprintf(npf_string + *npf_string_len, "(%08x)", TLVtype);
+		}
 	}
 }
 
@@ -385,11 +385,16 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0x0032:
 			case 0x5500:
 			{
-				unsigned char *data[TLVlen];
-				for(int i = 0; i<TLVlen; i++) {
-					sprintf(data + i, "%1x");
+				*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x", TLVtype, TLVlen);
+				for (int i = 0; i<TLVlen; i+=2) {
+					size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
+					*npf_string_len += sprintf(npf_string + *npf_string_len, "%04x", content);
 				}
-                *npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x%s)", TLVtype, TLVlen, data);
+				/* If length of the extension is uneven, remove last extra byte */
+				if (TLVlen%2) {
+						*npf_string_len -= 2;
+					}
+				*npf_string_len += sprintf(npf_string + *npf_string_len, ")", TLVtype, TLVlen);
                 break;
 			}
 
@@ -398,8 +403,8 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			/* QUIC transport parameters */
 			case 0x0039:
 			case 0xffa5:
-				*npf_string_len += sprintf(npf_string + *npf_string_len, "((%02x)[", TLVtype);
-				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, npf_string, &npf_string_len);
+				*npf_string_len += sprintf(npf_string + *npf_string_len, "((%04x)[", TLVtype);
+				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, npf_string, npf_string_len);
 				*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
 				break;
 
