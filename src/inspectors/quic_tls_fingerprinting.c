@@ -310,38 +310,71 @@ size_t parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t l
 	return joy_string_len;
 }
 
+/* string compare function */
+int compare_strings(const void* p1, const void* p2) {
+    return strcmp(*(const char**)p1, *(const char**)p2);
+}
+
 void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 unsigned char *npf_string, size_t *npf_string_len) {
 	size_t		pointer = 0;
 	size_t 		TLVlen 	= 0;
+	const unsigned char* qtp[len/4];
+	size_t qtp_len[len/4];
+	size_t n = 0;
+	
+
 	for (pointer = 0; pointer <len; pointer += TLVlen) {
-		size_t		TLVtype = 0;
-		pointer += quic_get_variable_len(data, pointer, &TLVtype);
-		printf("type: %lu \n", TLVtype);
-		TLVtype = ntohs((uint16_t)TLVtype);
-		printf("type noths: %lu, %02x \n", TLVtype, TLVtype);
+		//TODO: find max length of quic transport parameter
+		qtp[n] = malloc(20);
+		qtp_len[n] = 0;
+
+		size_t TLVtype = 0;
+		size_t len;
+		len = quic_get_variable_len(data, pointer, &TLVtype);
+		pointer += len;
 		TLVlen = data[pointer];
 		pointer++;
+		
 		/* Check for GREASE */
 		if(TLVtype%31 == 27) {
-			*npf_string_len += sprintf(npf_string + *npf_string_len, "(1b)");
+			qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(1b)");
 		}
 		else{
-			*npf_string_len += sprintf(npf_string + *npf_string_len, "(%08x)", TLVtype);
+			qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(%02x)", TLVtype);
 		}
+		n++;
 	}
+	/*for (uint16_t i = 0; i < n; i++){
+        printf (" qtp[%2zu] : %s\n", i, qtp[i]);
+		printf (" qtp_len[%2zu] %lu\n", i, qtp_len[i]);
+	}*/
+
+	/* lexicographic sorting of quic transport parameters */
+	qsort(qtp, n, 8, compare_strings);
+
+	/*for (uint16_t i = 0; i < n; i++)
+        printf (" sorted qtp[%2zu] : %s\n", i, qtp[i]);*/
 }
 
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
-	unsigned char *npf_string, size_t *npf_string_len) {
+	unsigned char *npf_string, size_t *npf_string_len, uint16_t ext_len) {
 	size_t pointer;
 	size_t TLVlen;
+	const unsigned char* extensions[ext_len/4];
+	size_t extensions_len[ext_len/4];
+	size_t n = 0;
 
 	for (pointer = 0; pointer < len; pointer += TLVlen) {
 		size_t TLVtype = ntohs(*(uint16_t *)(&data[pointer]));
 		pointer += 2;
 		TLVlen = ntohs(*(uint16_t *)(&data[pointer]));
 		pointer += 2;
+
+		//extensions[i] = malloc(TLVlen*2 + 1);
+		//TODO: find max length of extension
+		extensions[n] = malloc(1000);
+		extensions_len[n] = 0;
 
 		switch(TLVtype) {
 			/* normalize grease values */
@@ -362,7 +395,8 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0xeaea:
 			case 0xfafa:
 				/* Grease values must normalized to 0a0a */
-                *npf_string_len += sprintf(npf_string + *npf_string_len, "(0a0a)");
+                extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(0a0a)");
+                //*npf_string_len += sprintf(npf_string + *npf_string_len, "(0a0a)");
 			    break;
 
 			/* TLS_EXT_FIXED */
@@ -385,34 +419,51 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0x0032:
 			case 0x5500:
 			{
-				*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x", TLVtype, TLVlen);
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x", TLVtype, TLVlen);
+				//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x", TLVtype, TLVlen);
 				for (int i = 0; i<TLVlen; i+=2) {
 					size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
-					*npf_string_len += sprintf(npf_string + *npf_string_len, "%04x", content);
+					extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%04x", content);
+					//*npf_string_len += sprintf(npf_string + *npf_string_len, "%04x", content);
 				}
 				/* If length of the extension is uneven, remove last extra byte */
 				if (TLVlen%2) {
-						*npf_string_len -= 2;
-					}
-				*npf_string_len += sprintf(npf_string + *npf_string_len, ")", TLVtype, TLVlen);
+					extensions_len[n] -= 2;
+					extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")\0");
+				}
+				else {
+					extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")");
+				}
+				//*npf_string_len += sprintf(npf_string + *npf_string_len, ")", TLVtype, TLVlen);
                 break;
 			}
-
-			//TODO: lexographic sorting of extensions
 
 			/* QUIC transport parameters */
 			case 0x0039:
 			case 0xffa5:
-				*npf_string_len += sprintf(npf_string + *npf_string_len, "((%04x)[", TLVtype);
-				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, npf_string, npf_string_len);
-				*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x)[", TLVtype);
+				//*npf_string_len += sprintf(npf_string + *npf_string_len, "((%04x)[", TLVtype);
+				//npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, extensions[n], extensions_len[n]);
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "]");
+				//*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
 				break;
 
 			default:
-				*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x)", TLVtype, TLVlen);
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x)", TLVtype, TLVlen);
+				//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x)", TLVtype, TLVlen);
 				break;
 		}	
+		n++;
 	}
+	printf("n: %lu \n", n);
+	for (uint16_t i = 0; i < n; i++){
+        printf (" extensions[%2zu] : %s\n", i, extensions[i]);
+		printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
+	}
+	qsort(extensions, n, 58, compare_strings);
+	/* output sorted arrray of strings */
+    for (uint16_t i = 0; i < n; i++)
+        printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);
 }
 
 size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string,
@@ -432,7 +483,7 @@ size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t l
 	uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&data[pointer]));
 	pointer += 2;
 
-	/* use content of cipher suite for building the JA3 hash */
+	/* use content of cipher suite for building the NPF string*/
     for (size_t i = 0; i < cipher_suite_len; i += 2) {
         uint16_t cipher_suite = ntohs(*(uint16_t *)(data + pointer + i));
         if(is_grease(cipher_suite)) {
@@ -454,11 +505,11 @@ size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t l
     uint16_t ext_len = ntohs(*(uint16_t *)(&data[pointer]));
     pointer += 2;
 
-    /* Add Extension length to the ja3 string */
+    /* Add Extension length to the npf string */
     unsigned const char *ext_data = data + pointer;
 
     /* lets iterate over the exention list */
-    npf_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, npf_string, &npf_string_len);
+    npf_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, npf_string, &npf_string_len, ext_len);
     npf_string_len += sprintf(npf_string + npf_string_len, "]");
 	return npf_string_len;
 }
