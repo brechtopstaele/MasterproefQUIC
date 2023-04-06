@@ -316,7 +316,7 @@ int compare_strings(const void* p1, const void* p2) {
 }
 
 void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
-unsigned char *npf_string, size_t *npf_string_len) {
+unsigned char *extensions, size_t *extensions_len) {
 	size_t		pointer = 0;
 	size_t 		TLVlen 	= 0;
 	const unsigned char* qtp[len/4];
@@ -353,8 +353,21 @@ unsigned char *npf_string, size_t *npf_string_len) {
 	/* lexicographic sorting of quic transport parameters */
 	qsort(qtp, n, 8, compare_strings);
 
+	for (uint16_t i = 0; i < n; i++){
+        *extensions_len += sprintf (extensions + *extensions_len, qtp[i]);
+		free(qtp[i]);
+	}
+	*extensions_len += sprintf(extensions + *extensions_len, "])");
+
 	/*for (uint16_t i = 0; i < n; i++)
         printf (" sorted qtp[%2zu] : %s\n", i, qtp[i]);*/
+}
+
+/* string compare function */
+int compare_strings2(const void* p1, const void* p2) {
+    char *const *pp1 = p1;
+    char *const *pp2 = p2;
+    return strcmp(*pp1, *pp2);
 }
 
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
@@ -373,7 +386,7 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 
 		//extensions[i] = malloc(TLVlen*2 + 1);
 		//TODO: find max length of extension
-		extensions[n] = malloc(1000);
+		extensions[n] = malloc(200);
 		extensions_len[n] = 0;
 
 		switch(TLVtype) {
@@ -441,10 +454,9 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			/* QUIC transport parameters */
 			case 0x0039:
 			case 0xffa5:
-				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x)[", TLVtype);
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "((%04x)[", TLVtype);
 				//*npf_string_len += sprintf(npf_string + *npf_string_len, "((%04x)[", TLVtype);
-				//npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, extensions[n], extensions_len[n]);
-				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "]");
+				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, extensions[n], &extensions_len[n]);
 				//*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
 				break;
 
@@ -455,15 +467,18 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 		}	
 		n++;
 	}
-	printf("n: %lu \n", n);
 	for (uint16_t i = 0; i < n; i++){
         printf (" extensions[%2zu] : %s\n", i, extensions[i]);
 		printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
 	}
-	qsort(extensions, n, 58, compare_strings);
+	//TODO: wat loopt hier mis??
+	//qsort(extensions, n, 10, compare_strings);
 	/* output sorted arrray of strings */
     for (uint16_t i = 0; i < n; i++)
         printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);
+
+	for (uint16_t i = 0; i < n; i++)
+        *npf_string_len += sprintf (npf_string + *npf_string_len, extensions[i]);
 }
 
 size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string,

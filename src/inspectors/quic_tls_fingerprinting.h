@@ -46,7 +46,7 @@ size_t parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t l
 
 /* NPF Fingerprinting */
 void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *npf_string, size_t *npf_string_len);
+ unsigned char *extensions, size_t *extensions_len);
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 	unsigned char *npf_string, size_t *npf_string_len, uint16_t ext_len);
 size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
