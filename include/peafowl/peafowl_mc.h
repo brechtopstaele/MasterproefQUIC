@@ -99,8 +99,12 @@ typedef struct mc_pfwl_parallelism_details {
  *                        pkt=NULL, otherwise the behaviour is not
  *                        defined.
  */
+<<<<<<< HEAD
 typedef mc_pfwl_packet_reading_result_t(mc_pfwl_packet_reading_callback)(
     void *callback_data);
+=======
+typedef mc_pfwl_packet_reading_result_t(mc_pfwl_packet_reading_callback)(void *callback_data);
+>>>>>>> SoftAtHome/master
 
 /**
  * This function will be called by the library (active mode only) to
@@ -110,8 +114,12 @@ typedef mc_pfwl_packet_reading_result_t(mc_pfwl_packet_reading_callback)(
  * @param callback_data       A pointer to user specified data (e.g.
  *                            network socket).
  */
+<<<<<<< HEAD
 typedef void(mc_pfwl_processing_result_callback)(
     mc_pfwl_processing_result_t *processing_result, void *callback_data);
+=======
+typedef void(mc_pfwl_processing_result_callback)(mc_pfwl_processing_result_t *processing_result, void *callback_data);
+>>>>>>> SoftAtHome/master
 
 /**
  * Initializes the library and sets the parallelism degree according to
@@ -123,8 +131,12 @@ typedef void(mc_pfwl_processing_result_callback)(
  *                            zeroed and then filled by the user.
  * @return A pointer to the state of the library.
  */
+<<<<<<< HEAD
 mc_pfwl_state_t *
 mc_pfwl_init(mc_pfwl_parallelism_details_t parallelism_details);
+=======
+mc_pfwl_state_t *mc_pfwl_init(mc_pfwl_parallelism_details_t parallelism_details);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the reading and processing callbacks. It can be done only after
@@ -138,9 +150,14 @@ mc_pfwl_init(mc_pfwl_parallelism_details_t parallelism_details);
  * @param user_data             A pointer to the user data to be passed to
  *                              the callbacks.
  */
+<<<<<<< HEAD
 void mc_pfwl_set_core_callbacks(
     mc_pfwl_state_t *state, mc_pfwl_packet_reading_callback *reading_callback,
     mc_pfwl_processing_result_callback *processing_callback, void *user_data);
+=======
+void mc_pfwl_set_core_callbacks(mc_pfwl_state_t *state, mc_pfwl_packet_reading_callback *reading_callback,
+                                mc_pfwl_processing_result_callback *processing_callback, void *user_data);
+>>>>>>> SoftAtHome/master
 
 #ifdef ENABLE_RECONFIGURATION
 /**
@@ -148,8 +165,12 @@ void mc_pfwl_set_core_callbacks(
  * @param state A pointer to the state of the library.
  * @param p The reconfiguration parameters.
  */
+<<<<<<< HEAD
 void mc_pfwl_set_reconf_parameters(mc_pfwl_library_state_t *state,
                                    nornir::Parameters *p);
+=======
+void mc_pfwl_set_reconf_parameters(mc_pfwl_library_state_t *state, nornir::Parameters *p);
+>>>>>>> SoftAtHome/master
 #endif
 
 /**
@@ -190,8 +211,12 @@ void mc_pfwl_terminate(mc_pfwl_state_t *state);
  * of simultaneously active flows.
  * @return 0 if succeeded, 1 otherwise.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_set_expected_flows(mc_pfwl_state_t *state, uint32_t flows_v4,
                                    uint32_t flows_v6, uint8_t strict);
+=======
+uint8_t mc_pfwl_set_expected_flows(mc_pfwl_state_t *state, uint32_t flows_v4, uint32_t flows_v6, uint8_t strict);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum number of times that the library tries to guess the
@@ -218,8 +243,12 @@ uint8_t mc_pfwl_set_max_trials(mc_pfwl_state_t *state, uint16_t max_trials);
  *          updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state,
                                           uint16_t table_size);
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state, uint16_t table_size);
+>>>>>>> SoftAtHome/master
 
 /**
  * Enable IPv6 defragmentation.
@@ -231,8 +260,12 @@ uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state,
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state,
                                           uint16_t table_size);
+=======
+uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state, uint16_t table_size);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the amount of memory that a single host can use for IPv4
@@ -245,8 +278,12 @@ uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state,
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(
     mc_pfwl_state_t *state, uint32_t per_host_memory_limit);
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(mc_pfwl_state_t *state, uint32_t per_host_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the amount of memory that a single host can use for IPv6
@@ -259,8 +296,12 @@ uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(
     mc_pfwl_state_t *state, uint32_t per_host_memory_limit);
+=======
+uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(mc_pfwl_state_t *state, uint32_t per_host_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the total amount of memory that can be used for IPv4
@@ -276,9 +317,13 @@ uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
                                                   uint32_t total_memory_limit);
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state, uint32_t total_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the total amount of memory that can be used for
@@ -294,9 +339,13 @@ mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
                                                   uint32_t total_memory_limit);
+=======
+uint8_t mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state, uint32_t total_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum time (in seconds) that can be spent to
@@ -310,9 +359,13 @@ mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
  *         successfully updated. 0 if the
  *         state has not been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
                                                   uint8_t timeout_seconds);
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state, uint8_t timeout_seconds);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum time (in seconds) that can be spent to reassembly
@@ -326,9 +379,13 @@ mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_ipv6_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
                                                   uint8_t timeout_seconds);
+=======
+uint8_t mc_pfwl_ipv6_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state, uint8_t timeout_seconds);
+>>>>>>> SoftAtHome/master
 
 /**
  * Disable IPv4 defragmentation.
@@ -385,8 +442,12 @@ uint8_t mc_pfwl_tcp_reordering_disable(mc_pfwl_state_t *state);
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_enable_protocol(mc_pfwl_state_t *state,
                                 pfwl_protocol_l7_t protocol);
+=======
+uint8_t mc_pfwl_enable_protocol(mc_pfwl_state_t *state, pfwl_protocol_l7_t protocol);
+>>>>>>> SoftAtHome/master
 
 /**
  * Disable a protocol inspector.
@@ -397,8 +458,12 @@ uint8_t mc_pfwl_enable_protocol(mc_pfwl_state_t *state,
  *         updated. 0 if the state has not
  *         been changed because a problem happened.
  */
+<<<<<<< HEAD
 uint8_t mc_pfwl_disable_protocol(mc_pfwl_state_t *state,
                                  pfwl_protocol_l7_t protocol);
+=======
+uint8_t mc_pfwl_disable_protocol(mc_pfwl_state_t *state, pfwl_protocol_l7_t protocol);
+>>>>>>> SoftAtHome/master
 
 /**
  * Enable all the protocol inspector.
@@ -453,9 +518,13 @@ pfwl_protocol_l7_t mc_pfwl_get_protocol_id(const char *const string);
  *         the state has not been changed because a problem
  *         happened.
  */
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state,
                                   pfwl_flow_cleaner_callback_t *cleaner);
+=======
+uint8_t mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state, pfwl_flow_cleaner_callback_t *cleaner);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets callbacks informations. When a protocol is identified the
@@ -485,9 +554,13 @@ mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state,
  *         been changed because a problem happened.
  *
  **/
+<<<<<<< HEAD
 uint8_t mc_pfwl_http_activate_callbacks(mc_pfwl_state_t *state,
                                         pfwl_http_callbacks_t *callbacks,
                                         void *user_data);
+=======
+uint8_t mc_pfwl_http_activate_callbacks(mc_pfwl_state_t *state, pfwl_http_callbacks_t *callbacks, void *user_data);
+>>>>>>> SoftAtHome/master
 
 /**
  * Remove the internal structure used to store callbacks informations.

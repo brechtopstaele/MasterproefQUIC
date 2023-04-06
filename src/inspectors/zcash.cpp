@@ -23,14 +23,22 @@
  * SOFTWARE.
  * =========================================================================
  */
+<<<<<<< HEAD
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 #include <peafowl/utils.h>
 #include "../external/rapidjson/document.h"
+=======
+#include "../external/rapidjson/document.h"
+#include <peafowl/inspectors/inspectors.h>
+#include <peafowl/peafowl.h>
+#include <peafowl/utils.h>
+>>>>>>> SoftAtHome/master
 
 using namespace rapidjson;
 
 static bool isZcashMethod(const char *method, size_t methodLen) {
+<<<<<<< HEAD
   if(methodLen < 2){
     return false;
   }
@@ -49,6 +57,27 @@ uint8_t check_zcash(pfwl_state_t *state, const unsigned char *app_data,
       }
     }else if(BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
              flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_NOT_DETERMINED){
+=======
+  if (methodLen < 2) {
+    return false;
+  }
+  return !strncmp(method, "z_", methodLen);
+}
+
+uint8_t check_zcash(pfwl_state_t *, const unsigned char *, size_t, pfwl_dissection_info_t *pkt_info,
+                    pfwl_flow_info_private_t *flow_info_private) {
+  if (flow_info_private->info_public->protocols_l7_num) {
+    if (flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+        PFWL_PROTO_L7_JSON_RPC) {
+      pfwl_string_t method;
+      if ((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) &&
+           isZcashMethod((const char *) method.value, method.length))) {
+        return PFWL_PROTOCOL_MATCHES;
+      }
+    } else if (BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
+               flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
+                   PFWL_PROTO_L7_NOT_DETERMINED) {
+>>>>>>> SoftAtHome/master
       // Could still become JSON-RPC
       return PFWL_PROTOCOL_MORE_DATA_NEEDED;
     }

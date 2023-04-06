@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5.1)
+<<<<<<< HEAD
 project(peafowl VERSION 1.0.0)
+=======
+project(peafowl VERSION 1.1.3)
+>>>>>>> SoftAtHome/master
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_STANDARD 11)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
@@ -13,9 +17,25 @@ option (ENABLE_CODECOV "Enables code coverage reports" OFF)
 option (ENABLE_CLANGFORMAT "Enables clang-format formatting" OFF)
 option (ENABLE_PYTHON "Enables generation of Python code" OFF)
 option (ENABLE_C "Enables generation of C/C++ libraries" ON)
+<<<<<<< HEAD
 
 find_package(PCAP)
 find_package(OpenSSL)
+=======
+option (ENABLE_DEMO "Install demo executables" OFF)
+option (ENABLE_OPENSSL "Enable the search of OpenSSL" ON)
+
+add_compile_options(-Wall -Wextra -pedantic)
+
+# Needed for some libc to have proper struct {tcp,udp}hdr definition
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GNU_SOURCE")
+
+find_package(PCAP)
+if (ENABLE_OPENSSL)
+  find_package(OpenSSL)
+endif (ENABLE_OPENSSL)
+>>>>>>> SoftAtHome/master
 
 # This must be the first thing done, since COVERAGE_COMPILER_FLAGS must be used by all the targets
 ###########
@@ -34,9 +54,15 @@ endif (ENABLE_CODECOV)
 # Library #
 ###########
 add_subdirectory(src)
+<<<<<<< HEAD
 if (ENABLE_C)
     add_subdirectory(demo)
 endif (ENABLE_C)
+=======
+if (ENABLE_C AND ENABLE_DEMO)
+    add_subdirectory(demo)
+endif (ENABLE_C AND ENABLE_DEMO)
+>>>>>>> SoftAtHome/master
 
 ############
 # cppcheck #

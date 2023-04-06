@@ -46,8 +46,12 @@ extern "C" {
  *                    store the fragments.
  * @return            A pointer to the IPv4 defragmentation handle.
  */
+<<<<<<< HEAD
 pfwl_ipv4_fragmentation_state_t *
 pfwl_reordering_enable_ipv4_fragmentation(uint16_t table_size);
+=======
+pfwl_ipv4_fragmentation_state_t *pfwl_reordering_enable_ipv4_fragmentation(uint16_t table_size);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum amount of memory that can be used to store
@@ -57,9 +61,14 @@ pfwl_reordering_enable_ipv4_fragmentation(uint16_t table_size);
  *                               be used to store fragments generated
  *                               by the same source.
  */
+<<<<<<< HEAD
 void pfwl_reordering_ipv4_fragmentation_set_per_host_memory_limit(
     pfwl_ipv4_fragmentation_state_t *frag_state,
     uint32_t per_host_memory_limit);
+=======
+void pfwl_reordering_ipv4_fragmentation_set_per_host_memory_limit(pfwl_ipv4_fragmentation_state_t *frag_state,
+                                                                  uint32_t per_host_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum (global) amount of memory that can be used for
@@ -68,8 +77,13 @@ void pfwl_reordering_ipv4_fragmentation_set_per_host_memory_limit(
  *                             handle.
  * @param total_memory_limit   The global memory limit.
  */
+<<<<<<< HEAD
 void pfwl_reordering_ipv4_fragmentation_set_total_memory_limit(
     pfwl_ipv4_fragmentation_state_t *frag_state, uint32_t total_memory_limit);
+=======
+void pfwl_reordering_ipv4_fragmentation_set_total_memory_limit(pfwl_ipv4_fragmentation_state_t *frag_state,
+                                                               uint32_t total_memory_limit);
+>>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum amount of time (seconds) which can elapse before
@@ -77,15 +91,24 @@ void pfwl_reordering_ipv4_fragmentation_set_total_memory_limit(
  * @param frag_state        A pointer to the IPv4 defragmentation handle.
  * @param timeout_seconds   The timeout (seconds).
  */
+<<<<<<< HEAD
 void pfwl_reordering_ipv4_fragmentation_set_reassembly_timeout(
     pfwl_ipv4_fragmentation_state_t *frag_state, uint8_t timeout_seconds);
+=======
+void pfwl_reordering_ipv4_fragmentation_set_reassembly_timeout(pfwl_ipv4_fragmentation_state_t *frag_state,
+                                                               uint8_t timeout_seconds);
+>>>>>>> SoftAtHome/master
 
 /**
  * Disables the IPv4 fragmentation and deallocates the handle.
  * @param frag_state  A pointer to the IPv4 defragmentation handle.
  */
+<<<<<<< HEAD
 void pfwl_reordering_disable_ipv4_fragmentation(
     pfwl_ipv4_fragmentation_state_t *frag_state);
+=======
+void pfwl_reordering_disable_ipv4_fragmentation(pfwl_ipv4_fragmentation_state_t *frag_state);
+>>>>>>> SoftAtHome/master
 
 /**
  * Reassemble the IP datagram if it is fragmented. It is thread safe
@@ -106,9 +129,15 @@ void pfwl_reordering_disable_ipv4_fragmentation(
  *         different from data. The user should free() this pointer when
  *         it is no more needed.
  */
+<<<<<<< HEAD
 unsigned char *pfwl_reordering_manage_ipv4_fragment(
     pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
     uint32_t current_time, uint16_t offset, uint8_t more_fragments, int tid);
+=======
+unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
+                                                    uint32_t current_time, uint16_t offset, uint8_t more_fragments,
+                                                    int tid);
+>>>>>>> SoftAtHome/master
 
 #ifdef __cplusplus
 }

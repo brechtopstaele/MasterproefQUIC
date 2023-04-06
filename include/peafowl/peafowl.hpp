@@ -30,10 +30,17 @@
 #define PFWL_API_HPP
 
 #include <peafowl/peafowl.h>
+<<<<<<< HEAD
 #include <vector>
 #include <string>
 
 namespace peafowl{
+=======
+#include <string>
+#include <vector>
+
+namespace peafowl {
+>>>>>>> SoftAtHome/master
 
 /**
  * A string as represented by peafowl.
@@ -41,6 +48,10 @@ namespace peafowl{
 class String {
 private:
   pfwl_string_t _string;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructs an empty string.
@@ -57,7 +68,11 @@ public:
    * Returns the buffer containing the protocol field.
    * @return The buffer containing the protocol field.
    */
+<<<<<<< HEAD
   const unsigned char* getValue() const;
+=======
+  const unsigned char *getValue() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the length of the buffer.
@@ -69,10 +84,17 @@ public:
 /**
  * A peafowl pair.
  **/
+<<<<<<< HEAD
 template <typename T>
 class Pair{
 private:
   T _first, _second;
+=======
+template <typename T> class Pair {
+private:
+  T _first, _second;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructs an empty pair.
@@ -117,6 +139,10 @@ typedef pfwl_flows_strategy_t FlowsStrategy;
 class Field {
 private:
   pfwl_field_t _field;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructs an empty field.
@@ -161,6 +187,10 @@ class IpAddress {
 private:
   pfwl_ip_addr _addr;
   bool _isIPv6;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Builds the IP address.
@@ -210,10 +240,18 @@ typedef pfwl_direction_t Direction;
  * When adding a new protocol, please update the pfwl_l2_protocols_names
  * array in parsing_l2.c
  **/
+<<<<<<< HEAD
 class ProtocolL2{
 private:
   const pfwl_protocol_l2_t _protocol;
   const std::string _name;
+=======
+class ProtocolL2 {
+private:
+  const pfwl_protocol_l2_t _protocol;
+  const std::string _name;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Copy constructor
@@ -225,13 +263,21 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
+<<<<<<< HEAD
   ProtocolL2(const std::string& protocol);
+=======
+  ProtocolL2(const std::string &protocol);
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
+<<<<<<< HEAD
   const std::string& getName() const;
+=======
+  const std::string &getName() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the identifier of the protocol.
@@ -242,7 +288,13 @@ public:
   /**
    * Accesses the protocol.
    */
+<<<<<<< HEAD
   operator pfwl_protocol_l2_t() const {return _protocol;}
+=======
+  operator pfwl_protocol_l2_t() const {
+    return _protocol;
+  }
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are equal.
@@ -250,7 +302,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator== (const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+=======
+  friend bool operator==(const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are different.
@@ -258,16 +314,28 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator!= (const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+=======
+  friend bool operator!=(const ProtocolL2 &p1, const pfwl_protocol_l2_t &p2);
+>>>>>>> SoftAtHome/master
 };
 
 /**
  * L3 (IP) protocol.
  **/
+<<<<<<< HEAD
 class ProtocolL3{
 private:
   const pfwl_protocol_l3_t _protocol;
   const std::string _name;
+=======
+class ProtocolL3 {
+private:
+  const pfwl_protocol_l3_t _protocol;
+  const std::string _name;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Copy constructor
@@ -279,13 +347,21 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
+<<<<<<< HEAD
   ProtocolL3(const std::string& protocol);
+=======
+  ProtocolL3(const std::string &protocol);
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
+<<<<<<< HEAD
   const std::string& getName() const;
+=======
+  const std::string &getName() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the identifier of the protocol.
@@ -296,7 +372,13 @@ public:
   /**
    * Accesses the protocol.
    */
+<<<<<<< HEAD
   operator pfwl_protocol_l3_t() const {return _protocol;}
+=======
+  operator pfwl_protocol_l3_t() const {
+    return _protocol;
+  }
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are equal.
@@ -304,7 +386,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator== (const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+=======
+  friend bool operator==(const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are different.
@@ -312,7 +398,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator!= (const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+=======
+  friend bool operator!=(const ProtocolL3 &p1, const pfwl_protocol_l3_t &p2);
+>>>>>>> SoftAtHome/master
 };
 
 /**
@@ -320,10 +410,18 @@ public:
  * include/netinet/in.h (IPPROTO_TCP,
  * IPPROTO_UDP, IPPROTO_ICMP, etc...)
  **/
+<<<<<<< HEAD
 class ProtocolL4{
 private:
   const pfwl_protocol_l4_t _protocol;
   const std::string _name;
+=======
+class ProtocolL4 {
+private:
+  const pfwl_protocol_l4_t _protocol;
+  const std::string _name;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Copy constructor
@@ -335,13 +433,21 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
+<<<<<<< HEAD
   ProtocolL4(const std::string& protocol);
+=======
+  ProtocolL4(const std::string &protocol);
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
+<<<<<<< HEAD
   const std::string& getName() const;
+=======
+  const std::string &getName() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the identifier of the protocol.
@@ -352,7 +458,13 @@ public:
   /**
    * Accesses the protocol.
    */
+<<<<<<< HEAD
   operator pfwl_protocol_l4_t() const {return _protocol;}
+=======
+  operator pfwl_protocol_l4_t() const {
+    return _protocol;
+  }
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are equal.
@@ -360,7 +472,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator== (const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+=======
+  friend bool operator==(const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are different.
@@ -368,7 +484,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator!= (const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+=======
+  friend bool operator!=(const ProtocolL4 &p1, const pfwl_protocol_l4_t &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are equal.
@@ -376,7 +496,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator== (const ProtocolL4 &p1, const int &p2);
+=======
+  friend bool operator==(const ProtocolL4 &p1, const int &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are different.
@@ -384,16 +508,28 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator!= (const ProtocolL4 &p1, const int &p2);
+=======
+  friend bool operator!=(const ProtocolL4 &p1, const int &p2);
+>>>>>>> SoftAtHome/master
 };
 
 /**
  * L7 (application level) protocol.
  **/
+<<<<<<< HEAD
 class ProtocolL7{
 private:
   const pfwl_protocol_l7_t _protocol;
   const std::string _name;
+=======
+class ProtocolL7 {
+private:
+  pfwl_protocol_l7_t _protocol;
+  std::string _name;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Copy constructor
@@ -405,13 +541,21 @@ public:
    * Build the protocol starting from its name.
    * @param protocol The protocol name.
    */
+<<<<<<< HEAD
   ProtocolL7(const std::string& protocol);
+=======
+  ProtocolL7(const std::string &protocol);
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the name of the protocol.
    * @return The name of the protocol.
    */
+<<<<<<< HEAD
   const std::string& getName() const;
+=======
+  const std::string &getName() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the identifier of the protocol.
@@ -422,7 +566,13 @@ public:
   /**
    * Accesses the protocol.
    */
+<<<<<<< HEAD
   operator pfwl_protocol_l7_t() const {return _protocol;}
+=======
+  operator pfwl_protocol_l7_t() const {
+    return _protocol;
+  }
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are equal.
@@ -430,7 +580,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are equal, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator== (const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+=======
+  friend bool operator==(const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+>>>>>>> SoftAtHome/master
 
   /**
    * Checks if two protocols are different.
@@ -438,7 +592,11 @@ public:
    * @param p2 The second protocol.
    * @return True if the two protocols are different, false otherwise.
    */
+<<<<<<< HEAD
   friend bool operator!= (const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+=======
+  friend bool operator!=(const ProtocolL7 &p1, const pfwl_protocol_l7_t &p2);
+>>>>>>> SoftAtHome/master
 };
 
 /**
@@ -447,6 +605,10 @@ public:
 class FlowInfo {
 private:
   pfwl_flow_info_t _flowInfo;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -561,7 +723,11 @@ public:
    * Returns the user data associated to this flow.
    * @return The user data associated to this flow.
    */
+<<<<<<< HEAD
   void** getUserData() const;
+=======
+  void **getUserData() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the C flow representation.
@@ -573,15 +739,26 @@ public:
    * Sets some user-specific data for this flow.
    * @param udata User-specific data for this flow.
    */
+<<<<<<< HEAD
   void setUserData(void* udata);
+=======
+  void setUserData(void *udata);
+>>>>>>> SoftAtHome/master
 };
 
 /**
  * The result of the L2 identification process.
  **/
+<<<<<<< HEAD
 class DissectionInfoL2{
 private:
   pfwl_dissection_info_l2_t _dissectionInfo;
+=======
+class DissectionInfoL2 {
+private:
+  pfwl_dissection_info_l2_t _dissectionInfo;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -616,9 +793,16 @@ public:
 /**
  * The result of the L3 identification process.
  **/
+<<<<<<< HEAD
 class DissectionInfoL3{
 private:
   pfwl_dissection_info_l3_t _dissectionInfo;
+=======
+class DissectionInfoL3 {
+private:
+  pfwl_dissection_info_l3_t _dissectionInfo;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -661,7 +845,11 @@ public:
    * @return The refragmented IP packet (if it was fragmented, starting from
    * the first byte of L3 packet) and its length.
    **/
+<<<<<<< HEAD
   std::pair<const unsigned char*, size_t> getRefragmentedPacket() const;
+=======
+  std::pair<const unsigned char *, size_t> getRefragmentedPacket() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the L3 protocol.
@@ -679,9 +867,16 @@ public:
 /**
  * The result of the L4 identification process.
  **/
+<<<<<<< HEAD
 class DissectionInfoL4{
 private:
   pfwl_dissection_info_l4_t _dissectionInfo;
+=======
+class DissectionInfoL4 {
+private:
+  pfwl_dissection_info_l4_t _dissectionInfo;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -729,7 +924,11 @@ public:
    * Returns the resegmented TCP payload and its length.
    * @return The resegmented TCP payload and its length.
    */
+<<<<<<< HEAD
   std::pair<const unsigned char*, size_t> getResegmentedPacket() const;
+=======
+  std::pair<const unsigned char *, size_t> getResegmentedPacket() const;
+>>>>>>> SoftAtHome/master
 
   /**
    * Returns the L4 protocol.
@@ -752,9 +951,16 @@ typedef pfwl_field_id_t FieldId;
 /**
  * The result of the L7 identification process.
  **/
+<<<<<<< HEAD
 class DissectionInfoL7{
 private:
   pfwl_dissection_info_l7_t _dissectionInfo;
+=======
+class DissectionInfoL7 {
+private:
+  pfwl_dissection_info_l7_t _dissectionInfo;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -844,9 +1050,16 @@ public:
 /**
  * Status of the identification process
  **/
+<<<<<<< HEAD
 class Status{
 private:
   pfwl_status_t _status;
+=======
+class Status {
+private:
+  pfwl_status_t _status;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Copy constructor.
@@ -870,8 +1083,14 @@ public:
 /**
  * The result of the identification process.
  **/
+<<<<<<< HEAD
 class DissectionInfo{
   friend class FlowInfoPrivate;
+=======
+class DissectionInfo {
+  friend class FlowInfoPrivate;
+
+>>>>>>> SoftAtHome/master
 private:
   pfwl_dissection_info_t _dissectionInfo;
   DissectionInfoL2 _l2;
@@ -880,6 +1099,10 @@ private:
   DissectionInfoL7 _l7;
   FlowInfo _flowInfo;
   Status _status;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -893,7 +1116,11 @@ public:
    * @param rhs The C dissection info.
    * @return The CPP dissection info.
    */
+<<<<<<< HEAD
   DissectionInfo& operator=(const pfwl_dissection_info_t& rhs);
+=======
+  DissectionInfo &operator=(const pfwl_dissection_info_t &rhs);
+>>>>>>> SoftAtHome/master
 
   /**
    * Guesses the protocol looking only at source/destination ports.
@@ -968,18 +1195,33 @@ public:
    * Returns the C dissection info.
    * @return The C dissection info.
    */
+<<<<<<< HEAD
   const pfwl_dissection_info_t& getNativeInfo() const;
+=======
+  const pfwl_dissection_info_t &getNativeInfo() const;
+>>>>>>> SoftAtHome/master
 };
 
 class Peafowl;
 
 /// @cond EXTERNAL
+<<<<<<< HEAD
 class FlowInfoPrivate{
   friend class Peafowl;
 private:
   pfwl_flow_info_private_t* _info;
 public:
   FlowInfoPrivate(const Peafowl& state, const DissectionInfo &info);
+=======
+class FlowInfoPrivate {
+  friend class Peafowl;
+
+private:
+  pfwl_flow_info_private_t *_info;
+
+public:
+  FlowInfoPrivate(const Peafowl &state, const DissectionInfo &info);
+>>>>>>> SoftAtHome/master
   ~FlowInfoPrivate();
 };
 /// @endcond
@@ -999,7 +1241,11 @@ typedef pfwl_field_matching_t FieldMatching;
  * is used to notify the user about some events concerning
  * the flow (e.g. flow termination).
  */
+<<<<<<< HEAD
 class FlowManager{
+=======
+class FlowManager {
+>>>>>>> SoftAtHome/master
 public:
   ~FlowManager();
   /**
@@ -1012,7 +1258,13 @@ public:
    * managed by the implementer.
    * @param info The flow information.
    */
+<<<<<<< HEAD
   virtual void onTermination(const FlowInfo& info){;}
+=======
+  virtual void onTermination(const FlowInfo &) {
+    ;
+  }
+>>>>>>> SoftAtHome/master
 };
 
 /**
@@ -1020,8 +1272,14 @@ public:
  * options to customize Peafowl's defragmentation
  * routines.
  */
+<<<<<<< HEAD
 class DefragmentationOptions{
   friend class Peafowl;
+=======
+class DefragmentationOptions {
+  friend class Peafowl;
+
+>>>>>>> SoftAtHome/master
 private:
   uint16_t _tableSizeIPv4, _tableSizeIPv6;
   uint32_t _perHostMemoryLimitIPv4, _perHostMemoryLimitIPv6;
@@ -1031,6 +1289,10 @@ private:
   bool _perHostMemoryLimitIPv4set, _perHostMemoryLimitIPv6set;
   bool _totalMemoryLimitIPv4set, _totalMemoryLimitIPv6set;
   bool _reassemblyTimeoutIPv4set, _reassemblyTimeoutIPv6set;
+<<<<<<< HEAD
+=======
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * Constructor.
@@ -1118,10 +1380,19 @@ public:
 /**
  * @brief This class is the Peafowl handler.
  */
+<<<<<<< HEAD
 class Peafowl{
   friend class FlowInfoPrivate;
 private:
   pfwl_state_t* _state;
+=======
+class Peafowl {
+  friend class FlowInfoPrivate;
+
+private:
+  pfwl_state_t *_state;
+
+>>>>>>> SoftAtHome/master
 public:
   /**
    * @brief Initializes Peafowl.
@@ -1139,11 +1410,16 @@ public:
    * when the flow terminates.
    * @param flowManager The functor object.
    */
+<<<<<<< HEAD
   void setFlowManager(FlowManager* flowManager);
+=======
+  void setFlowManager(FlowManager *flowManager);
+>>>>>>> SoftAtHome/master
 
   /**
    * @brief Sets the number of simultaneously active flows to be expected.
    * @param flows The number of simultaneously active flows.
+<<<<<<< HEAD
    * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit 
    * to the number of simultaneously active flows. However, this could lead 
    * to slowdown when retrieving flow information.
@@ -1151,11 +1427,23 @@ public:
    * if a new flow is created an error will be returned (PFWL_ERROR_MAX_FLOWS) 
    * and new flows will not be created. 
    * If PFWL_FLOWS_STRATEGY_EVICT, when when that number of active flows 
+=======
+   * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit
+   * to the number of simultaneously active flows. However, this could lead
+   * to slowdown when retrieving flow information.
+   * If PFWL_FLOWS_STRATEGY_SKIP, when that number of active flows is reached,
+   * if a new flow is created an error will be returned (PFWL_ERROR_MAX_FLOWS)
+   * and new flows will not be created.
+   * If PFWL_FLOWS_STRATEGY_EVICT, when when that number of active flows
+>>>>>>> SoftAtHome/master
    * is reached, if a new flow is created the oldest flow will be evicted.
    */
   void setExpectedFlows(uint32_t flows, FlowsStrategy strategy);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> SoftAtHome/master
   /**
    * Sets the maximum number of packets to use to identify the protocol.
    * During the flow protocol identification, after this number
@@ -1171,7 +1459,11 @@ public:
    * @brief setDefragmentationOptions Sets the IPv4/IPv6 defragmentation options.
    * @param options The IPv4/IPv6 defragmentation options.
    */
+<<<<<<< HEAD
   void setDefragmentationOptions(const DefragmentationOptions& options);
+=======
+  void setDefragmentationOptions(const DefragmentationOptions &options);
+>>>>>>> SoftAtHome/master
 
   /**
    * If enabled, the library will reorder out of order TCP packets
@@ -1228,9 +1520,13 @@ public:
    * to a Peafowl datalink type by calling the function 'convertPcapDlt'.
    * @return The result of the dissection from L2 to L7.
    */
+<<<<<<< HEAD
   DissectionInfo dissectFromL2(const std::string& pkt,
                                double timestamp,
                                ProtocolL2 datalinkType);
+=======
+  DissectionInfo dissectFromL2(const std::string &pkt, double timestamp, ProtocolL2 datalinkType);
+>>>>>>> SoftAtHome/master
 
   /**
    * Dissects the packet starting from the beginning of the L3 (IP) header.
@@ -1240,8 +1536,12 @@ public:
    * it is assumed that the timestamps unit is 'seconds'.
    * @return The result of the dissection from L3 to L7.
    */
+<<<<<<< HEAD
   DissectionInfo dissectFromL3(const std::string& pkt,
                                double timestamp);
+=======
+  DissectionInfo dissectFromL3(const std::string &pkt, double timestamp);
+>>>>>>> SoftAtHome/master
 
   /**
    * Dissects the packet starting from the beginning of the L4 (UDP or TCP)
@@ -1253,9 +1553,13 @@ public:
    * @param info The dissection information about L3 header.
    * @return The result of the dissection from L3 to L7.
    */
+<<<<<<< HEAD
   DissectionInfo dissectFromL4(const std::string& pkt,
                                double timestamp,
                                const DissectionInfo& info);
+=======
+  DissectionInfo dissectFromL4(const std::string &pkt, double timestamp, const DissectionInfo &info);
+>>>>>>> SoftAtHome/master
 
   /**
    * Extracts from the packet the L2 information.
@@ -1265,8 +1569,12 @@ public:
    * calling the function 'convertPcapDlt'.
    * @return The result of the L2 dissection.
    */
+<<<<<<< HEAD
   DissectionInfo dissectL2(const std::string& pkt,
                            pfwl_protocol_l2_t datalinkType);
+=======
+  DissectionInfo dissectL2(const std::string &pkt, pfwl_protocol_l2_t datalinkType);
+>>>>>>> SoftAtHome/master
 
   /**
    * Extracts from the packet the L3 information.
@@ -1276,8 +1584,12 @@ public:
    * it is assumed that the timestamps unit is 'seconds'.
    * @return The result of the L3 dissection.
    */
+<<<<<<< HEAD
   DissectionInfo dissectL3(const std::string& pkt,
                            double timestamp);
+=======
+  DissectionInfo dissectL3(const std::string &pkt, double timestamp);
+>>>>>>> SoftAtHome/master
 
   /**
    * Extracts from the packet the L4 information.
@@ -1290,9 +1602,13 @@ public:
    * @param   flowInfoPrivate Will be filled by this call.
    * @return  The result of the L4 dissection.
    */
+<<<<<<< HEAD
   DissectionInfo dissectL4(const std::string& pkt,
                            double timestamp,
                            const DissectionInfo& info,
+=======
+  DissectionInfo dissectL4(const std::string &pkt, double timestamp, const DissectionInfo &info,
+>>>>>>> SoftAtHome/master
                            FlowInfoPrivate &flowInfoPrivate);
 
   /**
@@ -1312,9 +1628,13 @@ public:
    *          stored by the user.
    * @return  The result of the L7 dissection.
    */
+<<<<<<< HEAD
   DissectionInfo dissectL7(const std::string& pkt,
                            const DissectionInfo& info,
                            FlowInfoPrivate &flowInfoPrivate);
+=======
+  DissectionInfo dissectL7(const std::string &pkt, const DissectionInfo &info, FlowInfoPrivate &flowInfoPrivate);
+>>>>>>> SoftAtHome/master
 
   /**
    * Enables the extraction of a specific L7 field for a given protocol.
@@ -1399,7 +1719,11 @@ public:
    * The 'tagsFile' argument can be NULL and the matching rules can be added later with the *TagsAdd calls.
    *
    */
+<<<<<<< HEAD
   void fieldTagsLoadL7(FieldId field, const char* tagsFile);
+=======
+  void fieldTagsLoadL7(FieldId field, const char *tagsFile);
+>>>>>>> SoftAtHome/master
 
   /**
    * Adds a tag matching rule for a specific string field.
@@ -1411,7 +1735,12 @@ public:
    * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
    * @param tag The tag to assign to the packet when the field matches with 'value'.
    */
+<<<<<<< HEAD
   void fieldStringTagsAddL7(FieldId field, const std::string& value, FieldMatching matchingType, const std::string& tag);
+=======
+  void fieldStringTagsAddL7(FieldId field, const std::string &value, FieldMatching matchingType,
+                            const std::string &tag);
+>>>>>>> SoftAtHome/master
 
   /**
    * Adds a tag matching rule for a specific multimap field.
@@ -1426,7 +1755,12 @@ public:
    * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
    * @param tag The tag to assign to the packet when the field matches with 'value'.
    */
+<<<<<<< HEAD
   void fieldMmapTagsAddL7(FieldId field, const std::string& key, const std::string& value, FieldMatching matchingType, const std::string& tag);
+=======
+  void fieldMmapTagsAddL7(FieldId field, const std::string &key, const std::string &value, FieldMatching matchingType,
+                          const std::string &tag);
+>>>>>>> SoftAtHome/master
 
   /**
    * Unloads the associations between fields values and user-defined tags.
@@ -1435,7 +1769,10 @@ public:
    */
   void fieldTagsUnloadL7(FieldId field);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> SoftAtHome/master
   /**
    * Enables the computation of a specific flow statistic.
    * @param stat The statistic to be enabled.

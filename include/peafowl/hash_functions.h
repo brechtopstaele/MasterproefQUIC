@@ -35,29 +35,45 @@
 extern "C" {
 #endif
 
+<<<<<<< HEAD
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH ||                           \
     PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+=======
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_FNV_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+>>>>>>> SoftAtHome/master
 uint32_t v4_fnv_hash_function(const pfwl_dissection_info_t *const in);
 
 uint32_t v6_fnv_hash_function(const pfwl_dissection_info_t *const in);
 #endif
 
+<<<<<<< HEAD
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH ||                       \
     PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+=======
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_MURMUR3_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+>>>>>>> SoftAtHome/master
 uint32_t v4_hash_murmur3(const pfwl_dissection_info_t *const in, uint32_t seed);
 
 uint32_t v6_hash_murmur3(const pfwl_dissection_info_t *const in, uint32_t seed);
 #endif
 
+<<<<<<< HEAD
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_SIMPLE_HASH ||                        \
     PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+=======
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_SIMPLE_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+>>>>>>> SoftAtHome/master
 uint32_t v4_hash_function_simple(const pfwl_dissection_info_t *const in);
 
 uint32_t v6_hash_function_simple(const pfwl_dissection_info_t *const in);
 #endif
 
+<<<<<<< HEAD
 #if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_BKDR_HASH ||                          \
     PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+=======
+#if PFWL_FLOW_TABLE_HASH_VERSION == PFWL_BKDR_HASH || PFWL_ACTIVATE_ALL_HASH_FUNCTIONS_CODE == 1
+>>>>>>> SoftAtHome/master
 uint32_t v4_hash_function_bkdr(const pfwl_dissection_info_t *const in);
 
 uint32_t v6_hash_function_bkdr(const pfwl_dissection_info_t *const in);

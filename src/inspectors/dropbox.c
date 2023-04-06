@@ -46,9 +46,13 @@ static inline uint8_t highCheck(const char *app_data, size_t data_length) {
          (pfwl_strnstr((const char *) app_data, "\"port\"", data_length) ? 1 : 0);
 }
 
+<<<<<<< HEAD
 static inline uint8_t hasDropboxFields(const char *app_data,
                                        size_t data_length,
                                        pfwl_dissector_accuracy_t accuracy) {
+=======
+static inline uint8_t hasDropboxFields(const char *app_data, size_t data_length, pfwl_dissector_accuracy_t accuracy) {
+>>>>>>> SoftAtHome/master
   switch (accuracy) {
   case PFWL_DISSECTOR_ACCURACY_LOW: {
     return lowCheck(app_data, data_length);
@@ -59,6 +63,7 @@ static inline uint8_t hasDropboxFields(const char *app_data,
   case PFWL_DISSECTOR_ACCURACY_HIGH: {
     return lowCheck(app_data, data_length) && midCheck(app_data, data_length) && highCheck(app_data, data_length);
   } break;
+<<<<<<< HEAD
   default: { return 0; }
   }
 }
@@ -71,6 +76,21 @@ uint8_t check_dropbox(pfwl_state_t *state, const unsigned char *app_data,
   // Discovery
   if (pkt_info->l4.port_src == port_dropbox &&
       pkt_info->l4.port_dst == port_dropbox && data_length > 2 &&
+=======
+  default: {
+    return 0;
+  }
+  }
+}
+
+uint8_t check_dropbox(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                      pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) flow_info_private;
+
+  pfwl_dissector_accuracy_t accuracy = state->inspectors_accuracy[PFWL_PROTO_L7_DROPBOX];
+  // Discovery
+  if (pkt_info->l4.port_src == port_dropbox && pkt_info->l4.port_dst == port_dropbox && data_length > 2 &&
+>>>>>>> SoftAtHome/master
       hasDropboxFields((const char *) app_data, data_length, accuracy)) {
     return PFWL_PROTOCOL_MATCHES;
   }

@@ -137,11 +137,15 @@ typedef struct pfwl_http_internal_informations {
 /********************** HTTP (END) ************************/
 
 /********************** SSL ************************/
+<<<<<<< HEAD
 typedef enum{
   PFWL_SSLV2 = 0,
   PFWL_SSLV3,
   PFWL_TLSV1_2
 }pfwl_ssl_version_t;
+=======
+typedef enum { PFWL_SSLV2 = 0, PFWL_SSLV3, PFWL_TLSV1_2 } pfwl_ssl_version_t;
+>>>>>>> SoftAtHome/master
 
 typedef struct pfwl_ssl_internal_information_new {
   uint8_t stage;
@@ -225,7 +229,11 @@ typedef struct pfwl_flow_info_private {
   uint8_t first_packet_arrived : 2;
   uint32_t highest_ack[2];
 
+<<<<<<< HEAD
   uint32_t synack_acknum; 
+=======
+  uint32_t synack_acknum;
+>>>>>>> SoftAtHome/master
 
   double timestamp_last_payload[2]; // Timestamp of the last non-zero payload packet received
 
@@ -286,8 +294,13 @@ typedef struct pfwl_flow_info_private {
   /*****************************************/
   /** JSON-RPC and depending protos info. **/
   /*****************************************/
+<<<<<<< HEAD
   void* json_parser;
   void* json_stringbuffers[PFWL_FIELDS_L7_JSON_RPC_LAST - PFWL_FIELDS_L7_JSON_RPC_FIRST - 1];
+=======
+  void *json_parser;
+  void *json_stringbuffers[PFWL_FIELDS_L7_JSON_RPC_LAST - PFWL_FIELDS_L7_JSON_RPC_FIRST - 1];
+>>>>>>> SoftAtHome/master
 
   /***************************************/
   /** STUN tracking information         **/
@@ -305,6 +318,7 @@ struct pfwl_flow {
 typedef struct pfwl_flow_table pfwl_flow_table_t;
 
 #if PFWL_FLOW_TABLE_USE_MEMORY_POOL
+<<<<<<< HEAD
 pfwl_flow_table_t *pfwl_flow_table_create(uint32_t size,
                                           uint32_t max_active_v4_flows,
                                           uint16_t num_partitions,
@@ -335,11 +349,38 @@ pfwl_flow_t *pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, pfwl_dis
 void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db, pfwl_flow_t *to_delete, pfwl_timestamp_unit_t unit);
 void pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db,
                                        pfwl_flow_t *to_delete);
+=======
+pfwl_flow_table_t *pfwl_flow_table_create(uint32_t size, uint32_t max_active_v4_flows, uint16_t num_partitions,
+                                          uint32_t start_pool_size);
+
+#else
+pfwl_flow_table_t *pfwl_flow_table_create(uint32_t expected_flows, pfwl_flows_strategy_t strategy,
+                                          uint16_t num_partitions);
+#endif
+
+void pflw_flow_table_set_flow_cleaner_callback(pfwl_flow_table_t *db,
+                                               pfwl_flow_cleaner_callback_t *flow_cleaner_callback);
+
+void pflw_flow_table_set_flow_termination_callback(pfwl_flow_table_t *db,
+                                                   pfwl_flow_termination_callback_t *flow_termination_callback);
+
+void pfwl_flow_table_delete(pfwl_flow_table_t *db, pfwl_timestamp_unit_t unit);
+
+pfwl_flow_t *pfwl_flow_table_find_flow(pfwl_flow_table_t *db, uint32_t index, const pfwl_dissection_info_t *pkt_info);
+
+pfwl_flow_t *pfwl_flow_table_find_or_create_flow(pfwl_flow_table_t *db, pfwl_dissection_info_t *pkt_info,
+                                                 const char *protocols_to_inspect, uint8_t tcp_reordering_enabled,
+                                                 double timestamp, uint8_t syn, pfwl_timestamp_unit_t unit);
+
+void pfwl_flow_table_delete_flow(pfwl_flow_table_t *db, pfwl_flow_t *to_delete, pfwl_timestamp_unit_t unit);
+void pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db, pfwl_flow_t *to_delete);
+>>>>>>> SoftAtHome/master
 
 /**
  * They are used directly only in mc_dpi. Should never be used directly
  * by the user.
  **/
+<<<<<<< HEAD
 uint32_t
 pfwl_compute_v4_hash_function(pfwl_flow_table_t *db,
                               const pfwl_dissection_info_t *const pkt_info);
@@ -365,6 +406,20 @@ void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table,
 void mc_pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db,
                                           uint16_t partition_id,
                                           pfwl_flow_t *to_delete);
+=======
+uint32_t pfwl_compute_v4_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
+
+uint32_t pfwl_compute_v6_hash_function(const pfwl_flow_table_t *db, const pfwl_dissection_info_t *const pkt_info);
+
+void pfwl_init_flow_info_internal(pfwl_flow_info_private_t *flow_info_private, const char *protocols_to_inspect,
+                                  uint8_t tcp_reordering_enabled);
+void pfwl_init_flow(pfwl_flow_t *flow, const pfwl_dissection_info_t *dissection_info, const char *protocols_to_inspect,
+                    uint8_t tcp_reordering_enabled, uint64_t id, uint32_t id_hash, uint16_t thread_id);
+
+void pfwl_flow_table_setup_partitions(pfwl_flow_table_t *table, uint16_t num_partitions);
+
+void mc_pfwl_flow_table_delete_flow_later(pfwl_flow_table_t *db, uint16_t partition_id, pfwl_flow_t *to_delete);
+>>>>>>> SoftAtHome/master
 
 #ifdef __cplusplus
 }

@@ -41,10 +41,17 @@
 #include <vector>
 
 #define PFWL_DEBUG_MC_API 1
+<<<<<<< HEAD
 #define debug_print(fmt, ...)                                                  \
   do {                                                                         \
     if (PFWL_DEBUG_MC_API)                                                     \
       fprintf(stdout, fmt, __VA_ARGS__);                                       \
+=======
+#define debug_print(fmt, ...)            \
+  do {                                   \
+    if (PFWL_DEBUG_MC_API)               \
+      fprintf(stdout, fmt, __VA_ARGS__); \
+>>>>>>> SoftAtHome/master
   } while (0)
 
 #define PFWL_MULTICORE_STATUS_UPDATER_TID 1
@@ -111,8 +118,12 @@ typedef struct mc_pfwl_library_state {
 static inline
 #endif
     void
+<<<<<<< HEAD
     mc_pfwl_create_double_farm(mc_pfwl_state_t *state, uint32_t size_v4,
                                uint32_t size_v6) {
+=======
+    mc_pfwl_create_double_farm(mc_pfwl_state_t *state, uint32_t size_v4, uint32_t size_v6) {
+>>>>>>> SoftAtHome/master
   uint16_t last_mapped = 0;
   /******************************************/
   /*         Create the first farm.         */
@@ -123,6 +134,7 @@ static inline
   assert(tmp);
   state->L3_L4_farm =
       new (tmp) ff::ff_ofarm(false, PFWL_MULTICORE_L3_L4_FARM_INPUT_BUFFER_SIZE,
+<<<<<<< HEAD
                              PFWL_MULTICORE_L3_L4_FARM_OUTPUT_BUFFER_SIZE,
                              false, state->available_processors, true);
   tmp = malloc(sizeof(dpi::pfwl_L3_L4_emitter));
@@ -131,11 +143,20 @@ static inline
       state->sequential_state, &(state->reading_callback),
       &(state->read_process_callbacks_user_data), &(state->terminating),
       state->mapping[last_mapped], state->tasks_pool);
+=======
+                             PFWL_MULTICORE_L3_L4_FARM_OUTPUT_BUFFER_SIZE, false, state->available_processors, true);
+  tmp = malloc(sizeof(dpi::pfwl_L3_L4_emitter));
+  assert(tmp);
+  state->L3_L4_emitter = new (tmp) dpi::pfwl_L3_L4_emitter(
+      state->sequential_state, &(state->reading_callback), &(state->read_process_callbacks_user_data),
+      &(state->terminating), state->mapping[last_mapped], state->tasks_pool);
+>>>>>>> SoftAtHome/master
   last_mapped = (last_mapped + 1) % state->available_processors;
   state->L3_L4_farm->setEmitterF(state->L3_L4_emitter);
 #else
   tmp = malloc(sizeof(ff::ff_farm<>));
   assert(tmp);
+<<<<<<< HEAD
   state->L3_L4_farm = new (tmp)
       ff::ff_farm<>(false, PFWL_MULTICORE_L3_L4_FARM_INPUT_BUFFER_SIZE,
                     PFWL_MULTICORE_L3_L4_FARM_OUTPUT_BUFFER_SIZE, false,
@@ -146,6 +167,16 @@ static inline
       state->sequential_state, &(state->reading_callback),
       &(state->read_process_callbacks_user_data), &(state->terminating),
       state->mapping[last_mapped], state->tasks_pool);
+=======
+  state->L3_L4_farm =
+      new (tmp) ff::ff_farm<>(false, PFWL_MULTICORE_L3_L4_FARM_INPUT_BUFFER_SIZE,
+                              PFWL_MULTICORE_L3_L4_FARM_OUTPUT_BUFFER_SIZE, false, state->available_processors, true);
+  tmp = malloc(sizeof(dpi::pfwl_L3_L4_emitter));
+  assert(tmp);
+  state->L3_L4_emitter = new (tmp) dpi::pfwl_L3_L4_emitter(
+      state->sequential_state, &(state->reading_callback), &(state->read_process_callbacks_user_data),
+      &(state->terminating), state->mapping[last_mapped], state->tasks_pool);
+>>>>>>> SoftAtHome/master
   last_mapped = (last_mapped + 1) % state->available_processors;
   state->L3_L4_farm->add_emitter(state->L3_L4_emitter);
 #if PFWL_MULTICORE_L3_L4_FARM_TYPE == PFWL_MULTICORE_L3_L4_ON_DEMAND
@@ -157,9 +188,15 @@ static inline
   for (uint i = 0; i < state->double_farm_L3_L4_active_workers; i++) {
     tmp = malloc(sizeof(dpi::pfwl_L3_L4_worker));
     assert(tmp);
+<<<<<<< HEAD
     dpi::pfwl_L3_L4_worker *w1 = new (tmp) dpi::pfwl_L3_L4_worker(
         state->sequential_state, i, (state->double_farm_L7_active_workers),
         state->mapping[last_mapped], size_v4, size_v6);
+=======
+    dpi::pfwl_L3_L4_worker *w1 =
+        new (tmp) dpi::pfwl_L3_L4_worker(state->sequential_state, i, (state->double_farm_L7_active_workers),
+                                         state->mapping[last_mapped], size_v4, size_v6);
+>>>>>>> SoftAtHome/master
     state->L3_L4_workers->push_back(w1);
     last_mapped = (last_mapped + 1) % state->available_processors;
   }
@@ -167,8 +204,12 @@ static inline
 
   tmp = malloc(sizeof(dpi::pfwl_L3_L4_collector));
   assert(tmp);
+<<<<<<< HEAD
   state->L3_L4_collector =
       new (tmp) dpi::pfwl_L3_L4_collector(state->mapping[last_mapped]);
+=======
+  state->L3_L4_collector = new (tmp) dpi::pfwl_L3_L4_collector(state->mapping[last_mapped]);
+>>>>>>> SoftAtHome/master
   assert(state->L3_L4_collector);
   last_mapped = (last_mapped + 1) % state->available_processors;
 #if PFWL_MULTICORE_L3_L4_FARM_TYPE == PFWL_MULTICORE_L3_L4_ORDERED_FARM
@@ -182,6 +223,7 @@ static inline
   /**************************************/
   tmp = malloc(sizeof(ff::ff_farm<dpi::pfwl_L7_scheduler>));
   assert(tmp);
+<<<<<<< HEAD
   state->L7_farm = new (tmp) ff::ff_farm<dpi::pfwl_L7_scheduler>(
       false, PFWL_MULTICORE_L7_FARM_INPUT_BUFFER_SIZE,
       PFWL_MULTICORE_L7_FARM_OUTPUT_BUFFER_SIZE, false,
@@ -192,6 +234,16 @@ static inline
   state->L7_emitter = new (tmp) dpi::pfwl_L7_emitter(
       state->L7_farm->getlb(), state->double_farm_L7_active_workers,
       state->mapping[last_mapped]);
+=======
+  state->L7_farm = new (tmp) ff::ff_farm<dpi::pfwl_L7_scheduler>(false, PFWL_MULTICORE_L7_FARM_INPUT_BUFFER_SIZE,
+                                                                 PFWL_MULTICORE_L7_FARM_OUTPUT_BUFFER_SIZE, false,
+                                                                 state->available_processors, true);
+
+  tmp = malloc(sizeof(dpi::pfwl_L7_emitter));
+  assert(tmp);
+  state->L7_emitter = new (tmp)
+      dpi::pfwl_L7_emitter(state->L7_farm->getlb(), state->double_farm_L7_active_workers, state->mapping[last_mapped]);
+>>>>>>> SoftAtHome/master
   last_mapped = (last_mapped + 1) % state->available_processors;
   state->L7_farm->add_emitter(state->L7_emitter);
 
@@ -199,8 +251,12 @@ static inline
   for (uint i = 0; i < state->double_farm_L7_active_workers; i++) {
     tmp = malloc(sizeof(dpi::pfwl_L7_worker));
     assert(tmp);
+<<<<<<< HEAD
     dpi::pfwl_L7_worker *w2 = new (tmp) dpi::pfwl_L7_worker(
         state->sequential_state, i, state->mapping[last_mapped]);
+=======
+    dpi::pfwl_L7_worker *w2 = new (tmp) dpi::pfwl_L7_worker(state->sequential_state, i, state->mapping[last_mapped]);
+>>>>>>> SoftAtHome/master
     state->L7_workers->push_back(w2);
     last_mapped = (last_mapped + 1) % state->available_processors;
   }
@@ -210,9 +266,15 @@ static inline
   assert(tmp);
   state->collector_proc_id = state->mapping[last_mapped];
 
+<<<<<<< HEAD
   state->L7_collector = new (tmp) dpi::pfwl_L7_collector(
       &(state->processing_callback), &(state->read_process_callbacks_user_data),
       &(state->collector_proc_id), state->tasks_pool);
+=======
+  state->L7_collector =
+      new (tmp) dpi::pfwl_L7_collector(&(state->processing_callback), &(state->read_process_callbacks_user_data),
+                                       &(state->collector_proc_id), state->tasks_pool);
+>>>>>>> SoftAtHome/master
   state->L7_farm->add_collector(state->L7_collector);
 
   /********************************/
@@ -220,9 +282,14 @@ static inline
   /********************************/
   tmp = malloc(sizeof(ff::ff_pipeline));
   assert(tmp);
+<<<<<<< HEAD
   state->pipeline = new (tmp)
       ff::ff_pipeline(false, PFWL_MULTICORE_PIPELINE_INPUT_BUFFER_SIZE,
                       PFWL_MULTICORE_PIPELINE_OUTPUT_BUFFER_SIZE, true);
+=======
+  state->pipeline = new (tmp) ff::ff_pipeline(false, PFWL_MULTICORE_PIPELINE_INPUT_BUFFER_SIZE,
+                                              PFWL_MULTICORE_PIPELINE_OUTPUT_BUFFER_SIZE, true);
+>>>>>>> SoftAtHome/master
 
   state->pipeline->add_stage(state->L3_L4_farm);
   state->pipeline->add_stage(state->L7_farm);
@@ -233,6 +300,7 @@ static inline
 static inline
 #endif
     void
+<<<<<<< HEAD
     mc_pfwl_create_single_farm(mc_pfwl_state_t *state, uint32_t size_v4,
                                uint32_t size_v6) {
   uint16_t last_mapped = 0;
@@ -247,14 +315,31 @@ static inline
       &(state->terminating), state->tasks_pool, state->sequential_state,
       (state->single_farm_active_workers), size_v4, size_v6,
       state->single_farm->getlb(), state->mapping[last_mapped]);
+=======
+    mc_pfwl_create_single_farm(mc_pfwl_state_t *state, uint32_t size_v4, uint32_t size_v6) {
+  uint16_t last_mapped = 0;
+  state->single_farm = new ff::ff_farm<dpi::pfwl_L7_scheduler>(false, PFWL_MULTICORE_L7_FARM_INPUT_BUFFER_SIZE,
+                                                               PFWL_MULTICORE_L7_FARM_OUTPUT_BUFFER_SIZE, false,
+                                                               state->available_processors, true);
+  assert(state->single_farm);
+
+  state->single_farm_emitter = new dpi::pfwl_collapsed_emitter(
+      &(state->reading_callback), &(state->read_process_callbacks_user_data), &(state->terminating), state->tasks_pool,
+      state->sequential_state, (state->single_farm_active_workers), size_v4, size_v6, state->single_farm->getlb(),
+      state->mapping[last_mapped]);
+>>>>>>> SoftAtHome/master
   assert(state->single_farm_emitter);
   last_mapped = (last_mapped + 1) % state->available_processors;
   state->single_farm->add_emitter(state->single_farm_emitter);
 
   state->single_farm_workers = new std::vector<ff::ff_node *>;
   for (uint16_t i = 0; i < state->single_farm_active_workers; i++) {
+<<<<<<< HEAD
     dpi::pfwl_L7_worker *w = new dpi::pfwl_L7_worker(
         state->sequential_state, i, state->mapping[last_mapped]);
+=======
+    dpi::pfwl_L7_worker *w = new dpi::pfwl_L7_worker(state->sequential_state, i, state->mapping[last_mapped]);
+>>>>>>> SoftAtHome/master
     assert(w);
     state->single_farm_workers->push_back(w);
     last_mapped = (last_mapped + 1) % state->available_processors;
@@ -262,9 +347,15 @@ static inline
 
   state->single_farm->add_workers(*(state->single_farm_workers));
   state->collector_proc_id = state->mapping[last_mapped];
+<<<<<<< HEAD
   state->single_farm_collector = new dpi::pfwl_L7_collector(
       &(state->processing_callback), &(state->read_process_callbacks_user_data),
       &(state->collector_proc_id), state->tasks_pool);
+=======
+  state->single_farm_collector =
+      new dpi::pfwl_L7_collector(&(state->processing_callback), &(state->read_process_callbacks_user_data),
+                                 &(state->collector_proc_id), state->tasks_pool);
+>>>>>>> SoftAtHome/master
   assert(state->single_farm_collector);
   state->single_farm->add_collector(state->single_farm_collector);
   state->parallel_module_type = MC_PFWL_PARALLELISM_FORM_ONE_FARM;
@@ -277,9 +368,14 @@ static inline ssize_t get_num_cores() {
 #else
   n = 0;
 #if defined(__linux__)
+<<<<<<< HEAD
   char inspect[] =
       "cat /proc/cpuinfo|egrep 'core id|physical id'|tr -d '\n'|sed "
       "'s/physical/\\nphysical/g'|grep -v ^$|sort|uniq|wc -l";
+=======
+  char inspect[] = "cat /proc/cpuinfo|egrep 'core id|physical id'|tr -d '\n'|sed "
+                   "'s/physical/\\nphysical/g'|grep -v ^$|sort|uniq|wc -l";
+>>>>>>> SoftAtHome/master
 #elif defined(__APPLE__)
   char inspect[] = "sysctl hw.physicalcpu | awk '{print $2}'";
 #else
@@ -300,6 +396,7 @@ static inline ssize_t get_num_cores() {
   return n;
 }
 
+<<<<<<< HEAD
 mc_pfwl_state_t *
 mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6,
                       uint32_t max_active_v4_flows,
@@ -308,6 +405,13 @@ mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6,
   mc_pfwl_state_t *state = NULL;
   if (posix_memalign((void **) &state, PFWL_CACHE_LINE_SIZE,
                      sizeof(mc_pfwl_state_t) + PFWL_CACHE_LINE_SIZE)) {
+=======
+mc_pfwl_state_t *mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6, uint32_t max_active_v4_flows,
+                                       uint32_t max_active_v6_flows,
+                                       mc_pfwl_parallelism_details_t parallelism_details) {
+  mc_pfwl_state_t *state = NULL;
+  if (posix_memalign((void **) &state, PFWL_CACHE_LINE_SIZE, sizeof(mc_pfwl_state_t) + PFWL_CACHE_LINE_SIZE)) {
+>>>>>>> SoftAtHome/master
     throw std::runtime_error("posix_memalign failed.");
   }
   bzero(state, sizeof(mc_pfwl_state_t));
@@ -341,6 +445,7 @@ mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6,
 
   uint16_t hash_table_partitions;
 
+<<<<<<< HEAD
   state->double_farm_L3_L4_active_workers =
       parallelism_details.double_farm_num_L3_workers;
   state->double_farm_L7_active_workers =
@@ -349,6 +454,13 @@ mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6,
   if (parallelism_form == MC_PFWL_PARALLELISM_FORM_DOUBLE_FARM) {
     assert(state->double_farm_L3_L4_active_workers > 0 &&
            state->double_farm_L7_active_workers > 0);
+=======
+  state->double_farm_L3_L4_active_workers = parallelism_details.double_farm_num_L3_workers;
+  state->double_farm_L7_active_workers = parallelism_details.double_farm_num_L7_workers;
+  state->single_farm_active_workers = state->available_processors - 2;
+  if (parallelism_form == MC_PFWL_PARALLELISM_FORM_DOUBLE_FARM) {
+    assert(state->double_farm_L3_L4_active_workers > 0 && state->double_farm_L7_active_workers > 0);
+>>>>>>> SoftAtHome/master
     debug_print("%s\n", "[mc_pfwl_peafowl.cpp]: A pipeline of two "
                         "farms will be activated.");
     hash_table_partitions = state->double_farm_L7_active_workers;
@@ -359,21 +471,33 @@ mc_pfwl_init_stateful(uint32_t size_v4, uint32_t size_v6,
     hash_table_partitions = state->single_farm_active_workers;
   }
 
+<<<<<<< HEAD
   state->sequential_state = pfwl_init_stateful_num_partitions(
       size_v4, size_v6, max_active_v4_flows, max_active_v6_flows,
       hash_table_partitions);
+=======
+  state->sequential_state = pfwl_init_stateful_num_partitions(size_v4, size_v6, max_active_v4_flows,
+                                                              max_active_v6_flows, hash_table_partitions);
+>>>>>>> SoftAtHome/master
 
 /******************************/
 /*   Create the tasks pool.   */
 /******************************/
 #if PFWL_MULTICORE_USE_TASKS_POOL
   void *tmp = NULL;
+<<<<<<< HEAD
   if (posix_memalign((void **) &tmp, PFWL_CACHE_LINE_SIZE,
                      sizeof(ff::SWSR_Ptr_Buffer) + PFWL_CACHE_LINE_SIZE)) {
     throw std::runtime_error("posix_memalign failed.");
   }
   state->tasks_pool =
       new (tmp) ff::SWSR_Ptr_Buffer(PFWL_MULTICORE_TASKS_POOL_SIZE);
+=======
+  if (posix_memalign((void **) &tmp, PFWL_CACHE_LINE_SIZE, sizeof(ff::SWSR_Ptr_Buffer) + PFWL_CACHE_LINE_SIZE)) {
+    throw std::runtime_error("posix_memalign failed.");
+  }
+  state->tasks_pool = new (tmp) ff::SWSR_Ptr_Buffer(PFWL_MULTICORE_TASKS_POOL_SIZE);
+>>>>>>> SoftAtHome/master
   state->tasks_pool->init();
 #endif
 
@@ -397,9 +521,13 @@ void mc_pfwl_print_stats(mc_pfwl_state_t *state) {
       state->single_farm->ffStats(std::cout);
     }
     if (state->stop_time.tv_sec != 0) {
+<<<<<<< HEAD
       std::cout << "Completion time: "
                 << ff::diffmsec(state->stop_time, state->start_time)
                 << std::endl;
+=======
+      std::cout << "Completion time: " << ff::diffmsec(state->stop_time, state->start_time) << std::endl;
+>>>>>>> SoftAtHome/master
     }
   }
 }
@@ -418,8 +546,12 @@ void mc_pfwl_terminate(mc_pfwl_state_t *state) {
       free(state->L3_L4_collector);
 
       while (!state->L3_L4_workers->empty()) {
+<<<<<<< HEAD
         ((dpi::pfwl_L3_L4_worker *) state->L3_L4_workers->back())
             ->~pfwl_L3_L4_worker();
+=======
+        ((dpi::pfwl_L3_L4_worker *) state->L3_L4_workers->back())->~pfwl_L3_L4_worker();
+>>>>>>> SoftAtHome/master
         free((dpi::pfwl_L3_L4_worker *) state->L3_L4_workers->back());
         state->L3_L4_workers->pop_back();
       }
@@ -461,17 +593,26 @@ void mc_pfwl_terminate(mc_pfwl_state_t *state) {
   }
 }
 
+<<<<<<< HEAD
 void mc_pfwl_set_core_callbacks(
     mc_pfwl_state_t *state, mc_pfwl_packet_reading_callback *reading_callback,
     mc_pfwl_processing_result_callback *processing_callback, void *user_data) {
+=======
+void mc_pfwl_set_core_callbacks(mc_pfwl_state_t *state, mc_pfwl_packet_reading_callback *reading_callback,
+                                mc_pfwl_processing_result_callback *processing_callback, void *user_data) {
+>>>>>>> SoftAtHome/master
   state->reading_callback = reading_callback;
   state->processing_callback = processing_callback;
   state->read_process_callbacks_user_data = user_data;
 }
 
 #ifdef ENABLE_RECONFIGURATION
+<<<<<<< HEAD
 void mc_pfwl_set_reconf_parameters(mc_pfwl_library_state_t *state,
                                    nornir::Parameters *p) {
+=======
+void mc_pfwl_set_reconf_parameters(mc_pfwl_library_state_t *state, nornir::Parameters *p) {
+>>>>>>> SoftAtHome/master
   state->adp_params = p;
 }
 #endif
@@ -487,8 +628,12 @@ void mc_pfwl_run(mc_pfwl_state_t *state) {
 // Warm-up
 #ifdef ENABLE_RECONFIGURATION
     try {
+<<<<<<< HEAD
       state->mf = new nornir::ManagerFarm<dpi::pfwl_L7_scheduler>(
           state->single_farm, *(state->adp_params));
+=======
+      state->mf = new nornir::ManagerFarm<dpi::pfwl_L7_scheduler>(state->single_farm, *(state->adp_params));
+>>>>>>> SoftAtHome/master
       state->mf->start();
     } catch (std::exception &e) {
       assert("Exception thrown by ManagerFarm" == NULL);
@@ -524,6 +669,7 @@ void mc_pfwl_wait_end(mc_pfwl_state_t *state) {
   state->is_running = 0;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_set_expected_flows(mc_pfwl_state_t *state, uint32_t flows_v4,
                                    uint32_t flows_v6, uint8_t strict) {
   if (state->is_running) {
@@ -531,6 +677,13 @@ uint8_t mc_pfwl_set_expected_flows(mc_pfwl_state_t *state, uint32_t flows_v4,
   }
   return pfwl_set_expected_flows(state->sequential_state, flows_v4, flows_v6,
                                  strict);
+=======
+uint8_t mc_pfwl_set_expected_flows(mc_pfwl_state_t *state, uint32_t flows_v4, uint32_t flows_v6, uint8_t strict) {
+  if (state->is_running) {
+    return 0;
+  }
+  return pfwl_set_expected_flows(state->sequential_state, flows_v4, flows_v6, strict);
+>>>>>>> SoftAtHome/master
 }
 
 uint8_t mc_pfwl_set_max_trials(mc_pfwl_state_t *state, uint16_t max_trials) {
@@ -542,8 +695,12 @@ uint8_t mc_pfwl_set_max_trials(mc_pfwl_state_t *state, uint16_t max_trials) {
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state,
                                           uint16_t table_size) {
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state, uint16_t table_size) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
@@ -552,8 +709,12 @@ uint8_t mc_pfwl_ipv4_fragmentation_enable(mc_pfwl_state_t *state,
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state,
                                           uint16_t table_size) {
+=======
+uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state, uint16_t table_size) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
@@ -562,12 +723,17 @@ uint8_t mc_pfwl_ipv6_fragmentation_enable(mc_pfwl_state_t *state,
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(
     mc_pfwl_state_t *state, uint32_t per_host_memory_limit) {
+=======
+uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(mc_pfwl_state_t *state, uint32_t per_host_memory_limit) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_per_host_memory_limit_ipv4(
       state->sequential_state, per_host_memory_limit);
   return r;
@@ -575,10 +741,18 @@ uint8_t mc_pfwl_ipv4_fragmentation_set_per_host_memory_limit(
 
 uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(
     mc_pfwl_state_t *state, uint32_t per_host_memory_limit) {
+=======
+  r = pfwl_defragmentation_set_per_host_memory_limit_ipv4(state->sequential_state, per_host_memory_limit);
+  return r;
+}
+
+uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(mc_pfwl_state_t *state, uint32_t per_host_memory_limit) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_per_host_memory_limit_ipv6(
       state->sequential_state, per_host_memory_limit);
   return r;
@@ -587,10 +761,18 @@ uint8_t mc_pfwl_ipv6_fragmentation_set_per_host_memory_limit(
 uint8_t
 mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
                                                   uint32_t total_memory_limit) {
+=======
+  r = pfwl_defragmentation_set_per_host_memory_limit_ipv6(state->sequential_state, per_host_memory_limit);
+  return r;
+}
+
+uint8_t mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state, uint32_t total_memory_limit) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_total_memory_limit_ipv4(state->sequential_state,
                                                        total_memory_limit);
   return r;
@@ -599,10 +781,18 @@ mc_pfwl_ipv4_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
 uint8_t
 mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
                                                   uint32_t total_memory_limit) {
+=======
+  r = pfwl_defragmentation_set_total_memory_limit_ipv4(state->sequential_state, total_memory_limit);
+  return r;
+}
+
+uint8_t mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state, uint32_t total_memory_limit) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_total_memory_limit_ipv6(state->sequential_state,
                                                        total_memory_limit);
   return r;
@@ -611,10 +801,18 @@ mc_pfwl_ipv6_fragmentation_set_total_memory_limit(mc_pfwl_state_t *state,
 uint8_t
 mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
                                                   uint8_t timeout_seconds) {
+=======
+  r = pfwl_defragmentation_set_total_memory_limit_ipv6(state->sequential_state, total_memory_limit);
+  return r;
+}
+
+uint8_t mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state, uint8_t timeout_seconds) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_reassembly_timeout_ipv4(state->sequential_state,
                                                        timeout_seconds);
   return r;
@@ -623,12 +821,23 @@ mc_pfwl_ipv4_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
 uint8_t
 mc_pfwl_ipv6_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state,
                                                   uint8_t timeout_seconds) {
+=======
+  r = pfwl_defragmentation_set_reassembly_timeout_ipv4(state->sequential_state, timeout_seconds);
+  return r;
+}
+
+uint8_t mc_pfwl_ipv6_fragmentation_set_reassembly_timeout(mc_pfwl_state_t *state, uint8_t timeout_seconds) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_defragmentation_set_reassembly_timeout_ipv6(state->sequential_state,
                                                        timeout_seconds);
+=======
+  r = pfwl_defragmentation_set_reassembly_timeout_ipv6(state->sequential_state, timeout_seconds);
+>>>>>>> SoftAtHome/master
   return r;
 }
 
@@ -668,16 +877,24 @@ uint8_t mc_pfwl_tcp_reordering_disable(mc_pfwl_state_t *state) {
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_enable_protocol(mc_pfwl_state_t *state,
                                 pfwl_protocol_l7_t protocol) {
+=======
+uint8_t mc_pfwl_enable_protocol(mc_pfwl_state_t *state, pfwl_protocol_l7_t protocol) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   return pfwl_protocol_l7_enable(state->sequential_state, protocol);
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_disable_protocol(mc_pfwl_state_t *state,
                                  pfwl_protocol_l7_t protocol) {
+=======
+uint8_t mc_pfwl_disable_protocol(mc_pfwl_state_t *state, pfwl_protocol_l7_t protocol) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
@@ -702,9 +919,13 @@ uint8_t mc_pfwl_inspect_nothing(mc_pfwl_state_t *state) {
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t
 mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state,
                                   pfwl_flow_cleaner_callback_t *cleaner) {
+=======
+uint8_t mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state, pfwl_flow_cleaner_callback_t *cleaner) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
@@ -713,15 +934,23 @@ mc_pfwl_set_flow_cleaner_callback(mc_pfwl_state_t *state,
   return r;
 }
 
+<<<<<<< HEAD
 uint8_t mc_pfwl_http_activate_callbacks(mc_pfwl_state_t *state,
                                         pfwl_http_callbacks_t *callbacks,
                                         void *user_data) {
+=======
+uint8_t mc_pfwl_http_activate_callbacks(mc_pfwl_state_t *state, pfwl_http_callbacks_t *callbacks, void *user_data) {
+>>>>>>> SoftAtHome/master
   if (state->is_running) {
     return 0;
   }
   uint8_t r;
+<<<<<<< HEAD
   r = pfwl_http_activate_callbacks(state->sequential_state, callbacks,
                                    user_data);
+=======
+  r = pfwl_http_activate_callbacks(state->sequential_state, callbacks, user_data);
+>>>>>>> SoftAtHome/master
   return r;
 }
 

@@ -118,8 +118,7 @@ uint32_t pfwl_reassembly_fragment_length(uint32_t offset, uint32_t end);
  * @param tail A pointer to the tail of the timers list.
  * @param timer The timer to insert.
  */
-void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head,
-                               pfwl_reassembly_timer_t **tail,
+void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head, pfwl_reassembly_timer_t **tail,
                                pfwl_reassembly_timer_t *timer);
 
 /**
@@ -128,8 +127,7 @@ void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head,
  * @param tail A pointer to the tail of the timers list.
  * @param timer The timer to remove.
  */
-void pfwl_reassembly_delete_timer(pfwl_reassembly_timer_t **head,
-                                  pfwl_reassembly_timer_t **tail,
+void pfwl_reassembly_delete_timer(pfwl_reassembly_timer_t **head, pfwl_reassembly_timer_t **tail,
                                   pfwl_reassembly_timer_t *timer);
 
 /**
@@ -146,19 +144,16 @@ void pfwl_reassembly_delete_timer(pfwl_reassembly_timer_t **head,
  *
  * @return The created fragment.
  */
-pfwl_reassembly_fragment_t *
-pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
-                                const unsigned char *data, uint32_t offset,
-                                uint32_t end, uint32_t *bytes_removed,
-                                uint32_t *bytes_inserted);
+pfwl_reassembly_fragment_t *pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
+                                                            const unsigned char *data, uint32_t offset, uint32_t end,
+                                                            uint32_t *bytes_removed, uint32_t *bytes_inserted);
 
 /**
  * See there is a train of contiguous fragments.
  * @param head The pointer to the head of the list of fragments.
  * @return 0 if there are missing fragments, 1 otherwise.
  */
-uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(
-    pfwl_reassembly_fragment_t *head);
+uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(pfwl_reassembly_fragment_t *head);
 
 /**
  * Compacts a train of contiguous fragments and returns it.
@@ -168,9 +163,7 @@ uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(
  * @return The data_length of the recompacted data. If an error
  * occurred (e.g. misbehaving packet), -1 is returned.
  */
-int32_t pfwl_reassembly_ip_compact_fragments(pfwl_reassembly_fragment_t *head,
-                                             unsigned char **where,
-                                             uint32_t len);
+int32_t pfwl_reassembly_ip_compact_fragments(pfwl_reassembly_fragment_t *head, unsigned char **where, uint32_t len);
 
 #ifdef __cplusplus
 }

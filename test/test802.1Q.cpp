@@ -4,6 +4,7 @@
 #include "common.h"
 
 TEST(eightzerotwoQ, Generic) {
+<<<<<<< HEAD
     std::vector<uint> protocols;
     uint icmp_packets = 0;
     getProtocols("./pcaps/802.1Q_dvlan.cap", protocols, NULL, [&](pfwl_status_t status, pfwl_dissection_info_t r){
@@ -12,4 +13,14 @@ TEST(eightzerotwoQ, Generic) {
       }
     });
     EXPECT_EQ(icmp_packets, (uint) 20);
+=======
+  std::vector<uint> protocols;
+  uint icmp_packets = 0;
+  getProtocols("./pcaps/802.1Q_dvlan.cap", protocols, NULL, [&](pfwl_status_t, pfwl_dissection_info_t r) {
+    if (r.l4.protocol == IPPROTO_ICMP) {
+      ++icmp_packets;
+    }
+  });
+  EXPECT_EQ(icmp_packets, (uint) 20);
+>>>>>>> SoftAtHome/master
 }

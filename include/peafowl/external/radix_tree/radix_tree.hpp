@@ -105,8 +105,11 @@ private:
     radix_tree_node<K, T, Compare>* prepend(radix_tree_node<K, T, Compare> *node, const value_type &val);
 	void greedy_match(radix_tree_node<K, T, Compare> *node, std::vector<iterator> &vec);
 
+<<<<<<< HEAD
     radix_tree(const radix_tree& other); // delete
     radix_tree& operator =(const radix_tree other); // delete
+=======
+>>>>>>> SoftAtHome/master
 };
 
 template <typename K, typename T, typename Compare>

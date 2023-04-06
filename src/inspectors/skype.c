@@ -34,6 +34,7 @@
 #include <string.h>
 
 #define PFWL_DEBUG_SKYPE 0
+<<<<<<< HEAD
 #define debug_print(fmt, ...)                                                  \
   do {                                                                         \
     if (PFWL_DEBUG_SKYPE)                                                      \
@@ -46,6 +47,22 @@ uint8_t check_skype(pfwl_state_t *state, const unsigned char *app_data,
   if (((data_length == 3) && ((app_data[2] & 0x0F) == 0x0d)) ||
       ((data_length >= 16) &&
        (app_data[0] != 0x30) /* Avoid invalid SNMP detection */
+=======
+#define debug_print(fmt, ...)            \
+  do {                                   \
+    if (PFWL_DEBUG_SKYPE)                \
+      fprintf(stdout, fmt, __VA_ARGS__); \
+  } while (0)
+
+uint8_t check_skype(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) pkt_info;
+  (void) flow_info_private;
+
+  if (((data_length == 3) && ((app_data[2] & 0x0F) == 0x0d)) ||
+      ((data_length >= 16) && (app_data[0] != 0x30) /* Avoid invalid SNMP detection */
+>>>>>>> SoftAtHome/master
        && (app_data[2] == 0x02))) {
     return PFWL_PROTOCOL_MATCHES;
   }

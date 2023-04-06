@@ -27,6 +27,7 @@
  * =========================================================================
  */
 
+<<<<<<< HEAD
 #include <peafowl/peafowl.h>
 #include <pcap.h>
 #include <net/ethernet.h>
@@ -49,17 +50,46 @@ int main(int argc, char** argv){
   char* pcap_filename = argv[1];
   char errbuf[PCAP_ERRBUF_SIZE];
   const u_char* packet;
+=======
+#include <arpa/inet.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <net/ethernet.h>
+#include <netinet/in.h>
+#include <pcap.h>
+#include <peafowl/peafowl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <time.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
+    return -1;
+  }
+  char *pcap_filename = argv[1];
+  char errbuf[PCAP_ERRBUF_SIZE];
+  const u_char *packet;
+>>>>>>> SoftAtHome/master
   uint32_t protocols[PFWL_PROTO_L7_NUM];
   struct pcap_pkthdr header;
   memset(protocols, 0, sizeof(protocols));
   uint32_t unknown = 0;
 
   pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
+<<<<<<< HEAD
   if(handle == NULL){
+=======
+  if (handle == NULL) {
+>>>>>>> SoftAtHome/master
     fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
     return (2);
   }
 
+<<<<<<< HEAD
   pfwl_state_t* state = pfwl_init();
   pfwl_dissection_info_t r;
   pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
@@ -72,16 +102,38 @@ int main(int argc, char** argv){
           ++unknown;
         }
       }else{
+=======
+  pfwl_state_t *state = pfwl_init();
+  pfwl_dissection_info_t r;
+  pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
+  while ((packet = pcap_next(handle, &header)) != NULL) {
+    if (pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK) {
+      if (r.l4.protocol == IPPROTO_TCP || r.l4.protocol == IPPROTO_UDP) {
+        if (r.l7.protocol < PFWL_PROTO_L7_NUM) {
+          ++protocols[r.l7.protocol];
+        } else {
+          ++unknown;
+        }
+      } else {
+>>>>>>> SoftAtHome/master
         ++unknown;
       }
     }
   }
   pfwl_terminate(state);
 
+<<<<<<< HEAD
   if (unknown > 0) printf("Unknown packets: %"PRIu32"\n", unknown);
   for(size_t i = 0; i < PFWL_PROTO_L7_NUM; i++){
     if(protocols[i] > 0){
       printf("%s packets: %"PRIu32"\n", pfwl_get_L7_protocol_name(i), protocols[i]);
+=======
+  if (unknown > 0)
+    printf("Unknown packets: %" PRIu32 "\n", unknown);
+  for (size_t i = 0; i < PFWL_PROTO_L7_NUM; i++) {
+    if (protocols[i] > 0) {
+      printf("%s packets: %" PRIu32 "\n", pfwl_get_L7_protocol_name(i), protocols[i]);
+>>>>>>> SoftAtHome/master
     }
   }
   pcap_close(handle);

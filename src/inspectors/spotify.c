@@ -30,17 +30,28 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
+<<<<<<< HEAD
 uint8_t check_spotify(pfwl_state_t *state, const unsigned char *app_data,
                       size_t data_length, pfwl_dissection_info_t *pkt_info,
                       pfwl_flow_info_private_t *flow_info_private) {
   if (pkt_info->l4.protocol == IPPROTO_UDP) {
     if (pkt_info->l4.port_src == port_spotify &&
         pkt_info->l4.port_dst == port_spotify && data_length >= 7) {
+=======
+uint8_t check_spotify(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
+                      pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
+  (void) state;
+  (void) flow_info_private;
+
+  if (pkt_info->l4.protocol == IPPROTO_UDP) {
+    if (pkt_info->l4.port_src == port_spotify && pkt_info->l4.port_dst == port_spotify && data_length >= 7) {
+>>>>>>> SoftAtHome/master
       if (memcmp(app_data, "SpotUdp", 7) == 0) {
         return PFWL_PROTOCOL_MATCHES;
       }
     }
   } else if (pkt_info->l4.protocol == IPPROTO_TCP) {
+<<<<<<< HEAD
     if (data_length >= 9 && app_data[0] == 0x00 && app_data[1] == 0x04 &&
         app_data[2] == 0x00 && app_data[3] == 0x00 && app_data[6] == 0x52 &&
         (app_data[7] == 0x0e || app_data[7] == 0x0f) && app_data[8] == 0x50) {
@@ -48,6 +59,13 @@ uint8_t check_spotify(pfwl_state_t *state, const unsigned char *app_data,
     } else if (pkt_info->l3.protocol ==
                PFWL_PROTO_L3_IPV4) { /* IPv4 Only: we need to support
                                         packet->iphv6 at some point */
+=======
+    if (data_length >= 9 && app_data[0] == 0x00 && app_data[1] == 0x04 && app_data[2] == 0x00 && app_data[3] == 0x00 &&
+        app_data[6] == 0x52 && (app_data[7] == 0x0e || app_data[7] == 0x0f) && app_data[8] == 0x50) {
+      return PFWL_PROTOCOL_MATCHES;
+    } else if (pkt_info->l3.protocol == PFWL_PROTO_L3_IPV4) { /* IPv4 Only: we need to support
+                                                                 packet->iphv6 at some point */
+>>>>>>> SoftAtHome/master
       /*
         Spotify
         78.31.8.0 - 78.31.15.255 (78.31.8.0/22)
@@ -70,6 +88,7 @@ uint8_t check_spotify(pfwl_state_t *state, const unsigned char *app_data,
       if (src_addr_masked_22 == 0x4E1F0800 ||          /* 78.31.8.0/22 */
           dst_addr_masked_22 == 0x4E1F0800 ||
           /* 193.235.232.0/22 */
+<<<<<<< HEAD
           src_addr_masked_22 == 0xC1EBE800 ||
           dst_addr_masked_22 == 0xC1EBE800 ||
           /* 194.132.196.0/22 */
@@ -81,6 +100,15 @@ uint8_t check_spotify(pfwl_state_t *state, const unsigned char *app_data,
           /* 194.132.162.0/24 */
           src_addr_masked_24 == 0xC284A200 ||
           dst_addr_masked_24 == 0xC284A200) {
+=======
+          src_addr_masked_22 == 0xC1EBE800 || dst_addr_masked_22 == 0xC1EBE800 ||
+          /* 194.132.196.0/22 */
+          src_addr_masked_22 == 0xC284C400 || dst_addr_masked_22 == 0xC284C400 ||
+          /* 194.132.176.0/22 */
+          src_addr_masked_22 == 0xC284B000 || dst_addr_masked_22 == 0xC284B000 ||
+          /* 194.132.162.0/24 */
+          src_addr_masked_24 == 0xC284A200 || dst_addr_masked_24 == 0xC284A200) {
+>>>>>>> SoftAtHome/master
         return PFWL_PROTOCOL_MATCHES;
       }
     }

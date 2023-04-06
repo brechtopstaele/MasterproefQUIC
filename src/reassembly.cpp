@@ -33,8 +33,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+<<<<<<< HEAD
 void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head,
                                pfwl_reassembly_timer_t **tail,
+=======
+void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head, pfwl_reassembly_timer_t **tail,
+>>>>>>> SoftAtHome/master
                                pfwl_reassembly_timer_t *timer) {
   if (*tail) {
     (*tail)->next = timer;
@@ -48,8 +52,12 @@ void pfwl_reassembly_add_timer(pfwl_reassembly_timer_t **head,
   }
 }
 
+<<<<<<< HEAD
 void pfwl_reassembly_delete_timer(pfwl_reassembly_timer_t **head,
                                   pfwl_reassembly_timer_t **tail,
+=======
+void pfwl_reassembly_delete_timer(pfwl_reassembly_timer_t **head, pfwl_reassembly_timer_t **tail,
+>>>>>>> SoftAtHome/master
                                   pfwl_reassembly_timer_t *timer) {
   if (timer->prev)
     timer->prev->next = timer->next;
@@ -89,11 +97,17 @@ uint32_t pfwl_reassembly_fragment_length(uint32_t offset, uint32_t end) {
 static
 #endif
     pfwl_reassembly_fragment_t *
+<<<<<<< HEAD
     pfwl_reassembly_create_fragment(uint32_t offset, uint32_t end,
                                     const unsigned char *ptr) {
   pfwl_reassembly_fragment_t *fragment;
   fragment = (pfwl_reassembly_fragment_t *) calloc(
       1, sizeof(pfwl_reassembly_fragment_t));
+=======
+    pfwl_reassembly_create_fragment(uint32_t offset, uint32_t end, const unsigned char *ptr) {
+  pfwl_reassembly_fragment_t *fragment;
+  fragment = (pfwl_reassembly_fragment_t *) calloc(1, sizeof(pfwl_reassembly_fragment_t));
+>>>>>>> SoftAtHome/master
   if (unlikely(fragment == NULL)) {
     free(fragment);
     return NULL;
@@ -115,11 +129,17 @@ static
   return fragment;
 }
 
+<<<<<<< HEAD
 pfwl_reassembly_fragment_t *
 pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
                                 const unsigned char *data, uint32_t offset,
                                 uint32_t end, uint32_t *bytes_removed,
                                 uint32_t *bytes_inserted) {
+=======
+pfwl_reassembly_fragment_t *pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
+                                                            const unsigned char *data, uint32_t offset, uint32_t end,
+                                                            uint32_t *bytes_removed, uint32_t *bytes_inserted) {
+>>>>>>> SoftAtHome/master
   pfwl_reassembly_fragment_t *prev, *next, *iterator, *tmp;
   uint32_t fragment_start = 0;
   *bytes_removed = 0;
@@ -200,8 +220,12 @@ pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
 
       tmp = iterator->next;
 
+<<<<<<< HEAD
       (*bytes_removed) +=
           pfwl_reassembly_fragment_length(iterator->offset, iterator->end);
+=======
+      (*bytes_removed) += pfwl_reassembly_fragment_length(iterator->offset, iterator->end);
+>>>>>>> SoftAtHome/master
 
       free(iterator->ptr);
       free(iterator);
@@ -244,8 +268,12 @@ pfwl_reassembly_insert_fragment(pfwl_reassembly_fragment_t **head,
   return tmp;
 }
 
+<<<<<<< HEAD
 uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(
     pfwl_reassembly_fragment_t *head) {
+=======
+uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(pfwl_reassembly_fragment_t *head) {
+>>>>>>> SoftAtHome/master
   if (!head)
     return 0;
   uint16_t offset = 0;
@@ -260,9 +288,13 @@ uint8_t pfwl_reassembly_ip_check_train_of_contiguous_fragments(
   return 1;
 }
 
+<<<<<<< HEAD
 int32_t pfwl_reassembly_ip_compact_fragments(pfwl_reassembly_fragment_t *head,
                                              unsigned char **where,
                                              uint32_t len) {
+=======
+int32_t pfwl_reassembly_ip_compact_fragments(pfwl_reassembly_fragment_t *head, unsigned char **where, uint32_t len) {
+>>>>>>> SoftAtHome/master
   /* Copy the data portions of all fragments into the new buffer. */
   uint32_t count = 0;
   while (head != NULL) {

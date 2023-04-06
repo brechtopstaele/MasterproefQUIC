@@ -27,121 +27,122 @@
  * =========================================================================
  */
 
-#include <peafowl/peafowl.h>
-#include <pcap.h>
-#include <net/ethernet.h>
-#include <time.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <net/ethernet.h>
+#include <netinet/in.h>
+#include <pcap.h>
+#include <peafowl/peafowl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <assert.h>
+#include <sys/socket.h>
+#include <time.h>
+#include <unistd.h>
 
-int main(int argc, char** argv){
-	if(argc != 2){
-		fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
-		return -1;
-	}
-	char* pcap_filename = argv[1];
-	char errbuf[PCAP_ERRBUF_SIZE];
-	const u_char* packet;
-	uint32_t protocols[PFWL_PROTO_L7_NUM];
-	struct pcap_pkthdr header;
-	memset(protocols, 0, sizeof(protocols));
-	uint32_t unknown = 0;
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
+    return -1;
+  }
+  char *pcap_filename = argv[1];
+  char errbuf[PCAP_ERRBUF_SIZE];
+  const u_char *packet;
+  uint32_t protocols[PFWL_PROTO_L7_NUM];
+  struct pcap_pkthdr header;
+  memset(protocols, 0, sizeof(protocols));
+  uint32_t unknown = 0;
 
-	pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
-	if(handle == NULL){
-		fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
-		return (2);
-	}
+  pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
+  if (handle == NULL) {
+    fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
+    return (2);
+  }
 
-        pfwl_string_t   version;
-        pfwl_string_t 	sni;
-        pfwl_string_t	uaid;
-        pfwl_string_t	ja3;
-		pfwl_string_t	token;
-	int		first_packet = 1;
+  pfwl_string_t version;
+  pfwl_string_t sni;
+  pfwl_string_t uaid;
+  pfwl_string_t ja3;
+  pfwl_string_t	token;
+  int first_packet = 1;
 
-	pfwl_state_t* state = pfwl_init();
+  pfwl_state_t *state = pfwl_init();
 
-        pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
-        pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI);
-        pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
-        pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
-        pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_TOKEN);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_TOKEN);
 
-	pfwl_dissection_info_t r;
-	pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
-	while((packet = pcap_next(handle, &header)) != NULL){
-		if(pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK){
-			if(r.l4.protocol == IPPROTO_TCP || r.l4.protocol == IPPROTO_UDP){
-				if(r.l7.protocol < PFWL_PROTO_L7_NUM){
-					++protocols[r.l7.protocol];
-					if( first_packet && (!strcmp("QUIC5", pfwl_get_L7_protocol_name(r.l7.protocol)))) {
-						int res, res1, res2, res3, res4;
-						res 	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version);
-						res1	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, &sni);
-						res2    = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid);
-						res3    = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &ja3);
+  pfwl_dissection_info_t r;
+  pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
+  while ((packet = pcap_next(handle, &header)) != NULL) {
+    if (pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK) {
+      if (r.l4.protocol == IPPROTO_TCP || r.l4.protocol == IPPROTO_UDP) {
+        if (r.l7.protocol < PFWL_PROTO_L7_NUM) {
+          ++protocols[r.l7.protocol];
+          if (first_packet && (!strcmp("QUIC5", pfwl_get_L7_protocol_name(r.l7.protocol)))) {
+            int res, res1, res2, res3, res4;
+            res = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version);
+            res1 = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_SNI, &sni);
+            res2 = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid);
+            res3 = pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &ja3);
 						//res4	= pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, &token);
-						printf("RES %d %d %d %d %d\n", res, res1, res2, res3, res4);
-						if (!res) {
-							printf("Quic Version: %.*s\n", version.length, version.value);
-						} else {
-							printf("Quic Version: unknown\n");
-						}
+            printf("RES %d %d %d %d %d\n", res, res1, res2, res3, res4);
+            if (!res) {
+              printf("Quic Version: %.*s\n", (int) version.length, version.value);
+            } else {
+              printf("Quic Version: unknown\n");
+            }
 
-						if (!res1) {
-							printf("Quic SNI: %.*s\n", sni.length, sni.value);
-						} else {
-							printf("Quic SNI: unknown\n");
-						}
+            if (!res1) {
+              printf("Quic SNI: %.*s\n", (int) sni.length, sni.value);
+            } else {
+              printf("Quic SNI: unknown\n");
+            }
 
-						if (!res2) {
-							printf("Quic UAID: %.*s\n", uaid.length, uaid.value);
-						} else {
-							printf("Quic UAID: unknown\n");
-						}
+            if (!res2) {
+              printf("Quic UAID: %.*s\n", (int) uaid.length, uaid.value);
+            } else {
+              printf("Quic UAID: unknown\n");
+            }
 
-						if (!res3) {
-							printf("Quic JA3: ");
-							int i;
-							for(i = 0; i < ja3.length; i++) {
-								printf("%X", ja3.value[i]);	
-							}
-							printf("\n");
-						} else {
-							printf("Quic JA3: unknown\n");
-						}
+            if (!res3) {
+              printf("Quic JA3: ");
+              size_t i;
+              for (i = 0; i < ja3.length; i++) {
+                printf("%c", ja3.value[i]);
+              }
+              printf("\n");
+            } else {
+              printf("Quic JA3: unknown\n");
+            }
 
-						/*if (!res4) {
+            /*if (!res4) {
 							printf("Quic token: %.*s\n", token.length, token.value);
 						} else {
 							printf("Quic token: unknown\n");
 						}*/
-						first_packet = 0;
-					}
-				}else{
-					++unknown;
-				}
-			}else{
-				++unknown;
-			}
-		}
-	}
-	pfwl_terminate(state);
+            first_packet = 0;
+          }
+        } else {
+          ++unknown;
+        }
+      } else {
+        ++unknown;
+      }
+    }
+  }
+  pfwl_terminate(state);
 
-	if (unknown > 0) printf("Unknown packets: %"PRIu32"\n", unknown);
-	for(size_t i = 0; i < PFWL_PROTO_L7_NUM; i++){
-		if(protocols[i] > 0){
-			printf("%s packets: %"PRIu32"\n", pfwl_get_L7_protocol_name(i), protocols[i]);
-		}
-	}
-	pcap_close(handle);
-	return 0;
+  if (unknown > 0)
+    printf("Unknown packets: %" PRIu32 "\n", unknown);
+  for (size_t i = 0; i < PFWL_PROTO_L7_NUM; i++) {
+    if (protocols[i] > 0) {
+      printf("%s packets: %" PRIu32 "\n", pfwl_get_L7_protocol_name(i), protocols[i]);
+    }
+  }
+  pcap_close(handle);
+  return 0;
 }

@@ -1,4 +1,8 @@
 include_directories(${CMAKE_SOURCE_DIR}/include)
+<<<<<<< HEAD
+=======
+set (DEMO_INSTALL_DIR share/peafowl/demo/)
+>>>>>>> SoftAtHome/master
 if (PCAP_FOUND)
 	link_directories(${PCAP_LIBRARY})
 	include_directories(${PCAP_INCLUDE_DIR})
@@ -21,4 +25,8 @@ endif (ENABLE_PARALLEL)
 if (OPENSSL_FOUND)
 	#add_subdirectory(quic_extraction_nfq)
 	add_subdirectory(quic_extraction_pcap)
+<<<<<<< HEAD
+=======
+	add_subdirectory(dummy_fuzzing_01_ssl_quic)
+>>>>>>> SoftAtHome/master
 endif (OPENSSL_FOUND)
