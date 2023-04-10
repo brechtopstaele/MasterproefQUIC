@@ -39,47 +39,47 @@
 #include <openssl/evp.h>
 
 #define MAX_CONNECTION_ID_LENGTH 20
-#define MAX_TOKEN_LENGTH		70
 #define MAX_STRING_LENGTH 256
 #define MAX_SALT_LENGTH 20
+#define MAX_TOKEN_LENGTH 70
 #define MAX_LABEL_LENGTH 32
 #define HASH_SHA2_256_LENGTH 32
 #define TLS13_AEAD_NONCE_LENGTH 12
 
 typedef struct {
-  unsigned int first_byte;
-  size_t dst_conn_id_len;
-  unsigned char dst_conn_id[MAX_CONNECTION_ID_LENGTH];
-  size_t src_conn_id_len;
-  unsigned char src_conn_id[MAX_CONNECTION_ID_LENGTH];
-  size_t header_len;
-  uint32_t version;
-  size_t packet_number;
-  size_t packet_number_len;
+	unsigned int first_byte;
+	size_t dst_conn_id_len;
+	unsigned char dst_conn_id[MAX_CONNECTION_ID_LENGTH];
+	size_t src_conn_id_len;
+	unsigned char src_conn_id[MAX_CONNECTION_ID_LENGTH];
+	size_t header_len;
+	uint32_t version;
+	size_t packet_number;
+	size_t packet_number_len;
   size_t token_len;
-	unsigned char token[MAX_TOKEN_LENGTH];
-  uint64_t payload_len;
+  unsigned char token[MAX_TOKEN_LENGTH];
+	size_t payload_len;
+	
+	unsigned char *decrypted_payload;
+	size_t decrypted_payload_len;
 
-  unsigned char *decrypted_payload;
-  size_t decrypted_payload_len;
+	const EVP_CIPHER *quic_cipher_mode;
 
-  const EVP_CIPHER *quic_cipher_mode;
+	unsigned char quic_secret[HASH_SHA2_256_LENGTH];
+	size_t quic_secret_len;
 
-  unsigned char quic_secret[HASH_SHA2_256_LENGTH];
-  size_t quic_secret_len;
-
-  unsigned char quic_key[32];
-  size_t quic_key_len;
-  unsigned char quic_hp[32];
-  size_t quic_hp_len;
-  unsigned char quic_iv[TLS13_AEAD_NONCE_LENGTH];
-  size_t quic_iv_len;
-  unsigned int has_tls13_record;
+	unsigned char quic_key[32];
+	size_t quic_key_len;
+	unsigned char quic_hp[32];
+	size_t quic_hp_len;
+	unsigned char quic_iv[TLS13_AEAD_NONCE_LENGTH];
+	size_t quic_iv_len;
+	unsigned int has_tls13_record;
 } quic_t;
 
 /* Quic Versions */
 typedef enum {
-  VER_Q024 = 0x51303234,
+	VER_Q024 = 0x51303234,
   VER_Q025 = 0x51303235,
   VER_Q030 = 0x51303330,
   VER_Q033 = 0x51303333,
@@ -136,7 +136,7 @@ static size_t convert_length_connection(size_t len){
 }
 */
 
-static int quic_version_tostring(const uint32_t qver, char *ver, const size_t ver_len) {
+static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const size_t ver_len) {
   size_t len = 0;
 
   switch (qver) {
@@ -310,6 +310,7 @@ static int quic_cipher_prepare(quic_t *quic_info) {
   return 0;
 }
 
+
 /**
  * Given a QUIC message (header + non-empty payload), the actual packet number,
  * try to decrypt it using the cipher.
@@ -319,8 +320,9 @@ static int quic_cipher_prepare(quic_t *quic_info) {
  * The actual packet number must be constructed according to
  * https://tools.ietf.org/html/draft-ietf-quic-transport-22#section-12.3
  */
-static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload, uint32_t packet_payload_len) {
-  uint8_t *header;
+static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload, uint32_t packet_payload_len)
+{
+	uint8_t *header;
   uint8_t nonce[TLS13_AEAD_NONCE_LENGTH];
   uint8_t atag[16];
 
@@ -352,15 +354,16 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
   phton64(nonce + sizeof(nonce) - 8, pntoh64(nonce + sizeof(nonce) - 8) ^ quic_info->packet_number);
 
   /* Initial packets are protected with AEAD_AES_128_GCM. */
-  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), header,
-                            quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
+  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), 
+                            header, quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
                             quic_info->decrypted_payload);
-  if (ret < 0) {
+  //TODO: waarom fout?
+  /*if (ret < 0) {
     free(quic_info->decrypted_payload);
     quic_info->decrypted_payload = NULL;
     free(header);
     return -1;
-  }
+  }*/
 
   quic_info->decrypted_payload_len = ret;
   free(header);
@@ -537,7 +540,7 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
        * crypto_data_len */
 
       if (quic_info.has_tls13_record) {
-        check_tls13(state, quic_info.decrypted_payload, quic_info.decrypted_payload_len, pkt_info, flow_info_private);
+        check_tls13(state, quic_info.decrypted_payload, quic_info.decrypted_payload_len, pkt_info, flow_info_private, quic_info.version);
       } else {
         /* PLZ Move me to a function */
         const unsigned char *chlo_start = (const unsigned char *) pfwl_strnstr(
@@ -602,4 +605,4 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
 
   return PFWL_PROTOCOL_NO_MATCHES;
 }
-#endif
+#endif 

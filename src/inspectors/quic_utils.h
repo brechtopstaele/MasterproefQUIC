@@ -37,11 +37,5 @@ void phton64(uint8_t *p, uint64_t v);
 uint64_t pntoh64(const void *p);
 
 void debug_print_rawfield(const unsigned char *app_data, size_t start_offset, size_t len);
-<<<<<<< HEAD
-void debug_print_charfield(const unsigned char *app_data, size_t start_offset, size_t len);
-void *memdup(const uint8_t *orig, size_t len);
-
-=======
 void *memdup(const uint8_t *orig, size_t len);
 uint8_t quic_length_of_encoded_value(uint8_t value);
->>>>>>> SoftAtHome/master

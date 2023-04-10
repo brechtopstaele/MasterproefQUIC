@@ -29,39 +29,6 @@
 #include <string.h>
 
 // https://moneroexamples.github.io/python-json-rpc/
-<<<<<<< HEAD
-static const char* moneroMethods[] = {
-  "getbalance",
-  "query_key",
-  "get_payments",
-  "getaddress",
-  "incoming_transfers",
-  "transfer",
-  "getheight",
-  "query_key",
-  "mining_status",
-  "getlastblockheader",
-  "getblockheaderbyhash",
-  "getblockheaderbyheight",
-  "getblock",
-  "get_info",
-  "get_connections",
-};
-
-// https://github.com/xmrig/xmrig-proxy/blob/master/doc/STRATUM.md
-static const char* moneroStratumMethods[] = {
-  "login",
-  "job",
-  "submit",
-  "keepalived"
-};
-
-static bool isMoneroMethod(const char *method, size_t methodLen) {
-  size_t numMethods = sizeof(moneroMethods) / sizeof(moneroMethods[0]);
-  for(size_t i = 0; i < numMethods; i++){
-    if(!strncmp(method, moneroMethods[i], methodLen)){
-       return true;
-=======
 static const char *moneroMethods[] = {
     "getbalance",
     "query_key",
@@ -88,25 +55,16 @@ static bool isMoneroMethod(const char *method, size_t methodLen) {
   for (size_t i = 0; i < numMethods; i++) {
     if (!strncmp(method, moneroMethods[i], methodLen)) {
       return true;
->>>>>>> SoftAtHome/master
     }
   }
   return false;
 }
 
-<<<<<<< HEAD
-static bool isMoneroStratumMethod(const char *method, size_t methodLen){
-  size_t numMethods = sizeof(moneroStratumMethods) / sizeof(moneroStratumMethods[0]);
-  for(size_t i = 0; i < numMethods; i++){
-    if(!strncmp(method, moneroStratumMethods[i], methodLen)){
-       return true;
-=======
 static bool isMoneroStratumMethod(const char *method, size_t methodLen) {
   size_t numMethods = sizeof(moneroStratumMethods) / sizeof(moneroStratumMethods[0]);
   for (size_t i = 0; i < numMethods; i++) {
     if (!strncmp(method, moneroStratumMethods[i], methodLen)) {
       return true;
->>>>>>> SoftAtHome/master
     }
   }
   return false;
@@ -119,23 +77,6 @@ static bool isMoneroStratumMethod(const char *method, size_t methodLen) {
 #error "Please fix <bits/endian.h>"
 #endif
 
-<<<<<<< HEAD
-uint8_t check_monero(pfwl_state_t *state, const unsigned char *app_data,
-                     size_t data_length, pfwl_dissection_info_t *pkt_info,
-                     pfwl_flow_info_private_t *flow_info_private) {
-  // Magic number: https://github.com/monero-project/monero/blob/master/src/p2p/p2p_protocol_defs.h
-  if (*((uint32_t *) app_data) == MONERO_MAGIC_COOKIE) {
-    return PFWL_PROTOCOL_MATCHES;
-  }else if(flow_info_private->info_public->protocols_l7_num){
-    if(flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_JSON_RPC){
-      pfwl_string_t method;
-      if((!pfwl_field_string_get(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_JSON_RPC_METHOD, &method) &&
-          (isMoneroMethod((const char*) method.value, method.length) || isMoneroStratumMethod((const char*) method.value, method.length)))){
-        return PFWL_PROTOCOL_MATCHES;
-      }
-    }else if(BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
-             flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] == PFWL_PROTO_L7_NOT_DETERMINED){
-=======
 uint8_t check_monero(pfwl_state_t *, const unsigned char *app_data, size_t data_length,
                      pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   // Magic number: https://github.com/monero-project/monero/blob/master/src/p2p/p2p_protocol_defs.h
@@ -155,7 +96,6 @@ uint8_t check_monero(pfwl_state_t *, const unsigned char *app_data, size_t data_
     } else if (BITTEST(flow_info_private->possible_matching_protocols, PFWL_PROTO_L7_JSON_RPC) &&
                flow_info_private->info_public->protocols_l7[flow_info_private->info_public->protocols_l7_num - 1] ==
                    PFWL_PROTO_L7_NOT_DETERMINED) {
->>>>>>> SoftAtHome/master
       // Could still become JSON-RPC
       return PFWL_PROTOCOL_MORE_DATA_NEEDED;
     }

@@ -31,38 +31,6 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-<<<<<<< HEAD
-uint8_t check_git(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-  if(data_length > 4 && (pkt_info->l4.port_src == port_git || pkt_info->l4.port_dst == port_git)){
-      uint8_t found_git = 1;
-      uint16_t offset = 0;
-      
-      while((offset + 4) < data_length) {
-        char len[5];
-        uint32_t git_pkt_len;      
-        memcpy(&len, &app_data[offset], 4);
-        len[4] = 0;
-        git_pkt_len = atoi(len);
-      
-        if((data_length < git_pkt_len) || (git_pkt_len == 0 /* Bad */)) {
-          found_git = 0;
-          break;
-        }else{
-          offset += git_pkt_len;
-          data_length -= git_pkt_len;      
-        }
-      }
-
-      if(found_git) {
-        return PFWL_PROTOCOL_MATCHES;
-      }
-  }
-  return PFWL_PROTOCOL_NO_MATCHES;
-}
-
-=======
 uint8_t check_git(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   (void) state;
@@ -94,4 +62,3 @@ uint8_t check_git(pfwl_state_t *state, const unsigned char *app_data, size_t dat
   }
   return PFWL_PROTOCOL_NO_MATCHES;
 }
->>>>>>> SoftAtHome/master

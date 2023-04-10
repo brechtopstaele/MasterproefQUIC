@@ -29,31 +29,6 @@
  * =========================================================================
  */
 
-<<<<<<< HEAD
-#include <peafowl/peafowl.h>
-#include <pcap.h>
-#include <net/ethernet.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <assert.h>
-#include <inttypes.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-
-#define MAX_FILENAME_SIZE 128
-
-void flow_delete_cb(void* flow_specific_user_data){
-  if(flow_specific_user_data){
-    fclose((FILE*) flow_specific_user_data);
-  }
-}
-
-int main(int argc, char** argv){
-  if(argc!=2){
-=======
 #include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
@@ -75,7 +50,6 @@ void flow_delete_cb(void *flow_specific_user_data) {
 
 int main(int argc, char **argv) {
   if (argc != 2) {
->>>>>>> SoftAtHome/master
     fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
     return -1;
   }
@@ -85,29 +59,14 @@ int main(int argc, char **argv) {
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_HTTP_HEADERS);
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_HTTP_BODY);
 
-<<<<<<< HEAD
-  pcap_t *handle; /* Session handle */
-  struct pcap_pkthdr header; /* The header that pcap gives us */
-  const u_char *packet; /* The actual packet */
-=======
   pcap_t *handle;            /* Session handle */
   struct pcap_pkthdr header; /* The header that pcap gives us */
   const u_char *packet;      /* The actual packet */
->>>>>>> SoftAtHome/master
 
   char errbuf[PCAP_ERRBUF_SIZE];
   bzero(errbuf, PCAP_ERRBUF_SIZE);
   printf("Open offline.\n");
   handle = pcap_open_offline(argv[1], errbuf);
-<<<<<<< HEAD
-  if(!handle){
-    bzero(errbuf, PCAP_ERRBUF_SIZE);
-    printf("Open live %s.\n", argv[1]);
-    handle=pcap_open_live(argv[1],  65535, 1, 1000, errbuf);
-  }
-
-  if(handle==NULL){
-=======
   if (!handle) {
     bzero(errbuf, PCAP_ERRBUF_SIZE);
     printf("Open live %s.\n", argv[1]);
@@ -115,7 +74,6 @@ int main(int argc, char **argv) {
   }
 
   if (handle == NULL) {
->>>>>>> SoftAtHome/master
     fprintf(stderr, "Couldn't open device %s: %s\n", argv[1], errbuf);
     return (2);
   }
@@ -123,17 +81,6 @@ int main(int argc, char **argv) {
   pcap_setnonblock(handle, 0, errbuf);
 
   /* Grab a packet */
-<<<<<<< HEAD
-  while((packet = pcap_next(handle, &header)) != NULL){
-    pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
-    pfwl_dissection_info_t r;
-    if(pfwl_dissect_from_L2(state,(const u_char*) packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK){
-      if(r.l7.protocol == PFWL_PROTO_L7_HTTP){
-        pfwl_string_t field;
-        if((*r.flow_info.udata == NULL) &&
-           !pfwl_http_get_header(&r, "Content-Type", &field) &&
-           (strncmp((char*) field.value, "image/jpeg", field.length) == 0)){
-=======
   while ((packet = pcap_next(handle, &header)) != NULL) {
     pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
     pfwl_dissection_info_t r;
@@ -142,7 +89,6 @@ int main(int argc, char **argv) {
         pfwl_string_t field;
         if ((*r.flow_info.udata == NULL) && !pfwl_http_get_header(&r, "Content-Type", &field) &&
             (strncmp((char *) field.value, "image/jpeg", field.length) == 0)) {
->>>>>>> SoftAtHome/master
           struct in_addr src, dst;
           src.s_addr = r.l3.addr_src.ipv4;
           dst.s_addr = r.l3.addr_dst.ipv4;
@@ -151,15 +97,6 @@ int main(int argc, char **argv) {
           char dst_string[64];
           strcpy(dst_string, inet_ntoa(dst));
 
-<<<<<<< HEAD
-          char filename[MAX_FILENAME_SIZE];
-          sprintf(filename, "%s:%"PRIu16"_to_%s:%"PRIu16"_at_%ld.jpeg", src_string, ntohs(r.l4.port_src), dst_string, ntohs(r.l4.port_dst), time(NULL));
-
-          u_int32_t j=0;
-          /** File already exists. **/
-          while(access(filename, F_OK)!=-1){
-            sprintf(filename, "%s:%"PRIu16"_to_%s:%"PRIu16"_at_%ld_%d.jpeg", src_string, ntohs(r.l4.port_src), dst_string, ntohs(r.l4.port_dst), time(NULL), ++j);
-=======
           char filename[192];
           sprintf(filename, "%s:%" PRIu16 "_to_%s:%" PRIu16 "_at_%ld.jpeg", src_string, ntohs(r.l4.port_src),
                   dst_string, ntohs(r.l4.port_dst), time(NULL));
@@ -169,27 +106,17 @@ int main(int argc, char **argv) {
           while (access(filename, F_OK) != -1) {
             sprintf(filename, "%s:%" PRIu16 "_to_%s:%" PRIu16 "_at_%ld_%d.jpeg", src_string, ntohs(r.l4.port_src),
                     dst_string, ntohs(r.l4.port_dst), time(NULL), ++j);
->>>>>>> SoftAtHome/master
           }
           *r.flow_info.udata = fopen(filename, "w");
           assert(*r.flow_info.udata);
         }
 
-<<<<<<< HEAD
-        if(!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_HTTP_BODY, &field) && *r.flow_info.udata){
-          u_int32_t i;
-          for(i = 0; i < field.length; ++i)
-            fputc(field.value[i], ((FILE*) *r.flow_info.udata));
-
-          fclose(((FILE*) *r.flow_info.udata));
-=======
         if (!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_HTTP_BODY, &field) && *r.flow_info.udata) {
           u_int32_t i;
           for (i = 0; i < field.length; ++i)
             fputc(field.value[i], ((FILE *) *r.flow_info.udata));
 
           fclose(((FILE *) *r.flow_info.udata));
->>>>>>> SoftAtHome/master
           *r.flow_info.udata = NULL;
         }
       }

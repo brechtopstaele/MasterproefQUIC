@@ -3,12 +3,6 @@ file(GLOB PMLIB "pattern_matching_lib/*.cc")
 add_executable(http_pm_seq http_pm_seq.cpp ${PMLIB})
 target_link_libraries(http_pm_seq LINK_PUBLIC peafowl pcap)
 
-<<<<<<< HEAD
-if (ENABLE_PARALLEL)
-    add_executable(http_pm_mc http_pm_mc.cpp ${PMLIB})
-    target_link_libraries(http_pm_mc LINK_PUBLIC peafowl pcap)
-endif (ENABLE_PARALLEL)
-=======
 if (ENABLE_DEMO)
     install(TARGETS http_pm_seq RUNTIME DESTINATION ${DEMO_INSTALL_DIR})
 endif (ENABLE_DEMO)
@@ -20,4 +14,3 @@ if (ENABLE_PARALLEL)
 	install(TARGETS http_pm_mc RUNTIME DESTINATION ${DEMO_INSTALL_DIR})
     endif (ENABLE_DEMO)
 endif (ENABLE_PARALLEL)
->>>>>>> SoftAtHome/master

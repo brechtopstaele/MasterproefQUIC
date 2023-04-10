@@ -1,3 +1,4 @@
+//Brecht vorige
 /*
  * quic_tls13.c
  *
@@ -128,6 +129,7 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
   state->scratchpad_next_byte += server_len;
 }
 
+// Elliptical curves extension renamed to supported groups in TLS 1.3
 static void parse_ec(const unsigned char *data, const unsigned char *data_end, uint16_t *ec, unsigned int *nbr_ec) {
   // skip len
   data += 2;
@@ -149,6 +151,22 @@ static void parse_ecpf(const unsigned char *data, const unsigned char *data_end,
     (*nbr_ecpf)++;
     data += 1;
   }
+}
+
+// TODO: mag weg
+void tls13_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+ unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
+	size_t		pointer = 0;
+	size_t 		TLVlen 	= 0;
+
+	size_t grps_len = ntohs(*(uint16_t *)(&data[pointer]));
+	pointer += 2;
+
+	for (pointer; pointer < grps_len+2; pointer += 2) {
+		size_t		supgrp = 0;
+		supgrp = ntohs(*(uint16_t *)(&data[pointer]));
+	 	*ja3_supgrps_string_len += sprintf(ja3_supgrps_string + *ja3_supgrps_string_len, "%u-", supgrp);
+	}
 }
 
 void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len,
@@ -269,6 +287,7 @@ typedef struct {
   int done;
 } reassembled_state_t;
 
+// TODO: wat doet dit? Waarom failt calloc?
 static bool reassembled_state_ctor(reassembled_state_t *reassembled_state, size_t tls_data_length) {
   reassembled_state->done = 0;
   reassembled_state->buffer = calloc(1, tls_data_length);
@@ -370,10 +389,10 @@ static size_t handle_frame_06(const unsigned char *tls_data, const unsigned char
 }
 
 uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t tls_data_length,
-                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
-  /* Finger printing */
-  char ja3_string[1024];
-  size_t ja3_string_len;
+                    pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, uint32_t quic_version) {
+	/* Finger printing */
+	unsigned char ja3_string[1024];
+	size_t ja3_string_len;
 
 	unsigned char joy_string[1024];
 	size_t joy_string_len;
@@ -381,140 +400,170 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 	unsigned char npf_string[1024];
 	size_t npf_string_len;
 
-  size_t tls_pointer = 0;
+	size_t tls_pointer = 0;
   uint8_t retval = PFWL_PROTOCOL_NO_MATCHES;
 
   reassembled_state_t reassembled_state;
 
-  if (!reassembled_state_ctor(&reassembled_state, tls_data_length)) {
+  //TODO: waarom loopt dit mis en wat is het nut?
+  /* if (!reassembled_state_ctor(&reassembled_state, tls_data_length)) {
     goto end_exit;
-  }
+  } */
 
-  while (tls_pointer < tls_data_length) {
-    unsigned char tls_record_frame_type = tls_data[tls_pointer];
-    size_t frame_size;
-    switch (tls_record_frame_type) {
-    case 0x00:
-      frame_size = handle_frame_00(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
-      break;
-    case 0x01:
-      frame_size = handle_frame_01(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
-      break;
-    case 0x06:
-    /* in gquic, the crypto frame is 8 */
-    case 0x08:
-      frame_size = handle_frame_06(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
-      break;
-    default:
-      printf("Unknown frame type %d\n", tls_record_frame_type);
-      goto end;
-      break;
-    }
-    if (frame_size == 0) {
-      printf("Parsing frame failed\n");
-      goto end;
-    }
-    tls_pointer += frame_size;
-  }
+//   while (tls_pointer < tls_data_length) {
+//     unsigned char tls_record_frame_type = tls_data[tls_pointer];
+//     size_t frame_size;
+//     switch (tls_record_frame_type) {
+//     case 0x00:
+//       frame_size = handle_frame_00(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+//       break;
+//     case 0x01:
+//       frame_size = handle_frame_01(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+//       break;
+//     case 0x06:
+//     /* in gquic, the crypto frame is 8 */
+//     case 0x08:
+//       frame_size = handle_frame_06(&tls_data[tls_pointer], &tls_data[tls_data_length], &reassembled_state);
+//       break;
+//     default:
+//       printf("Unknown frame type %d\n", tls_record_frame_type);
+//       goto end;
+//       break;
+//     }
+//     if (frame_size == 0) {
+//       printf("Parsing frame failed\n");
+//       goto end;
+//     }
+//     tls_pointer += frame_size;
+//   }
 
-  if (!reassembled_state.done)
-    goto end;
+//   if (!reassembled_state.done)
+//     goto end;
 
-  const unsigned char *proper_tls_data = reassembled_state.buffer;
-  tls_pointer = 0;
+//   const unsigned char *proper_tls_data = reassembled_state.buffer;
+//   tls_pointer = 0;
 
-  /* Parse TLS Handshake protocol */
-  size_t handshake_type = proper_tls_data[tls_pointer];
-  tls_pointer++;
+	/* Parse TLS record header */
+	//size_t tls_record_frame_type = tls_data[tls_pointer];
+	tls_pointer++;
 
-  // size_t 	length = (proper_tls_data[tls_pointer] << 16) + (proper_tls_data[tls_pointer+1] << 8) +
-  // proper_tls_data[tls_pointer+2];
-  tls_pointer += 3;
+	//size_t tls_record_offset     = tls_data[tls_pointer];
+	tls_pointer++;
 
-  uint16_t tls_version = ntohs(*(uint16_t *) (&proper_tls_data[tls_pointer]));
-  tls_pointer += 2;
+	//uint16_t tls_record_len	     = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+	tls_pointer += 2;
 
-  /* Build JA3 string */
-  ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
+	/* Parse TLS Handshake protocol */
+	size_t	handshake_type = tls_data[tls_pointer];
+	tls_pointer++;
+//   size_t handshake_type = proper_tls_data[tls_pointer];
+//   tls_pointer++;
 
-  if (handshake_type == 1) { /* We only inspect client hello which has a type equal to 1 */
-    /* skipping random data 32 bytes */
-    tls_pointer += 32;
+	//size_t 	length = (tls_data[tls_pointer] << 16) + (tls_data[tls_pointer+1] << 8) + tls_data[tls_pointer+2];
+	tls_pointer += 3;
+//   // size_t 	length = (proper_tls_data[tls_pointer] << 16) + (proper_tls_data[tls_pointer+1] << 8) +
+//   // proper_tls_data[tls_pointer+2];
+//   tls_pointer += 3;
 
-    /* skipping legacy_session_id one byte */
-    tls_pointer += 1;
+	uint16_t tls_version = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
+	unsigned char tls_version_hex[4];
+    sprintf(tls_version_hex, "%04x", tls_version);
+	tls_pointer += 2;
+//   uint16_t tls_version = ntohs(*(uint16_t *) (&proper_tls_data[tls_pointer]));
+//   tls_pointer += 2;
 
-    ja3_string_len = parse_ja3_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, ja3_string, tls_version);
+	/* Build JA3 string */
+//   ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
+
+	if (handshake_type == 1) { /* We only inspect client hello which has a type equal to 1 */	
+		/* skipping random data 32 bytes */
+		tls_pointer += 32;
+
+		/* skipping legacy_session_id one byte */
+		tls_pointer += 1;
+
+		ja3_string_len = parse_ja3_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, ja3_string, tls_version);
 		printf("JA3: %s \n\n", ja3_string);
 		joy_string_len = parse_joy_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, joy_string, tls_version);
 		printf("JOY: %s \n\n", joy_string);
 		npf_string_len = parse_npf_string(state, tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private, npf_string, tls_version, quic_version);
 		printf("NPF: %s \n\n", npf_string);
 
-    /* Cipher suites and length */
-    uint16_t cipher_suite_len = ntohs(get_u16(proper_tls_data, tls_pointer));
-    tls_pointer += 2;
+		/* Cipher suites and length */
+//     uint16_t cipher_suite_len = ntohs(get_u16(proper_tls_data, tls_pointer));
+//     tls_pointer += 2;
 
-    /* use content of cipher suite for building the JA3 hash */
-    for (size_t i = 0; i < cipher_suite_len; i += 2) {
-      uint16_t cipher_suite = ntohs(get_u16(proper_tls_data, tls_pointer + i));
-      if (is_grease(cipher_suite)) {
-        continue; // skip grease value
-      }
-      ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
-    }
-    if (cipher_suite_len) {
-      ja3_string_len--; // remove last dash (-) from ja3_string
-    }
-    ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
-    tls_pointer += cipher_suite_len;
+		/* use content of cipher suite for building the JA3 hash */
+//     for (size_t i = 0; i < cipher_suite_len; i += 2) {
+//       uint16_t cipher_suite = ntohs(get_u16(proper_tls_data, tls_pointer + i));
+//       if (is_grease(cipher_suite)) {
+//         continue; // skip grease value
+//       }
+//       ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
+//     }
+//     if (cipher_suite_len) {
+//       ja3_string_len--; // remove last dash (-) from ja3_string
+//     }
+//     ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+//     tls_pointer += cipher_suite_len;
 
-    /* compression methods length */
-    size_t compression_methods_len = proper_tls_data[tls_pointer];
-    tls_pointer++;
+		/* compression methods length */
+//     size_t compression_methods_len = proper_tls_data[tls_pointer];
+//     tls_pointer++;
 
-    /* Skip compression methods */
-    tls_pointer += compression_methods_len;
+		/* Skip compression methods */
+//     tls_pointer += compression_methods_len;
 
-    /* Extension length */
-    uint16_t ext_len = ntohs(get_u16(proper_tls_data, tls_pointer));
-    tls_pointer += 2;
+		/* Extension length */
+//     uint16_t ext_len = ntohs(get_u16(proper_tls_data, tls_pointer));
+//     tls_pointer += 2;
 
-    /* Add Extension length to the ja3 string */
-    unsigned const char *ext_data = proper_tls_data + tls_pointer;
+		/* Add Extension length to the ja3 string */
+//     unsigned const char *ext_data = proper_tls_data + tls_pointer;
 
-    /* lets iterate over the exention list */
-    tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
+		/* lets iterate over the exention list */
+		//tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
+		//ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
 
-    // printf("JA3 String %s\n", ja3_string);
+		/* add supported groups to JA3 string */
+		//ja3_string_len += sprintf(ja3_string + ja3_string_len, ja3_supgrps_string);
+		/*if(ja3_supgrps_string_len){
+			ja3_string_len--; //Remove last dash from supported groups string
+		}
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");*/
 
-    unsigned char md5[16];
-    size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
+//     /* lets iterate over the exention list */
+//     tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
 
-    char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
+//     // printf("JA3 String %s\n", ja3_string);
 
-    for (size_t n = 0; n < md5sum_len; n++) {
-      sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
-      state->scratchpad_next_byte += 2;
-    }
+//     unsigned char md5[16];
+//     size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
 
-    // printf("JA3 md5 %s\n", ja3_start);
+//     char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
 
-    pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
-                          md5sum_len * 2);
-  }
-  // printf("JA3:");
-  // debug_print_rawfield(md5sum, 0, md5sum_len);
+//     for (size_t n = 0; n < md5sum_len; n++) {
+//       sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
+//       state->scratchpad_next_byte += 2;
+//     }
 
-  if (reassembled_state.done)
-    retval = PFWL_PROTOCOL_MATCHES;
+//     // printf("JA3 md5 %s\n", ja3_start);
+
+//     pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
+//                           md5sum_len * 2);
+	}
+//   // printf("JA3:");
+//   // debug_print_rawfield(md5sum, 0, md5sum_len);
+
+//   if (reassembled_state.done)
+//     retval = PFWL_PROTOCOL_MATCHES;
 
 end:
   reassembled_state_dtor(&reassembled_state);
 
 end_exit:
 
-  return retval;
+	return retval;
 }
 
 #else
@@ -529,5 +578,3 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *app_data, size_t d
   return PFWL_PROTOCOL_NO_MATCHES;
 }
 #endif
-
-

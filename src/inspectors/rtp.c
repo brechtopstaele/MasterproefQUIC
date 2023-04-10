@@ -38,17 +38,10 @@
 #include <string.h>
 
 #define PFWL_DEBUG_RTP 0
-<<<<<<< HEAD
-#define debug_print(fmt, ...)                                                  \
-  do {                                                                         \
-  if (PFWL_DEBUG_RTP)                                                        \
-  fprintf(stdout, fmt, __VA_ARGS__);                                       \
-=======
 #define debug_print(fmt, ...)            \
   do {                                   \
     if (PFWL_DEBUG_RTP)                  \
       fprintf(stdout, fmt, __VA_ARGS__); \
->>>>>>> SoftAtHome/master
   } while (0)
 
 #define SIZE 24
@@ -122,22 +115,6 @@ static int8_t is_valid_payload_type(uint8_t PT) {
   case H_263:
     return PT;
   default:
-<<<<<<< HEAD
-      if(PT >= 96 && PT <= 110)
-          return PT;
-      return -1;
-  }
-}
-
-uint8_t check_rtp(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-  pfwl_dissector_accuracy_t accuracy =
-      state->inspectors_accuracy[PFWL_PROTO_L7_RTP];
-
-  if (data_length < 2 || ntohs(pkt_info->l4.port_dst) <= 1024 ||
-      ntohs(pkt_info->l4.port_src) <= 1024) {
-=======
     if (PT >= 96 && PT <= 110)
       return PT;
     return -1;
@@ -149,46 +126,10 @@ uint8_t check_rtp(pfwl_state_t *state, const unsigned char *app_data, size_t dat
   pfwl_dissector_accuracy_t accuracy = state->inspectors_accuracy[PFWL_PROTO_L7_RTP];
 
   if (data_length < 2 || ntohs(pkt_info->l4.port_dst) <= 1024 || ntohs(pkt_info->l4.port_src) <= 1024) {
->>>>>>> SoftAtHome/master
     return PFWL_PROTOCOL_NO_MATCHES;
   }
 
   if (data_length >= 12) {
-<<<<<<< HEAD
-    if ((app_data[0] & 0xFF) == 0x80 ||
-        (app_data[0] & 0xFF) == 0xA0) { /* RTP magic byte[1] */
-      int8_t pType = 0;
-      struct rtp_header *rtp = (struct rtp_header *) app_data;
-
-      if(rtp->version == 2) { // check Version
-        if(rtp->marker == 0 || rtp->marker == 1) { // check Marker
-          pType = is_valid_payload_type(rtp->pType); // check Payload Type - NOTE: fixed value + dynamic type range from 96 to 110
-          if(pType != -1) {
-            if(accuracy == PFWL_DISSECTOR_ACCURACY_HIGH) {
-              pfwl_field_t* extracted_fields = pkt_info->l7.protocol_fields;
-
-              if(pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_RTP_PTYPE)){
-                pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_RTP_PTYPE,
-                                      (int64_t) pType);
-              }
-              if(pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_RTP_SEQNUM)){
-                pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_RTP_SEQNUM,
-                                      (int64_t) ntohs(rtp->seq_num));
-              }
-              if(pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_RTP_TIMESTP)){
-                pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_RTP_TIMESTP,
-                                      (int64_t) ntohl(rtp->timestamp));
-              }
-              if(pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_RTP_SSRC)){
-                pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_RTP_SSRC,
-                                      (int64_t) ntohl(rtp->SSRC));
-              }
-              return PFWL_PROTOCOL_MATCHES;
-            }else{
-              return PFWL_PROTOCOL_MATCHES;
-            }
-          }else{
-=======
     if ((app_data[0] & 0xFF) == 0x80 || (app_data[0] & 0xFF) == 0xA0) { /* RTP magic byte[1] */
       int8_t pType = 0;
       struct rtp_header *rtp = (struct rtp_header *) app_data;
@@ -218,7 +159,6 @@ uint8_t check_rtp(pfwl_state_t *state, const unsigned char *app_data, size_t dat
               return PFWL_PROTOCOL_MATCHES;
             }
           } else {
->>>>>>> SoftAtHome/master
             return PFWL_PROTOCOL_NO_MATCHES;
           }
         }

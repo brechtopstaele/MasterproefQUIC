@@ -4,14 +4,9 @@
 #include "common.h"
 #include <peafowl/flow_table.h>
 
-<<<<<<< HEAD
-static pfwl_dissection_info_t initPktInfo(uint id, pfwl_direction_t dir){
-  pfwl_dissection_info_t r;
-=======
 static pfwl_dissection_info_t initPktInfo(uint id, pfwl_direction_t dir) {
   pfwl_dissection_info_t r;
   r.l2.protocol = PFWL_PROTO_L2_EN10MB;
->>>>>>> SoftAtHome/master
   r.l2.length = 0;
   r.l3.length = 0;
   r.l3.addr_src.ipv4 = id;
@@ -27,27 +22,14 @@ static pfwl_dissection_info_t initPktInfo(uint id, pfwl_direction_t dir) {
 }
 
 TEST(FlowTable, MaxFlows) {
-<<<<<<< HEAD
-  pfwl_flow_table_t* table = pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_SKIP, 1);
-=======
   pfwl_flow_table_t *table =
       pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_SKIP, 1);
->>>>>>> SoftAtHome/master
   char protos[128];
   memset(protos, 0, sizeof(protos));
   uint32_t ts = 0;
   pfwl_dissection_info_t p;
 
   p = initPktInfo(0, PFWL_DIRECTION_OUTBOUND);
-<<<<<<< HEAD
-  pfwl_flow_t* f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(f1 != NULL);
-  
-  for(size_t i = 1; i < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE; i++){
-    ++ts;
-    p = initPktInfo(i, PFWL_DIRECTION_OUTBOUND);
-    pfwl_flow_t* fi = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-=======
   pfwl_flow_t *f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(f1 != NULL);
 
@@ -55,25 +37,11 @@ TEST(FlowTable, MaxFlows) {
     ++ts;
     p = initPktInfo(i, PFWL_DIRECTION_OUTBOUND);
     pfwl_flow_t *fi = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
->>>>>>> SoftAtHome/master
     EXPECT_TRUE(fi != NULL);
   }
 
   ++ts;
   p = initPktInfo(0, PFWL_DIRECTION_INBOUND);
-<<<<<<< HEAD
-  pfwl_flow_t* f1_1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(f1_1 == f1);
-  
-  ++ts;
-  p = initPktInfo(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_DIRECTION_OUTBOUND);
-  pfwl_flow_t* fn = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(fn == NULL);
-}
-
-static uint32_t evictedId = 9999;
-static void flowCb(pfwl_flow_info_t* flow_info){
-=======
   pfwl_flow_t *f1_1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(f1_1 == f1);
 
@@ -87,17 +55,12 @@ static void flowCb(pfwl_flow_info_t* flow_info){
 
 static uint32_t evictedId = 9999;
 static void flowCb(pfwl_flow_info_t *flow_info) {
->>>>>>> SoftAtHome/master
   evictedId = flow_info->id;
 }
 
 TEST(FlowTable, MaxFlowsEviction) {
-<<<<<<< HEAD
-  pfwl_flow_table_t* table = pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_EVICT, 1);
-=======
   pfwl_flow_table_t *table =
       pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_EVICT, 1);
->>>>>>> SoftAtHome/master
   pflw_flow_table_set_flow_termination_callback(table, flowCb);
   char protos[128];
   memset(protos, 0, sizeof(protos));
@@ -105,15 +68,6 @@ TEST(FlowTable, MaxFlowsEviction) {
   pfwl_dissection_info_t p;
 
   p = initPktInfo(0, PFWL_DIRECTION_OUTBOUND);
-<<<<<<< HEAD
-  pfwl_flow_t* f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(f1 != NULL);
- 
-  for(size_t i = 1; i < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE; i++){
-    ++ts;
-    p = initPktInfo(i, PFWL_DIRECTION_OUTBOUND);
-    pfwl_flow_t* fi = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-=======
   pfwl_flow_t *f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(f1 != NULL);
 
@@ -121,27 +75,11 @@ TEST(FlowTable, MaxFlowsEviction) {
     ++ts;
     p = initPktInfo(i, PFWL_DIRECTION_OUTBOUND);
     pfwl_flow_t *fi = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
->>>>>>> SoftAtHome/master
     EXPECT_TRUE(fi != NULL);
   }
 
   ++ts;
   p = initPktInfo(0, PFWL_DIRECTION_INBOUND);
-<<<<<<< HEAD
-  pfwl_flow_t* f1_1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(f1_1 == f1);
-  
-  ++ts;
-  p = initPktInfo(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_DIRECTION_OUTBOUND);
-  pfwl_flow_t* fn = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(fn != NULL);
-  EXPECT_EQ(evictedId, 1);
-}
-
-
-static std::vector<uint32_t> evictedIds;
-static void flowCbMultiple(pfwl_flow_info_t* flow_info){
-=======
   pfwl_flow_t *f1_1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(f1_1 == f1);
 
@@ -156,17 +94,12 @@ static void flowCbMultiple(pfwl_flow_info_t* flow_info){
 
 static std::vector<uint32_t> evictedIds;
 static void flowCbMultiple(pfwl_flow_info_t *flow_info) {
->>>>>>> SoftAtHome/master
   evictedIds.push_back(flow_info->id);
 }
 
 TEST(FlowTable, MaxFlowsEvictionMultiple) {
-<<<<<<< HEAD
-  pfwl_flow_table_t* table = pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_EVICT, 1);
-=======
   pfwl_flow_table_t *table =
       pfwl_flow_table_create(PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE, PFWL_FLOWS_STRATEGY_EVICT, 1);
->>>>>>> SoftAtHome/master
   pflw_flow_table_set_flow_termination_callback(table, flowCbMultiple);
   char protos[128];
   memset(protos, 0, sizeof(protos));
@@ -174,23 +107,6 @@ TEST(FlowTable, MaxFlowsEvictionMultiple) {
   pfwl_dissection_info_t p;
 
   p = initPktInfo(0, PFWL_DIRECTION_OUTBOUND);
-<<<<<<< HEAD
-  pfwl_flow_t* f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-  EXPECT_TRUE(f1 != NULL);
- 
-  for(size_t i = 1; i < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE * 2; i++){
-    ++ts;
-    p = initPktInfo(i, PFWL_DIRECTION_OUTBOUND);
-    pfwl_flow_t* fi = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
-    EXPECT_TRUE(fi != NULL);
-  }
-  
-  EXPECT_EQ(evictedIds.size(), PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE);
-  for(size_t i = 0; i < PFWL_DEFAULT_FLOW_TABLE_AVG_BUCKET_SIZE; i++){
-    EXPECT_EQ(evictedIds[i], i);
-  }
-}
-=======
   pfwl_flow_t *f1 = pfwl_flow_table_find_or_create_flow(table, &p, protos, 0, ts, 0, PFWL_TIMESTAMP_UNIT_SECONDS);
   EXPECT_TRUE(f1 != NULL);
 
@@ -208,4 +124,3 @@ TEST(FlowTable, MaxFlowsEvictionMultiple) {
 
   pfwl_flow_table_delete(table, PFWL_TIMESTAMP_UNIT_SECONDS);
 }
->>>>>>> SoftAtHome/master

@@ -5,21 +5,6 @@
 
 #ifdef HAVE_OPENSSL
 TEST(QUICTest, Generic) {
-<<<<<<< HEAD
-    std::vector<uint> protocols;
-    getProtocols("./pcaps/quic-050.pcap", protocols);
-    EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 65);
-    getProtocols("./pcaps/quic-t51.pcap", protocols);
-    EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 642);
-    getProtocols("./pcaps/quic-draft29.pcap", protocols);
-    EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 9);
-    getProtocols("./pcaps/quic-draft27-facebook.pcap", protocols);
-    EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 1);
-}
-
-static void checkSNI(const char* pcap, const char* sni, pfwl_field_matching_t matchType){
-  pfwl_state_t* state = pfwl_init();
-=======
   std::vector<uint> protocols;
   getProtocols("./pcaps/quic-050.pcap", protocols);
   EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 65);
@@ -33,23 +18,13 @@ static void checkSNI(const char* pcap, const char* sni, pfwl_field_matching_t ma
 
 static void checkSNI(const char *pcap, const char *sni, pfwl_field_matching_t matchType) {
   pfwl_state_t *state = pfwl_init();
->>>>>>> SoftAtHome/master
   pfwl_field_string_tags_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI, sni, matchType, "TAG");
 
   std::vector<uint> protocols;
   bool foundSni = false;
-<<<<<<< HEAD
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
-
-    for(size_t i = 0; i < r.l7.tags_num; i++){
-      if(r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
-         r.l7.tags_num &&
-         !strcmp(r.l7.tags[i], "TAG")){
-=======
   getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     for (size_t i = 0; i < r.l7.tags_num; i++) {
       if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 && r.l7.tags_num && !strcmp(r.l7.tags[i], "TAG")) {
->>>>>>> SoftAtHome/master
         foundSni = true;
       }
     }
@@ -65,30 +40,17 @@ TEST(QUICTest, ServerName) {
   checkSNI("./pcaps/quic-draft27-facebook.pcap", "scontent-bru2-1.xx.fbcdn.net", PFWL_FIELD_MATCHING_EXACT);
 }
 
-<<<<<<< HEAD
-static void checkVersion(const char* pcap, const char* expectedVersion){
-  pfwl_state_t* state = pfwl_init();
-=======
 static void checkVersion(const char *pcap, const char *expectedVersion) {
   pfwl_state_t *state = pfwl_init();
->>>>>>> SoftAtHome/master
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
 
   std::vector<uint> protocols;
   bool foundVersion = false;
-<<<<<<< HEAD
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
-    pfwl_string_t version;
-    if(r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
-       !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version) &&
-       !strncmp((const char*) version.value, expectedVersion, version.length)){
-=======
   getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     pfwl_string_t version;
     if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version) &&
         !strncmp((const char *) version.value, expectedVersion, version.length)) {
->>>>>>> SoftAtHome/master
       foundVersion = true;
     }
   });
@@ -103,30 +65,17 @@ TEST(QUICTest, Version) {
   checkVersion("./pcaps/quic-draft27-facebook.pcap", "facebook mvfst draft-27");
 }
 
-<<<<<<< HEAD
-static void checkUserAgent(const char* pcap, const char* expectedUAID){
-  pfwl_state_t* state = pfwl_init();
-=======
 static void checkUserAgent(const char *pcap, const char *expectedUAID) {
   pfwl_state_t *state = pfwl_init();
->>>>>>> SoftAtHome/master
   pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
 
   std::vector<uint> protocols;
   bool foundVersion = false;
-<<<<<<< HEAD
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r){
-    pfwl_string_t uaid;
-    if(r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
-       !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid) &&
-       !strncmp((const char*) uaid.value, expectedUAID, uaid.length)){
-=======
   getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
     pfwl_string_t uaid;
     if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid) &&
         !strncmp((const char *) uaid.value, expectedUAID, uaid.length)) {
->>>>>>> SoftAtHome/master
       foundVersion = true;
     }
   });
@@ -140,8 +89,4 @@ TEST(QUICTest, Useragent) {
   checkUserAgent("./pcaps/quic-draft29.pcap", "Chrome/87.0.4280.88 Intel Mac OS X 10_15_7");
   /* NO UserAgent present in quic-draft27-facebook.pcap so no test for it */
 }
-<<<<<<< HEAD
 #endif
-=======
-#endif
->>>>>>> SoftAtHome/master

@@ -46,16 +46,8 @@
 #include <strings.h>
 #include <time.h>
 
-<<<<<<< HEAD
-pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
-                                      const unsigned char *p_pkt,
-                                      size_t p_length, double current_time,
-                                      int tid,
-                                      pfwl_dissection_info_t *dissection_info) {
-=======
 pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *p_pkt, size_t p_length,
                                       double current_time, int tid, pfwl_dissection_info_t *dissection_info) {
->>>>>>> SoftAtHome/master
   if (unlikely(p_length == 0)) {
     return PFWL_STATUS_OK;
   }
@@ -83,18 +75,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
 
   int8_t to_return = PFWL_STATUS_OK;
 
-<<<<<<< HEAD
-  struct ip6_hdr *ip6 = NULL;
-  struct iphdr *ip4 = NULL;
-
-  if (version == PFWL_PROTO_L3_IPV4) { /** IPv4 **/
-    ip4 = (struct iphdr *) (p_pkt);
-    uint16_t tot_len = ntohs(ip4->tot_len);
-
-#ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
-    if (unlikely(length < (sizeof(struct iphdr)) || tot_len > length ||
-                 tot_len <= ((ip4->ihl) * 4))) {
-=======
   struct ip6_hdr copy_ip6_hdr;
   struct iphdr copy_ip4_hdr;
 
@@ -106,7 +86,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
 
 #ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
     if (unlikely(length < (sizeof(copy_ip4_hdr)) || tot_len > length || tot_len <= ((copy_ip4_hdr.ihl) * 4))) {
->>>>>>> SoftAtHome/master
       return PFWL_ERROR_L3_PARSING;
     }
 #endif
@@ -118,11 +97,7 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
      */
     length = tot_len;
 
-<<<<<<< HEAD
-    uint16_t offset = ntohs(ip4->frag_off);
-=======
     uint16_t offset = ntohs(copy_ip4_hdr.frag_off);
->>>>>>> SoftAtHome/master
     uint8_t more_fragments;
     if (unlikely((offset & PFWL_IPv4_FRAGMENTATION_MF))) {
       more_fragments = 1;
@@ -140,41 +115,18 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
     if (likely((!more_fragments) && (offset == 0))) {
       pkt = (unsigned char *) p_pkt;
     } else if (state->ipv4_frag_state != NULL) {
-<<<<<<< HEAD
-      pkt = pfwl_reordering_manage_ipv4_fragment(state->ipv4_frag_state, p_pkt,
-                                                 current_time, offset,
-                                                 more_fragments, tid);
-=======
       pkt = pfwl_reordering_manage_ipv4_fragment(state->ipv4_frag_state, p_pkt, current_time, offset, more_fragments,
                                                  tid);
->>>>>>> SoftAtHome/master
       if (pkt == NULL) {
         return PFWL_STATUS_IP_FRAGMENT;
       }
       to_return = PFWL_STATUS_IP_DATA_REBUILT;
-<<<<<<< HEAD
-      ip4 = (struct iphdr *) (pkt);
-      length = ntohs(((struct iphdr *) (pkt))->tot_len);
-=======
       memcpy(&copy_ip4_hdr, pkt, sizeof(copy_ip4_hdr));
       length = ntohs(copy_ip4_hdr.tot_len);
->>>>>>> SoftAtHome/master
     } else {
       return PFWL_STATUS_IP_FRAGMENT;
     }
 
-<<<<<<< HEAD
-    dissection_info->l3.addr_src.ipv4 = ip4->saddr;
-    dissection_info->l3.addr_dst.ipv4 = ip4->daddr;
-
-    application_offset = (ip4->ihl) * 4;
-    relative_offset = application_offset;
-    next_header = ip4->protocol;
-  } else if (version == PFWL_PROTO_L3_IPV6) { /** IPv6 **/
-    ip6 = (struct ip6_hdr *) (pkt);
-    uint16_t tot_len =
-        ntohs(ip6->ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(struct ip6_hdr);
-=======
     dissection_info->l3.addr_src.ipv4 = copy_ip4_hdr.saddr;
     dissection_info->l3.addr_dst.ipv4 = copy_ip4_hdr.daddr;
 
@@ -185,7 +137,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
     ip6_hdr_ptr = pkt;
     memcpy(&copy_ip6_hdr, pkt, sizeof(copy_ip6_hdr));
     uint16_t tot_len = ntohs(copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(copy_ip6_hdr);
->>>>>>> SoftAtHome/master
 #ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
     if (unlikely(tot_len > length)) {
       return PFWL_ERROR_L3_PARSING;
@@ -200,21 +151,12 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
      */
     length = tot_len;
 
-<<<<<<< HEAD
-    dissection_info->l3.addr_src.ipv6 = ip6->ip6_src;
-    dissection_info->l3.addr_dst.ipv6 = ip6->ip6_dst;
-
-    application_offset = sizeof(struct ip6_hdr);
-    relative_offset = application_offset;
-    next_header = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
-=======
     dissection_info->l3.addr_src.ipv6 = copy_ip6_hdr.ip6_src;
     dissection_info->l3.addr_dst.ipv6 = copy_ip6_hdr.ip6_dst;
 
     application_offset = sizeof(copy_ip6_hdr);
     relative_offset = application_offset;
     next_header = copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_nxt;
->>>>>>> SoftAtHome/master
   } else {
     return PFWL_ERROR_WRONG_IPVERSION;
   }
@@ -230,20 +172,12 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
       }
 #endif
       if (likely(version == 6)) {
-<<<<<<< HEAD
-        struct ip6_hbh *hbh_hdr = (struct ip6_hbh *) (pkt + application_offset);
-        tmp = (8 + hbh_hdr->ip6h_len * 8);
-        application_offset += tmp;
-        relative_offset += tmp;
-        next_header = hbh_hdr->ip6h_nxt;
-=======
         struct ip6_hbh copy_hbh_hdr;
         memcpy(&copy_hbh_hdr, pkt + application_offset, sizeof(copy_hbh_hdr));
         tmp = (8 + copy_hbh_hdr.ip6h_len * 8);
         application_offset += tmp;
         relative_offset += tmp;
         next_header = copy_hbh_hdr.ip6h_nxt;
->>>>>>> SoftAtHome/master
       } else {
         if (unlikely(pkt != p_pkt))
           free(pkt);
@@ -259,21 +193,12 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
       }
 #endif
       if (likely(version == 6)) {
-<<<<<<< HEAD
-        struct ip6_dest *dst_hdr =
-            (struct ip6_dest *) (pkt + application_offset);
-        tmp = (8 + dst_hdr->ip6d_len * 8);
-        application_offset += tmp;
-        relative_offset += tmp;
-        next_header = dst_hdr->ip6d_nxt;
-=======
         struct ip6_dest copy_dst_hdr;
         memcpy(&copy_dst_hdr, pkt + application_offset, sizeof(copy_dst_hdr));
         tmp = (8 + copy_dst_hdr.ip6d_len * 8);
         application_offset += tmp;
         relative_offset += tmp;
         next_header = copy_dst_hdr.ip6d_nxt;
->>>>>>> SoftAtHome/master
       } else {
         if (unlikely(pkt != p_pkt))
           free(pkt);
@@ -289,21 +214,12 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
       }
 #endif
       if (likely(version == 6)) {
-<<<<<<< HEAD
-        struct ip6_rthdr *rt_hdr =
-            (struct ip6_rthdr *) (pkt + application_offset);
-        tmp = (8 + rt_hdr->ip6r_len * 8);
-        application_offset += tmp;
-        relative_offset += tmp;
-        next_header = rt_hdr->ip6r_nxt;
-=======
         struct ip6_rthdr copy_rt_hdr;
         memcpy(&copy_rt_hdr, pkt + application_offset, sizeof(copy_rt_hdr));
         tmp = (8 + copy_rt_hdr.ip6r_len * 8);
         application_offset += tmp;
         relative_offset += tmp;
         next_header = copy_rt_hdr.ip6r_nxt;
->>>>>>> SoftAtHome/master
       } else {
         if (unlikely(pkt != p_pkt))
           free(pkt);
@@ -320,17 +236,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
 #endif
       if (likely(version == 6)) {
         if (state->ipv6_frag_state) {
-<<<<<<< HEAD
-          struct ip6_frag *frg_hdr =
-              (struct ip6_frag *) (pkt + application_offset);
-          uint16_t offset = ((frg_hdr->ip6f_offlg & IP6F_OFF_MASK) >> 3) * 8;
-          uint8_t more_fragments =
-              ((frg_hdr->ip6f_offlg & IP6F_MORE_FRAG)) ? 1 : 0;
-          offset = ntohs(offset);
-          uint32_t fragment_size = ntohs(ip6->ip6_ctlun.ip6_un1.ip6_un1_plen) +
-                                   sizeof(struct ip6_hdr) - relative_offset -
-                                   sizeof(struct ip6_frag);
-=======
           struct ip6_frag copy_frg_hdr;
           memcpy(&copy_frg_hdr, pkt + application_offset, sizeof(copy_frg_hdr));
           uint16_t offset = ((copy_frg_hdr.ip6f_offlg & IP6F_OFF_MASK) >> 3) * 8;
@@ -338,7 +243,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
           offset = ntohs(offset);
           uint32_t fragment_size = ntohs(copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(copy_ip6_hdr) -
                                    relative_offset - sizeof(copy_frg_hdr);
->>>>>>> SoftAtHome/master
 
           /**
            * If this fragment has been obtained from a
@@ -357,20 +261,10 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
            * optional header can be discarded, for this
            * reason we copy only the IPv6 header bytes.
            */
-<<<<<<< HEAD
-          pkt = pfwl_reordering_manage_ipv6_fragment(
-              state->ipv6_frag_state, (unsigned char *) ip6,
-              sizeof(struct ip6_hdr),
-              ((unsigned char *) ip6) + relative_offset +
-                  sizeof(struct ip6_frag),
-              fragment_size, offset, more_fragments, frg_hdr->ip6f_ident,
-              frg_hdr->ip6f_nxt, current_time, tid);
-=======
           pkt = pfwl_reordering_manage_ipv6_fragment(state->ipv6_frag_state, ip6_hdr_ptr, sizeof(struct ip6_hdr),
                                                      ip6_hdr_ptr + relative_offset + sizeof(copy_frg_hdr),
                                                      fragment_size, offset, more_fragments, copy_frg_hdr.ip6f_ident,
                                                      copy_frg_hdr.ip6f_nxt, current_time, tid);
->>>>>>> SoftAtHome/master
 
           if (to_delete)
             free(to_delete);
@@ -381,17 +275,12 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
 
           to_return = PFWL_STATUS_IP_DATA_REBUILT;
           next_header = IPPROTO_IPV6;
-<<<<<<< HEAD
-          length = ((struct ip6_hdr *) (pkt))->ip6_ctlun.ip6_un1.ip6_un1_plen +
-                   sizeof(struct ip6_hdr);
-=======
           {
             struct ip6_hdr tmp_ip6_hdr;
             memcpy(&tmp_ip6_hdr, pkt, sizeof(tmp_ip6_hdr));
 
             length = ntohs(tmp_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(tmp_ip6_hdr);
           }
->>>>>>> SoftAtHome/master
           /**
            * Force the next iteration to analyze the
            * reassembled IPv6 packet.
@@ -409,18 +298,11 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
     case IPPROTO_IPV6: /** 6in4 and 6in6 tunneling **/
       /** The real packet is now ipv6. **/
       version = 6;
-<<<<<<< HEAD
-      ip6 = (struct ip6_hdr *) (pkt + application_offset);
-#ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
-      if (unlikely(ntohs(ip6->ip6_ctlun.ip6_un1.ip6_un1_plen) +
-                       sizeof(struct ip6_hdr) >
-=======
       ip6_hdr_ptr = pkt + application_offset;
 
       memcpy(&copy_ip6_hdr, ip6_hdr_ptr, sizeof(copy_ip6_hdr));
 #ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
       if (unlikely(ntohs(copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen) + sizeof(copy_ip6_hdr) >
->>>>>>> SoftAtHome/master
                    length - application_offset)) {
         if (unlikely(pkt != p_pkt))
           free(pkt);
@@ -428,54 +310,30 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
       }
 #endif
 
-<<<<<<< HEAD
-      dissection_info->l3.addr_src.ipv6 = ip6->ip6_src;
-      dissection_info->l3.addr_dst.ipv6 = ip6->ip6_dst;
-
-      application_offset += sizeof(struct ip6_hdr);
-      relative_offset = sizeof(struct ip6_hdr);
-      next_header = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
-=======
       dissection_info->l3.addr_src.ipv6 = copy_ip6_hdr.ip6_src;
       dissection_info->l3.addr_dst.ipv6 = copy_ip6_hdr.ip6_dst;
 
       application_offset += sizeof(copy_ip6_hdr);
       relative_offset = sizeof(copy_ip6_hdr);
       next_header = copy_ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_nxt;
->>>>>>> SoftAtHome/master
       break;
     case 4: /* 4in4 and 4in6 tunneling */
       /** The real packet is now ipv4. **/
       version = 4;
-<<<<<<< HEAD
-      ip4 = (struct iphdr *) (pkt + application_offset);
-#ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
-      if (unlikely(application_offset + sizeof(struct iphdr) > length ||
-                   application_offset + ((ip4->ihl) * 4) > length ||
-                   application_offset + ntohs(ip4->tot_len) > length)) {
-=======
       memcpy(&copy_ip4_hdr, pkt + application_offset, sizeof(copy_ip4_hdr));
 #ifdef PFWL_ENABLE_L3_TRUNCATION_PROTECTION
       if (unlikely(application_offset + sizeof(copy_ip4_hdr) > length ||
                    application_offset + ((copy_ip4_hdr.ihl) * 4) > length ||
                    application_offset + ntohs(copy_ip4_hdr.tot_len) > length)) {
->>>>>>> SoftAtHome/master
         if (unlikely(pkt != p_pkt))
           free(pkt);
         return PFWL_ERROR_L3_PARSING;
       }
 #endif
-<<<<<<< HEAD
-      dissection_info->l3.addr_src.ipv4 = ip4->saddr;
-      dissection_info->l3.addr_dst.ipv4 = ip4->daddr;
-      next_header = ip4->protocol;
-      tmp = (ip4->ihl) * 4;
-=======
       dissection_info->l3.addr_src.ipv4 = copy_ip4_hdr.saddr;
       dissection_info->l3.addr_dst.ipv4 = copy_ip4_hdr.daddr;
       next_header = copy_ip4_hdr.protocol;
       tmp = (copy_ip4_hdr.ihl) * 4;
->>>>>>> SoftAtHome/master
       application_offset += tmp;
       relative_offset = tmp;
       break;
@@ -494,44 +352,20 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
     dissection_info->l3.refrag_pkt = pkt;
     dissection_info->l3.refrag_pkt_len = length;
   }
-<<<<<<< HEAD
-=======
 
   if (dissection_info->l3.length > length)
     return PFWL_ERROR_L3_PARSING;
 
->>>>>>> SoftAtHome/master
   dissection_info->l3.payload_length = length - dissection_info->l3.length;
   return to_return;
 }
 
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt,
-                              size_t length, double current_time,
-=======
 pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt, size_t length, double current_time,
->>>>>>> SoftAtHome/master
                               pfwl_dissection_info_t *dissection_info) {
   /**
    * We can pass any thread id, indeed in this case we don't
    * need lock synchronization.
    **/
-<<<<<<< HEAD
-  return mc_pfwl_parse_L3_header(state, pkt, length, current_time, 0,
-                                 dissection_info);
-}
-
-static const char* pfwl_l3_protocols_names[PFWL_PROTO_L3_NUM] = {
-  [0 ... PFWL_PROTO_L3_NUM - 1] = "",
-  [PFWL_PROTO_L3_IPV4] = "IPv4",
-  [PFWL_PROTO_L3_IPV6] = "IPv6",
-};
-
-const char *pfwl_get_L3_protocol_name(pfwl_protocol_l3_t protocol){
-  if(protocol < PFWL_PROTO_L3_NUM){
-    return pfwl_l3_protocols_names[protocol];
-  }else{
-=======
   return mc_pfwl_parse_L3_header(state, pkt, length, current_time, 0, dissection_info);
 }
 
@@ -543,31 +377,19 @@ const char *pfwl_get_L3_protocol_name(pfwl_protocol_l3_t protocol) {
   if (protocol < PFWL_PROTO_L3_NUM) {
     return pfwl_l3_protocols_names[protocol];
   } else {
->>>>>>> SoftAtHome/master
     return "Unknown";
   }
 }
 
-<<<<<<< HEAD
-pfwl_protocol_l3_t pfwl_get_L3_protocol_id(const char *const name){
-  for(size_t i = 0; i < PFWL_PROTO_L3_NUM; i++){
-    if(!strcasecmp(name, pfwl_l3_protocols_names[i])){
-=======
 pfwl_protocol_l3_t pfwl_get_L3_protocol_id(const char *const name) {
   for (size_t i = 0; i < PFWL_PROTO_L3_NUM; i++) {
     if (!strcasecmp(name, pfwl_l3_protocols_names[i])) {
->>>>>>> SoftAtHome/master
       return (pfwl_protocol_l3_t) i;
     }
   }
   return PFWL_PROTO_L3_NUM;
 }
 
-<<<<<<< HEAD
-
-const char **const pfwl_get_L3_protocols_names(){
-=======
 const char **pfwl_get_L3_protocols_names() {
->>>>>>> SoftAtHome/master
   return pfwl_l3_protocols_names;
 }

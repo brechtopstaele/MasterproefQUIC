@@ -2,12 +2,8 @@
 # Src and header files #
 ########################
 include_directories(${CMAKE_SOURCE_DIR}/include)
-<<<<<<< HEAD
-file(GLOB SOURCES "*.cpp" "*.c" "inspectors/*.cpp" "inspectors/*.c" "external/md5.c")
-=======
 include_directories(${CMAKE_SOURCE_DIR}/include_priv)
 file(GLOB SOURCES "*.cpp" "*.c" "inspectors/*.cpp" "inspectors/*.c")
->>>>>>> SoftAtHome/master
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/worker.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_mc.cpp" "${CMAKE_SOURCE_DIR}/src/peafowl_py.cpp")
 
 if (PCAP_FOUND)
@@ -15,13 +11,6 @@ if (PCAP_FOUND)
   add_definitions(-DHAVE_PCAP)
 endif(PCAP_FOUND)
 
-<<<<<<< HEAD
-if (OPENSSL_FOUND AND OPENSSL_VERSION VERSION_GREATER_EQUAL 3.0.0)
-  include_directories(${OPENSSL_INCLUDE_DIR})
-  link_libraries(${OPENSSL_LIBRARIES})
-  add_definitions(-DHAVE_OPENSSL)
-endif(OPENSSL_FOUND AND OPENSSL_VERSION VERSION_GREATER_EQUAL 3.0.0)
-=======
 if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIR})
   link_libraries(${OPENSSL_LIBRARIES})
@@ -29,7 +18,6 @@ if (OPENSSL_FOUND)
 else()
   list(APPEND SOURCES "${CMAKE_SOURCE_DIR}/src/external/md5.c")
 endif(OPENSSL_FOUND)
->>>>>>> SoftAtHome/master
 
 ####################
 # Parallel version #

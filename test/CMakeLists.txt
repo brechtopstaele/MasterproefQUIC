@@ -27,15 +27,12 @@ endif()
 # settings on Windows
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-<<<<<<< HEAD
-=======
 if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIR})
   link_libraries(${OPENSSL_LIBRARIES})
   add_definitions(-DHAVE_OPENSSL)
 endif(OPENSSL_FOUND)
 
->>>>>>> SoftAtHome/master
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_BINARY_DIR}/test/googletest-src

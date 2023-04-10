@@ -29,36 +29,6 @@
  * =========================================================================
  */
 
-<<<<<<< HEAD
-
-#include <peafowl/peafowl.h>
-#include <pcap.h>
-#include <net/ethernet.h>
-#include <time.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <assert.h>
-
-int main(int argc, char** argv){
-
-  if(argc != 2){
-    fprintf(stderr, "Usage: %s pcap_file\n", argv[0]);
-    return -1;
-  }
-  char* pcap_filename=argv[1];
-  char errbuf[PCAP_ERRBUF_SIZE];
-
-  pfwl_state_t* state = pfwl_init();
-  pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
-
-  if(handle == NULL){
-=======
 #include <arpa/inet.h>
 #include <assert.h>
 #include <inttypes.h>
@@ -86,16 +56,11 @@ int main(int argc, char **argv) {
   pcap_t *handle = pcap_open_offline(pcap_filename, errbuf);
 
   if (handle == NULL) {
->>>>>>> SoftAtHome/master
     fprintf(stderr, "Couldn't open device %s: %s\n", pcap_filename, errbuf);
     return (2);
   }
 
-<<<<<<< HEAD
-  const u_char* packet;
-=======
   const u_char *packet;
->>>>>>> SoftAtHome/master
   struct pcap_pkthdr header;
 
   // Server Name field
@@ -106,22 +71,6 @@ int main(int argc, char **argv) {
   /* pfwl_protocol_field_add(state, PFWL_FIELDS_DNS_AUTH_SRV); */
   pfwl_protocol_l2_t dlt = pfwl_convert_pcap_dlt(pcap_datalink(handle));
 
-<<<<<<< HEAD
-  while((packet = pcap_next(handle, &header)) != NULL){
-    pfwl_dissection_info_t r;
-    if(pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK){
-      pfwl_string_t field;
-      if(r.l7.protocol == PFWL_PROTO_L7_DNS &&
-         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_DNS_NAME_SRV, &field)){
-        printf("Name Server detected: %.*s\n", (int) field.length, field.value);
-      }
-      if(r.l7.protocol == PFWL_PROTO_L7_DNS &&
-         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_DNS_NS_IP_1, &field)){
-        printf("IP address of Name Server: %.*s\n", (int) field.length, field.value);
-      }
-      if(r.l7.protocol == PFWL_PROTO_L7_DNS &&
-         !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV, &field)){
-=======
   while ((packet = pcap_next(handle, &header)) != NULL) {
     pfwl_dissection_info_t r;
     if (pfwl_dissect_from_L2(state, packet, header.caplen, time(NULL), dlt, &r) >= PFWL_STATUS_OK) {
@@ -136,7 +85,6 @@ int main(int argc, char **argv) {
       }
       if (r.l7.protocol == PFWL_PROTO_L7_DNS &&
           !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV, &field)) {
->>>>>>> SoftAtHome/master
         printf("Authoritative Server detected: %.*s\n", (int) field.length, field.value);
       }
     }

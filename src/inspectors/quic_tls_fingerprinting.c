@@ -472,7 +472,7 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 		printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
 	}
 	//TODO: wat loopt hier mis??
-	qsort(extensions, n, 10, compare_strings);
+	//qsort(extensions, n, 10, compare_strings);
 	/* output sorted arrray of strings */
     for (uint16_t i = 0; i < n; i++)
         printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);

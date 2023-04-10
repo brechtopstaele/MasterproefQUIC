@@ -28,11 +28,8 @@
 #include <peafowl/inspectors/inspectors.h>
 #include <peafowl/peafowl.h>
 
-<<<<<<< HEAD
-=======
 #include "common_utils.h"
 
->>>>>>> SoftAtHome/master
 #define FMASK 0x8000
 #define QUERY 0
 #define ANSWER 1
@@ -71,19 +68,6 @@ struct dns_header {
 } __attribute__((packed));
 
 /**
-<<<<<<< HEAD
-   #param uint16_t
-   #param int
-   #param int
-   @return n bit from position p of number x
-**/
-static inline uint8_t getBits(uint16_t x, uint p, uint n) {
-  return (x >> (p + 1 - n)) & ~(~0 << n);
-}
-
-/**
-=======
->>>>>>> SoftAtHome/master
    #param const unsigned char*
    @return the length of the pointer name server
 **/
@@ -108,12 +92,7 @@ uint16_t get_NS_len(const unsigned char *p) {
 **/
 static uint8_t isQuery(struct dns_header *dns_header) {
   /* QDCOUNT >= 1 && ANCOUNT = 0 && NSCOUNT = 0 && ARCOUNT = 0 */
-<<<<<<< HEAD
-  if (dns_header->quest_count >= 1 && dns_header->answ_count == 0 &&
-      dns_header->auth_rrs == 0)
-=======
   if (dns_header->quest_count >= 1 && dns_header->answ_count == 0 && dns_header->auth_rrs == 0)
->>>>>>> SoftAtHome/master
     return 0;
   else
     return -1;
@@ -127,12 +106,7 @@ static uint8_t isQuery(struct dns_header *dns_header) {
    #param pfwl_dns_internal_information_t*
    @return 0 if is response -1 else
  **/
-<<<<<<< HEAD
-static uint8_t isResponse(struct dns_header *dns_header,
-                          uint8_t *is_name_server, uint8_t *is_auth_server,
-=======
 static uint8_t isResponse(struct dns_header *dns_header, uint8_t *is_name_server, uint8_t *is_auth_server,
->>>>>>> SoftAtHome/master
                           pfwl_dns_internal_information_t *dns_info)
 
 {
@@ -187,17 +161,9 @@ static uint8_t isResponse(struct dns_header *dns_header, uint8_t *is_name_server
   return ret;
 }
 
-<<<<<<< HEAD
-uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-  pfwl_dissector_accuracy_t accuracy =
-      state->inspectors_accuracy[PFWL_PROTO_L7_DNS];
-=======
 uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                   pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   pfwl_dissector_accuracy_t accuracy = state->inspectors_accuracy[PFWL_PROTO_L7_DNS];
->>>>>>> SoftAtHome/master
   // check param
   if (!app_data)
     return PFWL_PROTOCOL_NO_MATCHES;
@@ -205,34 +171,18 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
     return PFWL_PROTOCOL_MORE_DATA_NEEDED;
 
   /* DNS port (53) */
-<<<<<<< HEAD
-  if ((pkt_info->l4.port_dst == port_dns ||
-       pkt_info->l4.port_src == port_dns) &&
-      data_length >= 12) {
-    uint8_t is_valid = -1;
-    uint8_t is_name_server = 0, is_auth_server = 0;
-    struct dns_header *dns_header = (struct dns_header *) (app_data);
-    pfwl_dns_internal_information_t *dns_info =
-        &flow_info_private->dns_informations;
-=======
   if ((pkt_info->l4.port_dst == port_dns || pkt_info->l4.port_src == port_dns) && data_length >= 12) {
     uint8_t is_valid = -1;
     uint8_t is_name_server = 0, is_auth_server = 0;
     struct dns_header *dns_header = (struct dns_header *) (app_data);
     pfwl_dns_internal_information_t *dns_info = &flow_info_private->dns_informations;
->>>>>>> SoftAtHome/master
     pfwl_field_t *extracted_fields = pkt_info->l7.protocol_fields;
 
     // pointer to beginning of queries section
     const unsigned char *pq = app_data + sizeof(struct dns_header);
 
     // init
-<<<<<<< HEAD
-    memset(&(flow_info_private->dns_informations), 0,
-           sizeof(flow_info_private->dns_informations));
-=======
     memset(&(flow_info_private->dns_informations), 0, sizeof(flow_info_private->dns_informations));
->>>>>>> SoftAtHome/master
 
     // set to host byte order
     dns_header->tr_id = ntohs(dns_header->tr_id);
@@ -252,17 +202,6 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
       if (is_valid)
         dns_info->Type = QUERY;
 
-<<<<<<< HEAD
-      /** check accuracy type for fields parsing **/
-      if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {
-        // check name server field
-          if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NAME_SRV)) {
-            const unsigned char* temp = (const unsigned char*)(pq + 1);
-            const char* r = strchr((const char*)pq + 1, '\0');
-            pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_NAME_SRV,
-                                  temp, (const unsigned char*)r - temp);
-          }
-=======
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_ID))
         pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
 
@@ -282,7 +221,6 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_QUERY_TYPE)) {
           pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_QUERY_TYPE, ntohs(get_u16(pq, 0)));
         }
->>>>>>> SoftAtHome/master
       }
     }
     /**
@@ -290,39 +228,22 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
     **/
     if ((dns_header->flags & FMASK) == 0x8000) {
       // check isAnswer
-<<<<<<< HEAD
-      (isResponse(dns_header, &is_name_server, &is_auth_server, dns_info) !=
-       0) ?
-          (is_valid = 0) :
-          (is_valid = 1);
-=======
       (isResponse(dns_header, &is_name_server, &is_auth_server, dns_info) != 0) ? (is_valid = 0) : (is_valid = 1);
->>>>>>> SoftAtHome/master
       // set QTYPE
       if (is_valid)
         dns_info->Type = ANSWER;
 
-<<<<<<< HEAD
-=======
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_ID))
         pfwl_field_number_set(extracted_fields, PFWL_FIELDS_L7_DNS_ID, dns_header->tr_id);
 
       if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_TYPE))
         pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_TYPE, (const unsigned char *) "Answer", 7);
 
->>>>>>> SoftAtHome/master
       /** check accuracy type for fields parsing **/
       if (accuracy == PFWL_DISSECTOR_ACCURACY_HIGH && is_valid) {
         // sfhift of Query section
         const unsigned char *temp = (const unsigned char *) (pq);
         char *r = strchr((const char *) pq, '\0');
-<<<<<<< HEAD
-        pq += ((const unsigned char *) r - temp + 1) +
-              4; // end of Name + Type(2) + Class(2)
-
-        // check name server IP
-        if (pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_DNS_NS_IP_1) && is_name_server) {
-=======
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NAME_SRV)) {
           pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_NAME_SRV, temp, (const unsigned char *) r - temp);
         }
@@ -336,7 +257,6 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
 
         // check name server IP
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_NS_IP_1) && is_name_server) {
->>>>>>> SoftAtHome/master
           /**
          Note:
          In case of answer count > 1, we consider (for now) only the first two
@@ -358,13 +278,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
 
             // update s and len for the field
             if (dns_info->aType != CNAME) {
-<<<<<<< HEAD
-              pfwl_field_string_set(extracted_fields,
-                                    PFWL_FIELDS_L7_DNS_NS_IP_1 + i, pq,
-                                    data_len);
-=======
               pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_NS_IP_1 + i, pq, data_len);
->>>>>>> SoftAtHome/master
             }
             // decrement number of answer sections found
             --dns_header->answ_count;
@@ -373,11 +287,7 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
           } while (dns_header->answ_count > 0 && i < 2);
         }
         // check auth server
-<<<<<<< HEAD
-        if (pfwl_protocol_field_required(state, flow_info_private,PFWL_FIELDS_L7_DNS_AUTH_SRV) && is_auth_server) {
-=======
         if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_DNS_AUTH_SRV) && is_auth_server) {
->>>>>>> SoftAtHome/master
           /* /\** No Answer field(s) present: skip the query section and point
            * to Authority fields **\/ */
           /* if(!is_name_server) pq +=
@@ -406,17 +316,9 @@ uint8_t check_dns(pfwl_state_t *state, const unsigned char *app_data, size_t dat
           pq += 2; // Data LEN(2)
 
           if (type == SOA) {
-<<<<<<< HEAD
-            pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV,
-                                  pq + 1, get_NS_len(pq));
-          } else {
-            pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV,
-                                  pq, data_len);
-=======
             pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV, pq + 1, get_NS_len(pq));
           } else {
             pfwl_field_string_set(extracted_fields, PFWL_FIELDS_L7_DNS_AUTH_SRV, pq, data_len);
->>>>>>> SoftAtHome/master
           }
         }
       }

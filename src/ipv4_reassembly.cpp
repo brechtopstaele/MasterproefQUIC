@@ -41,17 +41,10 @@
 
 #define PFWL_DEBUG_FRAGMENTATION_v4 0
 
-<<<<<<< HEAD
-#define debug_print(fmt, ...)                                                  \
-  do {                                                                         \
-    if (PFWL_DEBUG_FRAGMENTATION_v4)                                           \
-      fprintf(stderr, fmt, __VA_ARGS__);                                       \
-=======
 #define debug_print(fmt, ...)            \
   do {                                   \
     if (PFWL_DEBUG_FRAGMENTATION_v4)     \
       fprintf(stderr, fmt, __VA_ARGS__); \
->>>>>>> SoftAtHome/master
   } while (0)
 
 #define PFWL_IP_FRAGMENTATION_MAX_DATAGRAM_SIZE 65535
@@ -124,42 +117,23 @@ static
 #endif
 #endif
     void
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_delete_source(
-        pfwl_ipv4_fragmentation_state_t *state,
-        pfwl_ipv4_fragmentation_source_t *source);
-=======
     pfwl_ipv4_fragmentation_delete_source(pfwl_ipv4_fragmentation_state_t *state,
                                           pfwl_ipv4_fragmentation_source_t *source);
->>>>>>> SoftAtHome/master
 
 /**
  * Enables the IPv4 defragmentation.
  * @param table_size  The size of the table used to store the fragments.
  * @return            A pointer to the IPv4 defragmentation handle.
  */
-<<<<<<< HEAD
-pfwl_ipv4_fragmentation_state_t *
-pfwl_reordering_enable_ipv4_fragmentation(uint16_t table_size) {
-  pfwl_ipv4_fragmentation_state_t *r =
-      (pfwl_ipv4_fragmentation_state_t *) calloc(
-          1, sizeof(pfwl_ipv4_fragmentation_state_t));
-=======
 pfwl_ipv4_fragmentation_state_t *pfwl_reordering_enable_ipv4_fragmentation(uint16_t table_size) {
   pfwl_ipv4_fragmentation_state_t *r =
       (pfwl_ipv4_fragmentation_state_t *) calloc(1, sizeof(pfwl_ipv4_fragmentation_state_t));
->>>>>>> SoftAtHome/master
   if (unlikely(r == NULL)) {
     free(r);
     return NULL;
   }
   r->table_size = table_size;
-<<<<<<< HEAD
-  r->table = (pfwl_ipv4_fragmentation_source_t **) malloc(
-      table_size * sizeof(pfwl_ipv4_fragmentation_source_t *));
-=======
   r->table = (pfwl_ipv4_fragmentation_source_t **) malloc(table_size * sizeof(pfwl_ipv4_fragmentation_source_t *));
->>>>>>> SoftAtHome/master
   if (unlikely(r->table == NULL)) {
     free(r);
     return NULL;
@@ -170,12 +144,7 @@ pfwl_ipv4_fragmentation_state_t *pfwl_reordering_enable_ipv4_fragmentation(uint1
   }
   r->timer_head = NULL;
   r->timer_tail = NULL;
-<<<<<<< HEAD
-  r->per_source_memory_limit =
-      PFWL_IPv4_FRAGMENTATION_DEFAULT_PER_HOST_MEMORY_LIMIT;
-=======
   r->per_source_memory_limit = PFWL_IPv4_FRAGMENTATION_DEFAULT_PER_HOST_MEMORY_LIMIT;
->>>>>>> SoftAtHome/master
   r->total_memory_limit = PFWL_IPv4_FRAGMENTATION_DEFAULT_TOTAL_MEMORY_LIMIT;
   r->timeout = PFWL_IPv4_FRAGMENTATION_DEFAULT_REASSEMBLY_TIMEOUT;
   r->total_used_mem = 0;
@@ -185,26 +154,6 @@ pfwl_ipv4_fragmentation_state_t *pfwl_reordering_enable_ipv4_fragmentation(uint1
   return r;
 }
 
-<<<<<<< HEAD
-void pfwl_reordering_ipv4_fragmentation_set_per_host_memory_limit(
-    pfwl_ipv4_fragmentation_state_t *frag_state,
-    uint32_t per_host_memory_limit) {
-  frag_state->per_source_memory_limit = per_host_memory_limit;
-}
-
-void pfwl_reordering_ipv4_fragmentation_set_total_memory_limit(
-    pfwl_ipv4_fragmentation_state_t *frag_state, uint32_t total_memory_limit) {
-  frag_state->total_memory_limit = total_memory_limit;
-}
-
-void pfwl_reordering_ipv4_fragmentation_set_reassembly_timeout(
-    pfwl_ipv4_fragmentation_state_t *frag_state, uint8_t timeout_seconds) {
-  frag_state->timeout = timeout_seconds;
-}
-
-void pfwl_reordering_disable_ipv4_fragmentation(
-    pfwl_ipv4_fragmentation_state_t *frag_state) {
-=======
 void pfwl_reordering_ipv4_fragmentation_set_per_host_memory_limit(pfwl_ipv4_fragmentation_state_t *frag_state,
                                                                   uint32_t per_host_memory_limit) {
   frag_state->per_source_memory_limit = per_host_memory_limit;
@@ -221,7 +170,6 @@ void pfwl_reordering_ipv4_fragmentation_set_reassembly_timeout(pfwl_ipv4_fragmen
 }
 
 void pfwl_reordering_disable_ipv4_fragmentation(pfwl_ipv4_fragmentation_state_t *frag_state) {
->>>>>>> SoftAtHome/master
   if (frag_state == NULL)
     return;
   pfwl_ipv4_fragmentation_source_t *source, *tmp_source;
@@ -250,12 +198,7 @@ static
 #endif
     /** Robert Jenkins' 32 bit integer hash function. **/
     uint16_t
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_hash_function(
-        pfwl_ipv4_fragmentation_state_t *state, uint32_t src_ip) {
-=======
     pfwl_ipv4_fragmentation_hash_function(pfwl_ipv4_fragmentation_state_t *state, uint32_t src_ip) {
->>>>>>> SoftAtHome/master
   src_ip = (src_ip + 0x7ed55d16) + (src_ip << 12);
   src_ip = (src_ip ^ 0xc761c23c) ^ (src_ip >> 19);
   src_ip = (src_ip + 0x165667b1) + (src_ip << 5);
@@ -269,12 +212,7 @@ static
 static
 #endif
     void
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_delete_flow(pfwl_ipv4_fragmentation_state_t *state,
-                                        pfwl_ipv4_fragmentation_flow_t *flow) {
-=======
     pfwl_ipv4_fragmentation_delete_flow(pfwl_ipv4_fragmentation_state_t *state, pfwl_ipv4_fragmentation_flow_t *flow) {
->>>>>>> SoftAtHome/master
   pfwl_reassembly_fragment_t *frag, *temp_frag;
 
   pfwl_ipv4_fragmentation_source_t *source = flow->source;
@@ -283,12 +221,7 @@ static
   state->total_used_mem -= sizeof(pfwl_ipv4_fragmentation_flow_t);
 
   /* Stop the timer and delete it. */
-<<<<<<< HEAD
-  pfwl_reassembly_delete_timer(&(state->timer_head), &(state->timer_tail),
-                               &(flow->timer));
-=======
   pfwl_reassembly_delete_timer(&(state->timer_head), &(state->timer_tail), &(flow->timer));
->>>>>>> SoftAtHome/master
 
   /* Release all fragment data. */
   frag = flow->fragments;
@@ -333,14 +266,8 @@ static
 #endif
 #endif
     void
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_delete_source(
-        pfwl_ipv4_fragmentation_state_t *state,
-        pfwl_ipv4_fragmentation_source_t *source) {
-=======
     pfwl_ipv4_fragmentation_delete_source(pfwl_ipv4_fragmentation_state_t *state,
                                           pfwl_ipv4_fragmentation_source_t *source) {
->>>>>>> SoftAtHome/master
   uint16_t row = source->row;
 
   /** Delete all the flows belonging to this source. **/
@@ -374,12 +301,7 @@ static
      * @return A pointer to the source.
      */
     pfwl_ipv4_fragmentation_source_t *
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_find_or_create_source(
-        pfwl_ipv4_fragmentation_state_t *state, uint32_t addr) {
-=======
     pfwl_ipv4_fragmentation_find_or_create_source(pfwl_ipv4_fragmentation_state_t *state, uint32_t addr) {
->>>>>>> SoftAtHome/master
   uint16_t hash_index = pfwl_ipv4_fragmentation_hash_function(state, addr);
   pfwl_ipv4_fragmentation_source_t *source, *head;
 
@@ -392,12 +314,7 @@ static
   }
 
   /** Not found, so create it. **/
-<<<<<<< HEAD
-  source = (pfwl_ipv4_fragmentation_source_t *) malloc(
-      sizeof(pfwl_ipv4_fragmentation_source_t));
-=======
   source = (pfwl_ipv4_fragmentation_source_t *) malloc(sizeof(pfwl_ipv4_fragmentation_source_t));
->>>>>>> SoftAtHome/master
   if (unlikely(source == NULL)) {
     return NULL;
   }
@@ -421,39 +338,22 @@ static
 static
 #endif
     pfwl_ipv4_fragmentation_flow_t *
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_find_or_create_flow(
-        pfwl_ipv4_fragmentation_state_t *state,
-        pfwl_ipv4_fragmentation_source_t *source, const struct iphdr *iph,
-        uint32_t current_time) {
-=======
     pfwl_ipv4_fragmentation_find_or_create_flow(pfwl_ipv4_fragmentation_state_t *state,
                                                 pfwl_ipv4_fragmentation_source_t *source, const struct iphdr *iph,
                                                 uint32_t current_time) {
->>>>>>> SoftAtHome/master
   pfwl_ipv4_fragmentation_flow_t *flow;
   for (flow = source->flows; flow != NULL; flow = flow->next) {
     /**
      * The source is matched for sure because all the
      * flows will have the same source.
      **/
-<<<<<<< HEAD
-    if (iph->id == flow->id && iph->daddr == flow->dest_ip &&
-        iph->protocol == flow->protocol) {
-=======
     if (iph->id == flow->id && iph->daddr == flow->dest_ip && iph->protocol == flow->protocol) {
->>>>>>> SoftAtHome/master
       return flow;
     }
   }
 
   /** Not found, create a new flow. **/
-<<<<<<< HEAD
-  flow = (pfwl_ipv4_fragmentation_flow_t *) malloc(
-      sizeof(pfwl_ipv4_fragmentation_flow_t));
-=======
   flow = (pfwl_ipv4_fragmentation_flow_t *) malloc(sizeof(pfwl_ipv4_fragmentation_flow_t));
->>>>>>> SoftAtHome/master
   if (unlikely(flow == NULL)) {
     return NULL;
   }
@@ -473,12 +373,7 @@ static
   /* Set the timer. */
   flow->timer.expiration_time = current_time + state->timeout;
   flow->timer.data = flow;
-<<<<<<< HEAD
-  pfwl_reassembly_add_timer(&(state->timer_head), &(state->timer_tail),
-                            &(flow->timer));
-=======
   pfwl_reassembly_add_timer(&(state->timer_head), &(state->timer_tail), &(flow->timer));
->>>>>>> SoftAtHome/master
   /* Fragments will be added later. */
   flow->fragments = NULL;
   flow->iph = NULL;
@@ -492,14 +387,8 @@ static
 static
 #endif
     unsigned char *
-<<<<<<< HEAD
-    pfwl_ipv4_fragmentation_build_complete_datagram(
-        pfwl_ipv4_fragmentation_state_t *state,
-        pfwl_ipv4_fragmentation_flow_t *flow) {
-=======
     pfwl_ipv4_fragmentation_build_complete_datagram(pfwl_ipv4_fragmentation_state_t *state,
                                                     pfwl_ipv4_fragmentation_flow_t *flow) {
->>>>>>> SoftAtHome/master
   unsigned char *pkt_beginning, *pkt_data;
   struct iphdr *iph;
   uint16_t len;
@@ -556,27 +445,16 @@ static
   return pkt_beginning;
 }
 
-<<<<<<< HEAD
-unsigned char *pfwl_reordering_manage_ipv4_fragment(
-    pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
-    uint32_t current_time, uint16_t offset, uint8_t more_fragments, int tid) {
-  struct iphdr *iph = (struct iphdr *) data;
-=======
 unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_state_t *state, const unsigned char *data,
                                                     uint32_t current_time, uint16_t offset, uint8_t more_fragments,
                                                     int) {
   struct iphdr iph_copy;
   memcpy(&iph_copy, data, sizeof(iph_copy));
->>>>>>> SoftAtHome/master
 
   pfwl_ipv4_fragmentation_source_t *source;
   pfwl_ipv4_fragmentation_flow_t *flow;
 
-<<<<<<< HEAD
-  uint16_t tot_len = ntohs(iph->tot_len);
-=======
   uint16_t tot_len = ntohs(iph_copy.tot_len);
->>>>>>> SoftAtHome/master
 /**
  * Host are required to do not fragment datagrams with a total
  * size up to 576 byte. If we received a fragment with a size <576
@@ -590,11 +468,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
   }
 #endif
 
-<<<<<<< HEAD
-  uint8_t ihl = iph->ihl * 4;
-=======
   uint8_t ihl = iph_copy.ihl * 4;
->>>>>>> SoftAtHome/master
   uint16_t fragment_size = tot_len - ihl;
   /** (end-1) is the last byte of the fragment. **/
 
@@ -608,11 +482,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
 #if PFWL_THREAD_SAFETY_ENABLED == 1
   ff::spin_lock(state->lock);
 #endif
-<<<<<<< HEAD
-  source = pfwl_ipv4_fragmentation_find_or_create_source(state, iph->saddr);
-=======
   source = pfwl_ipv4_fragmentation_find_or_create_source(state, iph_copy.saddr);
->>>>>>> SoftAtHome/master
   if (unlikely(source == NULL)) {
     debug_print("%s\n", "ERROR: Impossible to create the source.");
 #if PFWL_THREAD_SAFETY_ENABLED == 1
@@ -626,12 +496,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
   debug_print("Source memory occupied: %u\n", state->total_used_mem);
 
   /** If source limit exceeded, then delete flows from that source. **/
-<<<<<<< HEAD
-  while (source->flows &&
-         (source->source_used_mem) > state->per_source_memory_limit) {
-=======
   while (source->flows && (source->source_used_mem) > state->per_source_memory_limit) {
->>>>>>> SoftAtHome/master
     debug_print("%s\n", "Source limit exceeded, cleaning...");
     pfwl_ipv4_fragmentation_delete_flow(state, source->flows);
     if (source->flows == NULL) {
@@ -651,20 +516,10 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
    * the timer timer_head after deleting the timer_head if it is
    * expired.
    **/
-<<<<<<< HEAD
-  while ((state->timer_head) &&
-         ((state->timer_head->expiration_time < current_time) ||
-          (state->total_used_mem >= state->total_memory_limit))) {
-    pfwl_ipv4_fragmentation_source_t *tmpsource =
-        ((pfwl_ipv4_fragmentation_flow_t *) state->timer_head->data)->source;
-    pfwl_ipv4_fragmentation_delete_flow(
-        state, (pfwl_ipv4_fragmentation_flow_t *) state->timer_head->data);
-=======
   while ((state->timer_head) && ((state->timer_head->expiration_time < current_time) ||
                                  (state->total_used_mem >= state->total_memory_limit))) {
     pfwl_ipv4_fragmentation_source_t *tmpsource = ((pfwl_ipv4_fragmentation_flow_t *) state->timer_head->data)->source;
     pfwl_ipv4_fragmentation_delete_flow(state, (pfwl_ipv4_fragmentation_flow_t *) state->timer_head->data);
->>>>>>> SoftAtHome/master
     if (source->flows == NULL) {
       pfwl_ipv4_fragmentation_delete_source(state, tmpsource);
 #if PFWL_THREAD_SAFETY_ENABLED == 1
@@ -675,12 +530,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
   }
 
   /* Find the flow. */
-<<<<<<< HEAD
-  flow = pfwl_ipv4_fragmentation_find_or_create_flow(state, source, iph,
-                                                     current_time);
-=======
   flow = pfwl_ipv4_fragmentation_find_or_create_flow(state, source, &iph_copy, current_time);
->>>>>>> SoftAtHome/master
   debug_print("%s\n", "Flow found or created.");
 
   if (unlikely(flow == NULL)) {
@@ -720,11 +570,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
     }
     state->total_used_mem += ihl;
     source->source_used_mem += ihl;
-<<<<<<< HEAD
-    memcpy(flow->iph, iph, ihl);
-=======
     memcpy(flow->iph, &iph_copy, ihl);
->>>>>>> SoftAtHome/master
   }
 
   /**
@@ -748,12 +594,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
 
   uint32_t bytes_removed;
   uint32_t bytes_inserted;
-<<<<<<< HEAD
-  pfwl_reassembly_insert_fragment(&(flow->fragments), data + ihl, offset, end,
-                                  &(bytes_removed), &(bytes_inserted));
-=======
   pfwl_reassembly_insert_fragment(&(flow->fragments), data + ihl, offset, end, &(bytes_removed), &(bytes_inserted));
->>>>>>> SoftAtHome/master
   state->total_used_mem += bytes_inserted;
   state->total_used_mem -= bytes_removed;
 
@@ -769,12 +610,7 @@ unsigned char *pfwl_reordering_manage_ipv4_fragment(pfwl_ipv4_fragmentation_stat
    *  (so the len is set) and if we have a train of contiguous
    *   fragments).
    **/
-<<<<<<< HEAD
-  if (flow->len != 0 &&
-      pfwl_reassembly_ip_check_train_of_contiguous_fragments(flow->fragments)) {
-=======
   if (flow->len != 0 && pfwl_reassembly_ip_check_train_of_contiguous_fragments(flow->fragments)) {
->>>>>>> SoftAtHome/master
     unsigned char *r;
     debug_print("%s\n", "Last fragment already received and train "
                         "of contiguous fragments present, returing the "

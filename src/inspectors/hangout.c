@@ -27,14 +27,8 @@
 #include <peafowl/peafowl.h>
 
 static uint8_t is_hangout_udp_port(uint16_t port) {
-<<<<<<< HEAD
-  if ((port == port_hangout_19302) || (port == port_hangout_19303) ||
-      (port == port_hangout_19304) || (port == port_hangout_19305) ||
-      (port == port_hangout_19306) || (port == port_hangout_19307) ||
-=======
   if ((port == port_hangout_19302) || (port == port_hangout_19303) || (port == port_hangout_19304) ||
       (port == port_hangout_19305) || (port == port_hangout_19306) || (port == port_hangout_19307) ||
->>>>>>> SoftAtHome/master
       (port == port_hangout_19308) || (port == port_hangout_19309))
     return 1;
   else
@@ -42,31 +36,13 @@ static uint8_t is_hangout_udp_port(uint16_t port) {
 }
 
 static uint8_t is_hangout_tcp_port(uint16_t port) {
-<<<<<<< HEAD
-  if ((port == port_hangout_19305) || (port == port_hangout_19306) ||
-      (port == port_hangout_19307) || (port == port_hangout_19308) ||
-      (port == port_hangout_19309))
-=======
   if ((port == port_hangout_19305) || (port == port_hangout_19306) || (port == port_hangout_19307) ||
       (port == port_hangout_19308) || (port == port_hangout_19309))
->>>>>>> SoftAtHome/master
     return 1;
   else
     return 0;
 }
 
-<<<<<<< HEAD
-uint8_t check_hangout(pfwl_state_t *state, const unsigned char *app_data,
-                      size_t data_length, pfwl_dissection_info_t *pkt_info,
-                      pfwl_flow_info_private_t *flow_info_private) {
-  if ((data_length > 24)) {
-    if (((pkt_info->l4.protocol == IPPROTO_UDP) &&
-         (is_hangout_udp_port(pkt_info->l4.port_src) ||
-          is_hangout_udp_port(pkt_info->l4.port_dst))) ||
-        ((pkt_info->l4.protocol == IPPROTO_TCP) &&
-         (is_hangout_tcp_port(pkt_info->l4.port_src) ||
-          is_hangout_tcp_port(pkt_info->l4.port_dst)))) {
-=======
 uint8_t check_hangout(pfwl_state_t *state, const unsigned char *app_data, size_t data_length,
                       pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   (void) state;
@@ -78,7 +54,6 @@ uint8_t check_hangout(pfwl_state_t *state, const unsigned char *app_data, size_t
          (is_hangout_udp_port(pkt_info->l4.port_src) || is_hangout_udp_port(pkt_info->l4.port_dst))) ||
         ((pkt_info->l4.protocol == IPPROTO_TCP) &&
          (is_hangout_tcp_port(pkt_info->l4.port_src) || is_hangout_tcp_port(pkt_info->l4.port_dst)))) {
->>>>>>> SoftAtHome/master
       return PFWL_PROTOCOL_MATCHES;
     }
   }

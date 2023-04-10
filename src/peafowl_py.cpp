@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <peafowl/peafowl.hpp>
-=======
 #include <peafowl/peafowl.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
->>>>>>> SoftAtHome/master
 
 // clang-format off
 namespace py = pybind11;

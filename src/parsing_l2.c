@@ -35,11 +35,8 @@
 #include <peafowl/tcp_stream_management.h>
 #include <peafowl/utils.h>
 
-<<<<<<< HEAD
-=======
 #include "common_utils.h"
 
->>>>>>> SoftAtHome/master
 #include <arpa/inet.h>
 #include <assert.h>
 #include <net/ethernet.h>
@@ -47,10 +44,7 @@
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
-<<<<<<< HEAD
-=======
 #include <stdbool.h>
->>>>>>> SoftAtHome/master
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,17 +58,10 @@
 #ifndef PFWL_DEBUG_L2
 #define PFWL_DEBUG_L2 0
 #endif
-<<<<<<< HEAD
-#define debug_print(fmt, ...)                                                  \
-  do {                                                                         \
-    if (PFWL_DEBUG_L2)                                                         \
-      fprintf(stderr, fmt, __VA_ARGS__);                                       \
-=======
 #define debug_print(fmt, ...)            \
   do {                                   \
     if (PFWL_DEBUG_L2)                   \
       fprintf(stderr, fmt, __VA_ARGS__); \
->>>>>>> SoftAtHome/master
   } while (0)
 
 /* Header offsets */
@@ -174,13 +161,8 @@ struct wifi_hdr {
   /* u_int64_t ccmp - for data encription only - check fc.flag */
 } __attribute__((__packed__));
 
-<<<<<<< HEAD
-static uint16_t pfwl_check_dtype(const u_char *packet, uint16_t type,
-                                 uint16_t off) {
-=======
 static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type, uint16_t off,
                              uint16_t *dlink_offset_out) {
->>>>>>> SoftAtHome/master
   uint32_t dlink_offset = off;
 
   // define vlan header
@@ -201,14 +183,11 @@ static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type,
   // VLAN
   case ETHERTYPE_VLAN:
     debug_print("%s\n", "Ethernet type: VLAN\n");
-<<<<<<< HEAD
-=======
     if (packet + dlink_offset + sizeof(*vlan_header) > &packet[length]) {
       debug_print("%s\n", "Malformed VLAN packet. DISCARD\n");
       return false;
     }
 
->>>>>>> SoftAtHome/master
     vlan_header = (struct vlan_hdr *) (packet + dlink_offset);
     type = ntohs(vlan_header->type);
     // double tagging for 802.1Q
@@ -223,49 +202,25 @@ static bool pfwl_check_dtype(const u_char *packet, size_t length, uint16_t type,
   case ETHERTYPE_MPLS_UNI:
   case ETHERTYPE_MPLS_MULTI:
     debug_print("%s\n", "Ethernet type: MPLS\n");
-<<<<<<< HEAD
-    mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
-=======
     if (packet + dlink_offset + sizeof(uint32_t) > &packet[length]) {
       debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
       return false;
     }
     mpls.u32 = get_u32(packet, dlink_offset);
->>>>>>> SoftAtHome/master
     mpls.u32 = ntohl(mpls.u32);
     dlink_offset += 4;
     // multiple MPLS fields
     while (!mpls.mpls.s) {
-<<<<<<< HEAD
-      mpls.u32 = *((uint32_t *) &packet[dlink_offset]);
-=======
       if (packet + dlink_offset + sizeof(uint32_t) > &packet[length]) {
         debug_print("%s\n", "Malformed MPLS packet. DISCARD\n");
         return false;
       }
       mpls.u32 = get_u32(packet, dlink_offset);
->>>>>>> SoftAtHome/master
       mpls.u32 = ntohl(mpls.u32);
       dlink_offset += 4;
     }
     break;
   }
-<<<<<<< HEAD
-  return dlink_offset;
-}
-
-/*
-  Function for pfwl_parse_datalink()
-  @return n bit from position p of number x
-*/
-static inline uint8_t getBits(uint16_t x, int p, int n) {
-  return (x >> (p + 1 - n)) & ~(~0 << n);
-}
-
-pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
-                              pfwl_protocol_l2_t datalink_type,
-                              pfwl_dissection_info_t *dissection_info) {
-=======
   *dlink_offset_out = dlink_offset;
   return true;
 }
@@ -279,7 +234,6 @@ pfwl_status_t pfwl_dissect_L2(const unsigned char *packet, pfwl_protocol_l2_t da
 
 pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, pfwl_protocol_l2_t datalink_type,
                                     pfwl_dissection_info_t *dissection_info) {
->>>>>>> SoftAtHome/master
   memset(dissection_info, 0, sizeof(pfwl_dissection_info_t));
   // check parameters
   if (!packet || datalink_type == PFWL_PROTO_L2_NUM) {
@@ -305,13 +259,10 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
   /** IEEE 802.3 Ethernet - 1 **/
   case PFWL_PROTO_L2_EN10MB:
     debug_print("%s\n", "Datalink type: Ethernet\n");
-<<<<<<< HEAD
-=======
     if (length < sizeof(*ether_header)) {
       debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
->>>>>>> SoftAtHome/master
     ether_header = (struct ether_header *) (packet);
     // set datalink offset
     dlink_offset = ETHHDR_SIZE;
@@ -323,9 +274,6 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
       eth_type_1 = 1; // ethernet I - followed by llc snap 05DC
     // check for LLC layer with SNAP extension
     if (eth_type_1) {
-<<<<<<< HEAD
-      if (packet[dlink_offset] == SNAP) {
-=======
       if (dlink_offset >= length) {
         debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
         return PFWL_ERROR_L2_PARSING;
@@ -336,7 +284,6 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
           debug_print("%s\n", "Malformed Ethernet packet. DISCARD\n");
           return PFWL_ERROR_L2_PARSING;
         }
->>>>>>> SoftAtHome/master
         llc_snap_header = (struct llc_snap_hdr *) (packet + dlink_offset);
         type = llc_snap_header->type; // LLC type is the l3 proto type
         dlink_offset += 8;
@@ -347,13 +294,10 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
   /** Linux Cooked Capture - 113 **/
   case PFWL_PROTO_L2_LINUX_SLL:
     debug_print("%s\n", "Datalink type: Linux Cooked\n");
-<<<<<<< HEAD
-=======
     if (dlink_offset + 15u >= length) {
       debug_print("%s\n", "Malformed Linux Cooked packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
->>>>>>> SoftAtHome/master
     type = (packet[dlink_offset + 14] << 8) + packet[dlink_offset + 15];
     dlink_offset = 16;
     break;
@@ -366,14 +310,11 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
   /** Radiotap link-layer - 127 **/
   case PFWL_PROTO_L2_IEEE802_11_RADIO: {
     debug_print("%s\n", "Datalink type: Radiotap\n");
-<<<<<<< HEAD
-=======
     if (length < sizeof(*radiotap_header)) {
       debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
 
->>>>>>> SoftAtHome/master
     radiotap_header = (struct radiotap_hdr *) packet;
     radiotap_len = radiotap_header->len;
     dlink_offset = radiotap_len;
@@ -388,14 +329,11 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
     // Check if Flag byte is present
     if (getBits(radiotap_header->present, 1, 1) == 1) {
       // Check Bad FCS presence
-<<<<<<< HEAD
-=======
       if (p_radio >= &packet[length]) {
         debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
         return PFWL_ERROR_L2_PARSING;
       }
 
->>>>>>> SoftAtHome/master
       if (*p_radio == F_BADFCS) {
         debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
         return PFWL_ERROR_L2_PARSING;
@@ -407,25 +345,17 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
         Once Radiotap is present,
         we must check if Wifi data is present
      **/
-<<<<<<< HEAD
-=======
     if (packet + radiotap_len + sizeof(*wifi_header) > &packet[length]) {
       debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
 
->>>>>>> SoftAtHome/master
     wifi_header = (struct wifi_hdr *) (packet + radiotap_len);
     // uint8_t ts;   // TYPE/SUBTYPE (the following 3 getBits)
 
     // Check Data type
     if (getBits(wifi_header->ts, 3, 2) == W_DATA) {
-<<<<<<< HEAD
-      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) ||
-          (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
-=======
       if ((getBits(wifi_header->ts, 7, 4) == D_DATA) || (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
->>>>>>> SoftAtHome/master
         wifi_len = sizeof(struct wifi_hdr); /* 26 bytes */
         dlink_offset += wifi_len;
       }
@@ -437,49 +367,33 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
     }
 
     // Check LLC
-<<<<<<< HEAD
-=======
     if (packet + wifi_len + sizeof(*llc_snap_header) > &packet[length]) {
       debug_print("%s\n", "Malformed Radiotap packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
 
->>>>>>> SoftAtHome/master
     llc_snap_header = (struct llc_snap_hdr *) (packet + wifi_len);
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
     else {
-<<<<<<< HEAD
-      debug_print("%s\n",
-                  "Probably a wifi packet with data encription. Discard\n");
-=======
       debug_print("%s\n", "Probably a wifi packet with data encription. Discard\n");
->>>>>>> SoftAtHome/master
       return PFWL_ERROR_L2_PARSING;
     }
     break;
   }
 
   case PFWL_PROTO_L2_IEEE802_11: {
-<<<<<<< HEAD
-=======
     if (packet + radiotap_len + sizeof(*wifi_header) > &packet[length]) {
       debug_print("%s\n", "Malformed 802.11 packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
 
->>>>>>> SoftAtHome/master
     wifi_header = (struct wifi_hdr *) (packet + radiotap_len);
     // uint8_t ts;   // TYPE/SUBTYPE (the following 3 getBits)
 
     // Check Data type
     if (getBits(wifi_header->ts, 3, 2) == W_DATA) {
-<<<<<<< HEAD
-      if ((getBits(wifi_header->ts, 7, 4) == D_DATA) ||
-          (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
-=======
       if ((getBits(wifi_header->ts, 7, 4) == D_DATA) || (getBits(wifi_header->ts, 7, 4) == D_QOSD)) {
->>>>>>> SoftAtHome/master
         wifi_len = sizeof(struct wifi_hdr); /* 26 bytes */
         dlink_offset = wifi_len;
       }
@@ -491,24 +405,16 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
     }
 
     // Check LLC
-<<<<<<< HEAD
-=======
     if (packet + wifi_len + sizeof(*llc_snap_header) > &packet[length]) {
       debug_print("%s\n", "Malformed 802.11 packet. DISCARD\n");
       return PFWL_ERROR_L2_PARSING;
     }
 
->>>>>>> SoftAtHome/master
     llc_snap_header = (struct llc_snap_hdr *) (packet + wifi_len);
     if (llc_snap_header->dsap == SNAP || llc_snap_header->ssap == SNAP)
       dlink_offset += sizeof(struct llc_snap_hdr);
     else {
-<<<<<<< HEAD
-      debug_print("%s\n",
-                  "Probably a wifi packet with data encription. Discard\n");
-=======
       debug_print("%s\n", "Probably a wifi packet with data encription. Discard\n");
->>>>>>> SoftAtHome/master
       return PFWL_ERROR_L2_PARSING;
     }
     break;
@@ -556,13 +462,9 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
     break;
   }
 
-<<<<<<< HEAD
-  dlink_offset = pfwl_check_dtype(packet, type, dlink_offset);
-=======
   if (!pfwl_check_dtype(packet, length, type, dlink_offset, &dlink_offset)) {
     return PFWL_ERROR_L2_PARSING;
   }
->>>>>>> SoftAtHome/master
   dissection_info->l2.length = dlink_offset;
   return PFWL_STATUS_OK;
 }
@@ -598,13 +500,7 @@ pfwl_protocol_l2_t pfwl_convert_pcap_dlt(int dlt) {
 }
 #else
 pfwl_protocol_l2_t pfwl_convert_pcap_dlt(int x) {
-<<<<<<< HEAD
-  fprintf(
-      stderr,
-      "To use the pfwl_convert_pcap_dlt call, libpcap needs to be installed");
-=======
   fprintf(stderr, "To use the pfwl_convert_pcap_dlt call, libpcap needs to be installed");
->>>>>>> SoftAtHome/master
 }
 #endif
 
@@ -624,40 +520,23 @@ static const char* pfwl_l2_protocols_names[PFWL_PROTO_L2_NUM] = {
 };
 // clang-format on
 
-<<<<<<< HEAD
-const char *pfwl_get_L2_protocol_name(pfwl_protocol_l2_t protocol){
-  if(protocol < PFWL_PROTO_L2_NUM){
-    return pfwl_l2_protocols_names[protocol];
-  }else{
-=======
 const char *pfwl_get_L2_protocol_name(pfwl_protocol_l2_t protocol) {
   if (protocol < PFWL_PROTO_L2_NUM) {
     return pfwl_l2_protocols_names[protocol];
   } else {
->>>>>>> SoftAtHome/master
     return "Unknown";
   }
 }
 
-<<<<<<< HEAD
-pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name){
-  for(size_t i = 0; i < PFWL_PROTO_L2_NUM; i++){
-    if(!strcasecmp(name, pfwl_l2_protocols_names[i])){
-=======
 pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name) {
   for (size_t i = 0; i < PFWL_PROTO_L2_NUM; i++) {
     if (!strcasecmp(name, pfwl_l2_protocols_names[i])) {
->>>>>>> SoftAtHome/master
       return (pfwl_protocol_l2_t) i;
     }
   }
   return PFWL_PROTO_L2_NUM;
 }
 
-<<<<<<< HEAD
-const char **const pfwl_get_L2_protocols_names(){
-=======
 const char **pfwl_get_L2_protocols_names() {
->>>>>>> SoftAtHome/master
   return pfwl_l2_protocols_names;
 }

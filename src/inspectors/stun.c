@@ -50,31 +50,6 @@ struct stun_header {
 #endif
   uint16_t msg_len;
   uint32_t magic_cookie;
-<<<<<<< HEAD
-  uint32_t transaction_id_0;
-  uint32_t transaction_id_1;
-  uint32_t transaction_id_2;
-} __attribute__((packed));
-
-uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data,
-                  size_t data_length, pfwl_dissection_info_t *pkt_info,
-                  pfwl_flow_info_private_t *flow_info_private) {
-  struct stun_header* stun_packet = (struct stun_header*) app_data;
-  if(stun_packet->zeros == 0 &&
-     stun_packet->magic_cookie == STUN_MAGIC_COOKIE){
-    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS)      ||
-       pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT)){
-      size_t offset = sizeof(struct stun_header);
-      while(offset < data_length){
-        uint16_t type = get_u16(app_data, offset);
-        uint16_t length = ntohs(get_u16(app_data, offset + 2));
-        if(type == STUN_MAPPED_ADDRESS ||
-           type == STUN_XOR_MAPPED_ADDRESS){
-          uint8_t family = app_data[offset + 5];
-          uint16_t port = ntohs(get_u16(app_data, offset + 6));
-          size_t addr_len = 0;
-          if(family == 0x01){
-=======
   uint8_t transaction_id[12];
 } __attribute__((packed));
 
@@ -96,31 +71,10 @@ uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data, size_t da
           uint16_t port = ntohs(get_u16(app_data, offset + 6));
           size_t addr_len = 0;
           if (family == 0x01) {
->>>>>>> SoftAtHome/master
             // IPv4
             addr_len = 4;
             struct in_addr in;
             in.s_addr = get_u32(app_data, offset + 8);
-<<<<<<< HEAD
-            if(type == STUN_XOR_MAPPED_ADDRESS){
-              in.s_addr ^= STUN_MAGIC_COOKIE;
-            }
-            inet_ntop(AF_INET, &in, flow_info_private->stun_mapped_address, sizeof(flow_info_private->stun_mapped_address));
-          }else{
-            // IPv6
-            addr_len = 16;
-            struct in6_addr in;
-            memcpy(in.__in6_u.__u6_addr8, app_data + offset + 8, 16);
-            if(type == STUN_XOR_MAPPED_ADDRESS){
-              in.__in6_u.__u6_addr32[0] ^= STUN_MAGIC_COOKIE;
-              in.__in6_u.__u6_addr32[1] ^= stun_packet->transaction_id_0;
-              in.__in6_u.__u6_addr32[2] ^= stun_packet->transaction_id_1;
-              in.__in6_u.__u6_addr32[3] ^= stun_packet->transaction_id_2;
-            }
-            inet_ntop(AF_INET6, &in, flow_info_private->stun_mapped_address, sizeof(flow_info_private->stun_mapped_address));
-          }
-          if(type == STUN_XOR_MAPPED_ADDRESS){
-=======
             if (type == STUN_XOR_MAPPED_ADDRESS) {
               in.s_addr ^= STUN_MAGIC_COOKIE;
             }
@@ -144,7 +98,6 @@ uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data, size_t da
                       sizeof(flow_info_private->stun_mapped_address));
           }
           if (type == STUN_XOR_MAPPED_ADDRESS) {
->>>>>>> SoftAtHome/master
 #if __BYTE_ORDER == __LITTLE_ENDIAN
             port ^= 0x2112;
 #else
@@ -152,22 +105,14 @@ uint8_t check_stun(pfwl_state_t *state, const unsigned char *app_data, size_t da
 #endif
           }
           pfwl_field_number_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT, port);
-<<<<<<< HEAD
-          pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS, (const unsigned char*) flow_info_private->stun_mapped_address, addr_len);
-=======
           pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS,
                                 (const unsigned char *) flow_info_private->stun_mapped_address, addr_len);
->>>>>>> SoftAtHome/master
         }
         offset += length + 4; /* 'Type' and 'length' lengths are not included in 'length'*/
       }
     }
     return PFWL_PROTOCOL_MATCHES;
-<<<<<<< HEAD
-  }else{
-=======
   } else {
->>>>>>> SoftAtHome/master
     return PFWL_PROTOCOL_NO_MATCHES;
   }
 }

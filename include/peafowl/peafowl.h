@@ -82,17 +82,10 @@
 extern "C" {
 #endif
 
-<<<<<<< HEAD
-#include <peafowl/config.h>
-#include <peafowl/utils.h>
-#include <sys/types.h>
-#include <net/ethernet.h>
-=======
 #include <net/ethernet.h>
 #include <peafowl/config.h>
 #include <peafowl/utils.h>
 #include <sys/types.h>
->>>>>>> SoftAtHome/master
 
 /// @cond EXTERNAL
 typedef struct pfwl_flow_info_private pfwl_flow_info_private_t;
@@ -182,54 +175,6 @@ typedef uint8_t pfwl_protocol_l4_t;
  * L7 (application level) protocol.
  **/
 typedef enum {
-<<<<<<< HEAD
-  PFWL_PROTO_L7_DNS = 0,  ///< DNS
-  PFWL_PROTO_L7_MDNS,     ///< MDNS
-  PFWL_PROTO_L7_DHCP,     ///< DHCP
-  PFWL_PROTO_L7_DHCPv6,   ///< DHCPv6
-  PFWL_PROTO_L7_NTP,      ///< NTP
-  PFWL_PROTO_L7_SIP,      ///< SIP
-  PFWL_PROTO_L7_RTP,      ///< RTP
-  PFWL_PROTO_L7_RTCP,     ///< RTCP
-  PFWL_PROTO_L7_SSH,      ///< SSH
-  PFWL_PROTO_L7_SKYPE,    ///< Skype
-  PFWL_PROTO_L7_HTTP,     ///< HTTP
-  PFWL_PROTO_L7_BGP,      ///< BGP
-  PFWL_PROTO_L7_SMTP,     ///< SMTP
-  PFWL_PROTO_L7_POP3,     ///< POP3
-  PFWL_PROTO_L7_IMAP,     ///< IMAP
-  PFWL_PROTO_L7_SSL,      ///< SSL
-  PFWL_PROTO_L7_HANGOUT,  ///< Hangout
-  PFWL_PROTO_L7_WHATSAPP, ///< WhatsApp
-  PFWL_PROTO_L7_TELEGRAM, ///< Telegram
-  PFWL_PROTO_L7_DROPBOX,  ///< Dropbox
-  PFWL_PROTO_L7_SPOTIFY,  ///< Spotify
-  PFWL_PROTO_L7_BITCOIN,  ///< Bitcoin
-  PFWL_PROTO_L7_ETHEREUM, ///< Ethereum
-  PFWL_PROTO_L7_ZCASH,    ///< Zcash
-  PFWL_PROTO_L7_MONERO,   ///< Monero
-  PFWL_PROTO_L7_STRATUM,  ///< Stratum mining protocol (can be used by Bitcoin, Zcash and others)
-  PFWL_PROTO_L7_JSON_RPC, ///< Json-RPC
-  PFWL_PROTO_L7_SSDP,     ///< SSDP
-  PFWL_PROTO_L7_STUN,     ///< STUN
-  PFWL_PROTO_L7_QUIC,     ///< QUIC    
-  PFWL_PROTO_L7_QUIC5,    ///< QUIC5
-  PFWL_PROTO_L7_MQTT,     ///< MQTT
-  PFWL_PROTO_L7_MYSQL,    ///< MySQL
-  PFWL_PROTO_L7_VIBER,    ///< Viber
-  PFWL_PROTO_L7_KERBEROS, ///< Kerberos
-  PFWL_PROTO_L7_TOR,      ///< Tor
-  PFWL_PROTO_L7_GIT,      ///< Git
-  PFWL_PROTO_L7_NUM,      ///< Dummy value to indicate the number of protocols
-  PFWL_PROTO_L7_NOT_DETERMINED, ///< Dummy value to indicate that the protocol
-                                ///< has not been identified yet
-  PFWL_PROTO_L7_UNKNOWN, ///< Dummy value to indicate that the protocol has not
-                        ///< been identified
-  
-  
-} pfwl_protocol_l7_t;
-
-=======
   PFWL_PROTO_L7_DNS = 0,        ///< DNS
   PFWL_PROTO_L7_MDNS,           ///< MDNS
   PFWL_PROTO_L7_DHCP,           ///< DHCP
@@ -274,7 +219,6 @@ typedef enum {
                                 ///< been identified
 
 } pfwl_protocol_l7_t;
->>>>>>> SoftAtHome/master
 
 /**
  * A generic statistic for the flow.
@@ -283,34 +227,6 @@ typedef enum {
  * (e.g. packets per second, etc...).
  **/
 typedef enum {
-<<<<<<< HEAD
-  PFWL_STAT_PACKETS                      , ///< Number of packets, one value for each
-                                           ///< direction. Multiple IP fragments count like a
-                                           ///< single packet.
-  PFWL_STAT_BYTES                        , ///< Number of bytes (from L3 start to end of packet).
-  PFWL_STAT_TIMESTAMP_FIRST              , ///< Timestamp of the first packet received
-                                           ///< for this flow.
-                                           ///< Resolution depends on the values provided through
-                                           ///< the pfwl_dissect_from_L* calls.
-  PFWL_STAT_TIMESTAMP_LAST               , ///< Timestamp of the last packet received
-                                           ///< for this flow.
-                                           ///< Resolution depends on the values provided through
-                                           ///< the pfwl_dissect_from_L* calls.
-  PFWL_STAT_L4_TCP_RTT_SYN_ACK           , ///< Round-Trip-Time (RTT), measuring delay from the first SYN received
-                                           ///< to the corresponding ACK.
-                                           ///< Resolution depends on the values provided through
-                                           ///< the pfwl_dissect_from_L* calls.
-  PFWL_STAT_L4_TCP_COUNT_SYN             , ///< Number of segments with SYN bit set.
-  PFWL_STAT_L4_TCP_COUNT_FIN             , ///< Number of segments with FIN bit set.
-  PFWL_STAT_L4_TCP_COUNT_RST             , ///< Number of segments with RST bit set.
-  PFWL_STAT_L4_TCP_COUNT_RETRANSMISSIONS , ///< Number of retransmitted packets.
-  PFWL_STAT_L4_TCP_COUNT_ZERO_WINDOW     , ///< Number of zero window segments.
-  PFWL_STAT_L4_TCP_WINDOW_SCALING        , ///< Window scaling value (shift count) or -1 if the TCP option was not present.
-  PFWL_STAT_L7_PACKETS                   , ///< Number of packets with a non-zero L7
-                                           ///< payload.
-  PFWL_STAT_L7_BYTES                     , ///< Number of L7 bytes. One value for each direction.
-  PFWL_STAT_NUM                          , ///< Dummy value to indicate number of statistics. Must be the last stat specified.
-=======
   PFWL_STAT_PACKETS,                      ///< Number of packets, one value for each
                                           ///< direction. Multiple IP fragments count like a
                                           ///< single packet.
@@ -337,7 +253,6 @@ typedef enum {
                                    ///< payload.
   PFWL_STAT_L7_BYTES,              ///< Number of L7 bytes. One value for each direction.
   PFWL_STAT_NUM,                   ///< Dummy value to indicate number of statistics. Must be the last stat specified.
->>>>>>> SoftAtHome/master
 } pfwl_statistic_t;
 
 // clang-format on
@@ -348,27 +263,13 @@ typedef enum {
 typedef enum {
   PFWL_TIMESTAMP_UNIT_MICROSECONDS, ///< Microseconds
   PFWL_TIMESTAMP_UNIT_MILLISECONDS, ///< Milliseconds
-<<<<<<< HEAD
-  PFWL_TIMESTAMP_UNIT_SECONDS     , ///< Seconds
-=======
   PFWL_TIMESTAMP_UNIT_SECONDS,      ///< Seconds
->>>>>>> SoftAtHome/master
 } pfwl_timestamp_unit_t;
 
 /**
  * Possible strategies to adopt when there are
  * too many flows in the flows table.
  **/
-<<<<<<< HEAD
-typedef enum{
-  PFWL_FLOWS_STRATEGY_NONE, ///< Flows are always added to the table.
-  PFWL_FLOWS_STRATEGY_SKIP, ///< If the maximum capacity of the table 
-                            ///< is reached, new flows are not stored.
-  PFWL_FLOWS_STRATEGY_EVICT ///< If the maximum capacity of the table 
-                            ///< is reached, when a new flow is added
-                            ///< the oldest flow is evicted.
-}pfwl_flows_strategy_t;
-=======
 typedef enum {
   PFWL_FLOWS_STRATEGY_NONE, ///< Flows are always added to the table.
   PFWL_FLOWS_STRATEGY_SKIP, ///< If the maximum capacity of the table
@@ -377,7 +278,6 @@ typedef enum {
                             ///< is reached, when a new flow is added
                             ///< the oldest flow is evicted.
 } pfwl_flows_strategy_t;
->>>>>>> SoftAtHome/master
 
 /**
  * A string as represented by peafowl.
@@ -421,11 +321,7 @@ typedef pfwl_array_t pfwl_mmap_t;
  * A generic field extracted by peafowl.
  **/
 typedef struct pfwl_field {
-<<<<<<< HEAD
-  uint8_t present;           ///< 1 if the field has been set, 0 otherwise.
-=======
   uint8_t present; ///< 1 if the field has been set, 0 otherwise.
->>>>>>> SoftAtHome/master
   union {
     pfwl_basic_type_t basic; ///< A basic type.
     pfwl_array_t array;      ///< An array.
@@ -482,12 +378,9 @@ typedef enum {
   PFWL_FIELDS_L7_SIP_RURI_URI, ///< [STRING] 
   PFWL_FIELDS_L7_SIP_TO_TAG, ///< [STRING] 
   PFWL_FIELDS_L7_SIP_FROM_TAG, ///< [STRING] 
-<<<<<<< HEAD
-=======
   PFWL_FIELDS_L7_DNS_ID, ///< [NUMBER] ID of the DNS packet
   PFWL_FIELDS_L7_DNS_TYPE, ///< [STRING] Type of the DSN packet
   PFWL_FIELDS_L7_DNS_QUERY_TYPE, ///< [STRING] Type of the DNS Query
->>>>>>> SoftAtHome/master
   PFWL_FIELDS_L7_DNS_NAME_SRV, ///< [STRING] Server name
   PFWL_FIELDS_L7_DNS_NS_IP_1, ///< [STRING] Server name IP address
   PFWL_FIELDS_L7_DNS_NS_IP_2, ///< [STRING] Server name IP address
@@ -550,10 +443,7 @@ typedef enum {
   PFWL_FIELDS_L7_QUIC_SNI, ///< [STRING] Server Name Indication.
   PFWL_FIELDS_L7_QUIC_UAID, ///< [STRING] User Agent Identifier.
   PFWL_FIELDS_L7_QUIC_JA3, ///< [STRING] Quic/TLS JA3 Fingerprint (https://github.com/salesforce/ja3)
-<<<<<<< HEAD
   PFWL_FIELDS_L7_QUIC_TOKEN, ///< [STRING] QUIC address validation token
-=======
->>>>>>> SoftAtHome/master
   PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS, ///< [STRING] Mapped address (or xor-mapped address) (format x.y.z.w for IPv4 and a:b:c:d:e:f:g:h for IPv6).
   PFWL_FIELDS_L7_STUN_MAPPED_ADDRESS_PORT, ///< [NUMBER] Mapped address port (or xor-mapped port) .
   PFWL_FIELDS_L7_NUM, ///< [STRING] Dummy value to indicate number of fields. Must be the last field specified.
@@ -780,11 +670,7 @@ typedef void(pfwl_flow_cleaner_callback_t)(void *flow_udata);
  * associated to the flow.
  * @param flow_info A pointer to the flow information.
  */
-<<<<<<< HEAD
-typedef void(pfwl_flow_termination_callback_t)(pfwl_flow_info_t* flow_info);
-=======
 typedef void(pfwl_flow_termination_callback_t)(pfwl_flow_info_t *flow_info);
->>>>>>> SoftAtHome/master
 
 /// @cond Private structures
 typedef struct pfwl_state pfwl_state_t;
@@ -818,20 +704,6 @@ void pfwl_terminate(pfwl_state_t *state);
  * @brief Sets the number of simultaneously active flows to be expected.
  * @param state A pointer to the state of the library.
  * @param flows The number of simultaneously active flows.
-<<<<<<< HEAD
- * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit 
- * to the number of simultaneously active flows. However, this could lead 
- * to slowdown when retrieving flow information.
- * If PFWL_FLOWS_STRATEGY_SKIP, when that number of active flows is reached,
- * if a new flow is created an error will be returned (PFWL_ERROR_MAX_FLOWS) 
- * and new flows will not be created. 
- * If PFWL_FLOWS_STRATEGY_EVICT, when when that number of active flows 
- * is reached, if a new flow is created the oldest flow will be evicted.
- * @return 0 if succeeded, 1 otherwise.
- */
-uint8_t pfwl_set_expected_flows(pfwl_state_t *state, uint32_t flows,
-                                pfwl_flows_strategy_t strategy);
-=======
  * @param strategy If PFWL_FLOWS_STRATEGY_NONE, there will not be any limit
  * to the number of simultaneously active flows. However, this could lead
  * to slowdown when retrieving flow information.
@@ -843,7 +715,6 @@ uint8_t pfwl_set_expected_flows(pfwl_state_t *state, uint32_t flows,
  * @return 0 if succeeded, 1 otherwise.
  */
 uint8_t pfwl_set_expected_flows(pfwl_state_t *state, uint32_t flows, pfwl_flows_strategy_t strategy);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum number of packets to use to identify the protocol.
@@ -868,12 +739,7 @@ uint8_t pfwl_set_max_trials(pfwl_state_t *state, uint16_t max_trials);
  * @return 0 if succeeded, 1
  *         otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_defragmentation_enable_ipv4(pfwl_state_t *state,
-                                         uint16_t table_size);
-=======
 uint8_t pfwl_defragmentation_enable_ipv4(pfwl_state_t *state, uint16_t table_size);
->>>>>>> SoftAtHome/master
 
 /**
  * Enables IPv6 defragmentation. It is enabled by default.
@@ -884,12 +750,7 @@ uint8_t pfwl_defragmentation_enable_ipv4(pfwl_state_t *state, uint16_t table_siz
  * @return 0 if succeeded, 1
  *         otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_defragmentation_enable_ipv6(pfwl_state_t *state,
-                                         uint16_t table_size);
-=======
 uint8_t pfwl_defragmentation_enable_ipv6(pfwl_state_t *state, uint16_t table_size);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the amount of memory (in bytes) that a single host can use for IPv4
@@ -901,12 +762,7 @@ uint8_t pfwl_defragmentation_enable_ipv6(pfwl_state_t *state, uint16_t table_siz
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv4(
-    pfwl_state_t *state, uint32_t per_host_memory_limit);
-=======
 uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv4(pfwl_state_t *state, uint32_t per_host_memory_limit);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the amount of memory (in bytes) that a single host can use for IPv6
@@ -918,12 +774,7 @@ uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv4(pfwl_state_t *state,
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv6(
-    pfwl_state_t *state, uint32_t per_host_memory_limit);
-=======
 uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv6(pfwl_state_t *state, uint32_t per_host_memory_limit);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the total amount of memory (in bytes) that can be used for IPv4
@@ -937,13 +788,7 @@ uint8_t pfwl_defragmentation_set_per_host_memory_limit_ipv6(pfwl_state_t *state,
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t
-pfwl_defragmentation_set_total_memory_limit_ipv4(pfwl_state_t *state,
-                                                 uint32_t total_memory_limit);
-=======
 uint8_t pfwl_defragmentation_set_total_memory_limit_ipv4(pfwl_state_t *state, uint32_t total_memory_limit);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the total amount of memory (in bytes) that can be used for IPv6
@@ -957,13 +802,7 @@ uint8_t pfwl_defragmentation_set_total_memory_limit_ipv4(pfwl_state_t *state, ui
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t
-pfwl_defragmentation_set_total_memory_limit_ipv6(pfwl_state_t *state,
-                                                 uint32_t total_memory_limit);
-=======
 uint8_t pfwl_defragmentation_set_total_memory_limit_ipv6(pfwl_state_t *state, uint32_t total_memory_limit);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum time (in seconds) that can be spent to reassembly an
@@ -975,13 +814,7 @@ uint8_t pfwl_defragmentation_set_total_memory_limit_ipv6(pfwl_state_t *state, ui
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t
-pfwl_defragmentation_set_reassembly_timeout_ipv4(pfwl_state_t *state,
-                                                 uint8_t timeout_seconds);
-=======
 uint8_t pfwl_defragmentation_set_reassembly_timeout_ipv4(pfwl_state_t *state, uint8_t timeout_seconds);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the maximum time (in seconds) that can be spent to reassembly an
@@ -993,13 +826,7 @@ uint8_t pfwl_defragmentation_set_reassembly_timeout_ipv4(pfwl_state_t *state, ui
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t
-pfwl_defragmentation_set_reassembly_timeout_ipv6(pfwl_state_t *state,
-                                                 uint8_t timeout_seconds);
-=======
 uint8_t pfwl_defragmentation_set_reassembly_timeout_ipv6(pfwl_state_t *state, uint8_t timeout_seconds);
->>>>>>> SoftAtHome/master
 
 /**
  * Disables IPv4 defragmentation.
@@ -1051,12 +878,7 @@ uint8_t pfwl_tcp_reordering_disable(pfwl_state_t *state);
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_protocol_l7_enable(pfwl_state_t *state,
-                                pfwl_protocol_l7_t protocol);
-=======
 uint8_t pfwl_protocol_l7_enable(pfwl_state_t *state, pfwl_protocol_l7_t protocol);
->>>>>>> SoftAtHome/master
 
 /**
  * Disables an L7 protocol dissector.
@@ -1066,12 +888,7 @@ uint8_t pfwl_protocol_l7_enable(pfwl_state_t *state, pfwl_protocol_l7_t protocol
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_protocol_l7_disable(pfwl_state_t *state,
-                                 pfwl_protocol_l7_t protocol);
-=======
 uint8_t pfwl_protocol_l7_disable(pfwl_state_t *state, pfwl_protocol_l7_t protocol);
->>>>>>> SoftAtHome/master
 
 /**
  * Enables all the L7 protocol dissector.
@@ -1117,16 +934,8 @@ uint8_t pfwl_set_timestamp_unit(pfwl_state_t *state, pfwl_timestamp_unit_t unit)
  *        Dissection information from L2 to L7 will be filled in by this call.
  * @return The status of the identification process.
  */
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_from_L2(pfwl_state_t *state,
-                                   const unsigned char *pkt, size_t length,
-                                   double timestamp,
-                                   pfwl_protocol_l2_t datalink_type,
-                                   pfwl_dissection_info_t *dissection_info);
-=======
 pfwl_status_t pfwl_dissect_from_L2(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
                                    pfwl_protocol_l2_t datalink_type, pfwl_dissection_info_t *dissection_info);
->>>>>>> SoftAtHome/master
 
 /**
  * Dissects the packet starting from the beginning of the L3 (IP) header.
@@ -1136,23 +945,13 @@ pfwl_status_t pfwl_dissect_from_L2(pfwl_state_t *state, const unsigned char *pkt
  * @param timestamp The current time. The time unit depends on the timers used by the
  * caller and can be set through the pfwl_set_timestamp_unit call. By default
  * it is assumed that the timestamps unit is 'seconds'.
-<<<<<<< HEAD
- * @param   dissection_info The result of the dissection. Bytes of 
-=======
  * @param   dissection_info The result of the dissection. Bytes of
->>>>>>> SoftAtHome/master
  *          dissection_info.l3, dissection_info.l4, dissection_info.l7 must be
  *          set to 0 before calling this call.
  *          Dissection information from L3 to L7 will be filled in by this call.
  * @return  The status of the identification process.
  */
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_from_L3(pfwl_state_t *state,
-                                   const unsigned char *pkt, size_t length,
-                                   double timestamp,
-=======
 pfwl_status_t pfwl_dissect_from_L3(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
->>>>>>> SoftAtHome/master
                                    pfwl_dissection_info_t *dissection_info);
 
 /**
@@ -1165,19 +964,6 @@ pfwl_status_t pfwl_dissect_from_L3(pfwl_state_t *state, const unsigned char *pkt
  * @param timestamp The current time. The time unit depends on the timers used by the
  * caller and can be set through the pfwl_set_timestamp_unit call. By default
  * it is assumed that the timestamps unit is 'seconds'.
-<<<<<<< HEAD
- * @param   dissection_info The result of the dissection. Bytes of 
- *          dissection_info.l4, dissection_info.l7 must be
- *          set to 0 before calling this call.
- *          Dissection information about L3 header must be filled in by the
- *          caller. Dissection information from L4 to L7 will be filled in by 
-*           this call.
- * @return  The status of the identification process.
- */
-pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state,
-                                   const unsigned char *pkt, size_t length,
-                                   double timestamp,
-=======
  * @param   dissection_info The result of the dissection. Bytes of
  *          dissection_info.l4, dissection_info.l7 must be
  *          set to 0 before calling this call.
@@ -1187,7 +973,6 @@ pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state,
  * @return  The status of the identification process.
  */
 pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
->>>>>>> SoftAtHome/master
                                    pfwl_dissection_info_t *dissection_info);
 
 /**
@@ -1200,14 +985,6 @@ pfwl_status_t pfwl_dissect_from_L4(pfwl_state_t *state, const unsigned char *pkt
  *        Dissection information about L2 headers will be filled in by this
  * call.
  * @return The status of the identification process.
-<<<<<<< HEAD
- */
-pfwl_status_t pfwl_dissect_L2(const unsigned char *packet,
-                              pfwl_protocol_l2_t datalink_type,
-                              pfwl_dissection_info_t *dissection_info);
-
-/**
-=======
  * @deprecated since 1.1.3
  * @see pfwl_dissect_L2_sized()
  */
@@ -1229,7 +1006,6 @@ __attribute__((deprecated)) pfwl_status_t pfwl_dissect_L2(const unsigned char *p
 pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, pfwl_protocol_l2_t datalink_type,
                                     pfwl_dissection_info_t *dissection_info);
 /**
->>>>>>> SoftAtHome/master
  * Extracts from the packet the L3 information.
  * @param   state The state of the library.
  * @param   pkt The pointer to the beginning of IP header.
@@ -1237,23 +1013,14 @@ pfwl_status_t pfwl_dissect_L2_sized(const unsigned char *packet, size_t length, 
  * @param timestamp The current time. The time unit depends on the timers used by the
  * caller and can be set through the pfwl_set_timestamp_unit call. By default
  * it is assumed that the timestamps unit is 'seconds'.
-<<<<<<< HEAD
- * @param   dissection_info The result of the dissection. Bytes of 
-=======
  * @param   dissection_info The result of the dissection. Bytes of
->>>>>>> SoftAtHome/master
  *          dissection_info.l3, dissection_info.l4, dissection_info.l7 must be
  *          set to 0 before calling this call.
  *          Dissection information about L3 headers will be filled in by this
  * call.
  * @return The status of the identification process.
  */
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt,
-                              size_t length, double timestamp,
-=======
 pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
->>>>>>> SoftAtHome/master
                               pfwl_dissection_info_t *dissection_info);
 
 /**
@@ -1265,11 +1032,7 @@ pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt, siz
  * @param timestamp The current time. The time unit depends on the timers used by the
  * caller and can be set through the pfwl_set_timestamp_unit call. By default
  * it is assumed that the timestamps unit is 'seconds'.
-<<<<<<< HEAD
- * @param   dissection_info The result of the dissection. Bytes of 
-=======
  * @param   dissection_info The result of the dissection. Bytes of
->>>>>>> SoftAtHome/master
  *          dissection_info.l4, dissection_info.l7 must be
  *          set to 0 before calling this call.
  *          Dissection information about L3 headers must be filled in by the
@@ -1279,15 +1042,8 @@ pfwl_status_t pfwl_dissect_L3(pfwl_state_t *state, const unsigned char *pkt, siz
  * will point to the private information about the flow.
  * @return  The status of the identification process.
  */
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_L4(pfwl_state_t *state, const unsigned char *pkt,
-                              size_t length, double timestamp,
-                              pfwl_dissection_info_t *dissection_info,
-                              pfwl_flow_info_private_t **flow_info_private);
-=======
 pfwl_status_t pfwl_dissect_L4(pfwl_state_t *state, const unsigned char *pkt, size_t length, double timestamp,
                               pfwl_dissection_info_t *dissection_info, pfwl_flow_info_private_t **flow_info_private);
->>>>>>> SoftAtHome/master
 
 /**
  * Extracts from the packet the L7 information. Before calling it, a check on
@@ -1304,11 +1060,7 @@ pfwl_status_t pfwl_dissect_L4(pfwl_state_t *state, const unsigned char *pkt, siz
  * @param   pkt The pointer to the beginning of application data.
  * @param   length Length of the packet (from the beginning of the
  *          L7 header).
-<<<<<<< HEAD
- * @param   dissection_info The result of the dissection. Bytes of 
-=======
  * @param   dissection_info The result of the dissection. Bytes of
->>>>>>> SoftAtHome/master
  *          dissection_info.l7 must be set to 0 before calling this call.
  *          Dissection information about L3 and L4 headers must be filled in by
  * the caller. Dissection information about L7 packet will be filled in by this
@@ -1318,15 +1070,8 @@ pfwl_status_t pfwl_dissect_L4(pfwl_state_t *state, const unsigned char *pkt, siz
  * call.
  * @return  The status of the identification process.
  */
-<<<<<<< HEAD
-pfwl_status_t pfwl_dissect_L7(pfwl_state_t *state, const unsigned char *pkt,
-                              size_t length,
-                              pfwl_dissection_info_t *dissection_info,
-                              pfwl_flow_info_private_t *flow_info_private);
-=======
 pfwl_status_t pfwl_dissect_L7(pfwl_state_t *state, const unsigned char *pkt, size_t length,
                               pfwl_dissection_info_t *dissection_info, pfwl_flow_info_private_t *flow_info_private);
->>>>>>> SoftAtHome/master
 
 /**
  * Creates a new Peafowl flow info (to be called only if pfwl_dissect_L7 is
@@ -1336,22 +1081,14 @@ pfwl_status_t pfwl_dissect_L7(pfwl_state_t *state, const unsigned char *pkt, siz
  * L4 included).
  * @return The new Peafowl flow, needs to be deleted with pfwl_destroy_flow.
  */
-<<<<<<< HEAD
-pfwl_flow_info_private_t* pfwl_create_flow_info_private(pfwl_state_t* state,
-=======
 pfwl_flow_info_private_t *pfwl_create_flow_info_private(pfwl_state_t *state,
->>>>>>> SoftAtHome/master
                                                         const pfwl_dissection_info_t *dissection_info);
 
 /**
  * Destroys a flow info created with pfwl_create_flow.
  * @param info The flow to be destroyed.
  */
-<<<<<<< HEAD
-void pfwl_destroy_flow_info_private(pfwl_flow_info_private_t* info);
-=======
 void pfwl_destroy_flow_info_private(pfwl_flow_info_private_t *info);
->>>>>>> SoftAtHome/master
 
 /**
  * DEPRECATED.
@@ -1360,12 +1097,7 @@ void pfwl_destroy_flow_info_private(pfwl_flow_info_private_t *info);
  * @param flow_info_private The private flow information, will be initialized
  * by the library.
  */
-<<<<<<< HEAD
-void pfwl_init_flow_info(pfwl_state_t *state,
-                         pfwl_flow_info_private_t *flow_info_private);
-=======
 void pfwl_init_flow_info(pfwl_state_t *state, pfwl_flow_info_private_t *flow_info_private);
->>>>>>> SoftAtHome/master
 
 /**
  * Guesses the protocol looking only at source/destination ports.
@@ -1375,12 +1107,7 @@ void pfwl_init_flow_info(pfwl_state_t *state, pfwl_flow_info_private_t *flow_inf
  * to L4 parsing).
  * @return Returns the possible matching protocol.
  */
-<<<<<<< HEAD
-pfwl_protocol_l7_t
-pfwl_guess_protocol(pfwl_dissection_info_t identification_info);
-=======
 pfwl_protocol_l7_t pfwl_guess_protocol(pfwl_dissection_info_t identification_info);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the string representing the status message associated to the
@@ -1409,11 +1136,7 @@ pfwl_protocol_l2_t pfwl_get_L2_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L2 protocol with id 'i'.
  */
-<<<<<<< HEAD
-const char **const pfwl_get_L2_protocols_names();
-=======
 const char **pfwl_get_L2_protocols_names(void);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the string represetation of an L3 protocol.
@@ -1434,11 +1157,7 @@ pfwl_protocol_l3_t pfwl_get_L3_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L3 protocol with id 'i'.
  */
-<<<<<<< HEAD
-const char **const pfwl_get_L3_protocols_names();
-=======
 const char **pfwl_get_L3_protocols_names(void);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the string represetation of an L4 protocol.
@@ -1459,11 +1178,7 @@ pfwl_protocol_l4_t pfwl_get_L4_protocol_id(const char *const name);
  * @return An array A of string, such that A[i] is the
  * string representation of the L4 protocol with id 'i'.
  */
-<<<<<<< HEAD
-const char **const pfwl_get_L4_protocols_names();
-=======
 const char **pfwl_get_L4_protocols_names(void);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the string represetation of an L7 protocol.
@@ -1484,22 +1199,14 @@ pfwl_protocol_l7_t pfwl_get_L7_protocol_id(const char *const name);
  * @return  An array A of string, such that A[i] is the
  * string representation of the L7 protocol with id 'i'.
  */
-<<<<<<< HEAD
-const char **const pfwl_get_L7_protocols_names();
-=======
 const char **pfwl_get_L7_protocols_names(void);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the string represetation of a protocol field.
  * @param   field The protocol field identifier.
  * @return  The string representation of the protocol field with id 'field'.
  */
-<<<<<<< HEAD
-const char* pfwl_get_L7_field_name(pfwl_field_id_t field);
-=======
 const char *pfwl_get_L7_field_name(pfwl_field_id_t field);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the id associated to a protocol field name.
@@ -1507,11 +1214,7 @@ const char *pfwl_get_L7_field_name(pfwl_field_id_t field);
  * @param field_name The name of the field.
  * @return The id associated to the protocol field with name 'field_name'.
  */
-<<<<<<< HEAD
-pfwl_field_id_t pfwl_get_L7_field_id(pfwl_protocol_l7_t protocol, const char* field_name);
-=======
 pfwl_field_id_t pfwl_get_L7_field_id(pfwl_protocol_l7_t protocol, const char *field_name);
->>>>>>> SoftAtHome/master
 
 /**
  * Returns the protocol associated to a field identifier.
@@ -1528,12 +1231,7 @@ pfwl_protocol_l7_t pfwl_get_L7_field_protocol(pfwl_field_id_t field);
  *
  * @return 0 if succeeded, 1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_set_flow_cleaner_callback(pfwl_state_t *state,
-                                       pfwl_flow_cleaner_callback_t *cleaner);
-=======
 uint8_t pfwl_set_flow_cleaner_callback(pfwl_state_t *state, pfwl_flow_cleaner_callback_t *cleaner);
->>>>>>> SoftAtHome/master
 
 /**
  * Sets the callback that will be called when a flow expires.
@@ -1542,12 +1240,7 @@ uint8_t pfwl_set_flow_cleaner_callback(pfwl_state_t *state, pfwl_flow_cleaner_ca
  *
  * @return 0 if succeeded, 1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_set_flow_termination_callback(pfwl_state_t *state,
-                                           pfwl_flow_termination_callback_t *cleaner);
-=======
 uint8_t pfwl_set_flow_termination_callback(pfwl_state_t *state, pfwl_flow_termination_callback_t *cleaner);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_statistic_add Enables the computation of a specific flow statistic.
@@ -1556,11 +1249,7 @@ uint8_t pfwl_set_flow_termination_callback(pfwl_state_t *state, pfwl_flow_termin
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_statistic_add(pfwl_state_t* state, pfwl_statistic_t stat);
-=======
 uint8_t pfwl_statistic_add(pfwl_state_t *state, pfwl_statistic_t stat);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_statistic_remove Disables the computation of a specific flow statistic.
@@ -1569,11 +1258,7 @@ uint8_t pfwl_statistic_add(pfwl_state_t *state, pfwl_statistic_t stat);
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_statistic_remove(pfwl_state_t* state, pfwl_statistic_t stat);
-=======
 uint8_t pfwl_statistic_remove(pfwl_state_t *state, pfwl_statistic_t stat);
->>>>>>> SoftAtHome/master
 
 /**
  * Enables the extraction of a specific L7 field for a given protocol.
@@ -1625,12 +1310,7 @@ uint8_t pfwl_field_remove_L7(pfwl_state_t *state, pfwl_field_id_t field);
  * @return 0 if succeeded,
  *         1 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_set_protocol_accuracy_L7(pfwl_state_t *state,
-                                      pfwl_protocol_l7_t protocol,
-=======
 uint8_t pfwl_set_protocol_accuracy_L7(pfwl_state_t *state, pfwl_protocol_l7_t protocol,
->>>>>>> SoftAtHome/master
                                       pfwl_dissector_accuracy_t accuracy);
 
 /**
@@ -1650,12 +1330,7 @@ pfwl_field_type_t pfwl_get_L7_field_type(pfwl_field_id_t field);
  * @return 0 if the field was present, 1 otherwise. If 1 is returned, 'string'
  * is not set.
  */
-<<<<<<< HEAD
-uint8_t pfwl_field_string_get(pfwl_field_t *fields, pfwl_field_id_t id,
-                              pfwl_string_t *string);
-=======
 uint8_t pfwl_field_string_get(pfwl_field_t *fields, pfwl_field_id_t id, pfwl_string_t *string);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_field_number_get Extracts a specific numeric field from a list of
@@ -1666,12 +1341,7 @@ uint8_t pfwl_field_string_get(pfwl_field_t *fields, pfwl_field_id_t id, pfwl_str
  * @return 0 if the field was present, 1 otherwise. If 1 is returned, 'number'
  * is not set.
  */
-<<<<<<< HEAD
-uint8_t pfwl_field_number_get(pfwl_field_t *fields, pfwl_field_id_t id,
-                              int64_t *number);
-=======
 uint8_t pfwl_field_number_get(pfwl_field_t *fields, pfwl_field_id_t id, int64_t *number);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_field_array_length Returns the size of a field representing an
@@ -1682,12 +1352,7 @@ uint8_t pfwl_field_number_get(pfwl_field_t *fields, pfwl_field_id_t id, int64_t 
  * @return 0 if the field was present, 1 otherwise. If 1 is returned, 'size' is
  * not set.
  */
-<<<<<<< HEAD
-uint8_t pfwl_field_array_length(pfwl_field_t *fields, pfwl_field_id_t id,
-                                size_t *length);
-=======
 uint8_t pfwl_field_array_length(pfwl_field_t *fields, pfwl_field_id_t id, size_t *length);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_field_array_get_pair Extracts a pair in a specific position, from
@@ -1699,12 +1364,7 @@ uint8_t pfwl_field_array_length(pfwl_field_t *fields, pfwl_field_id_t id, size_t
  * @return 0 if the field was present, 1 otherwise. If 1 is returned, 'pair' is
  * not set.
  */
-<<<<<<< HEAD
-uint8_t pfwl_field_array_get_pair(pfwl_field_t *fields, pfwl_field_id_t id,
-                                  size_t position, pfwl_pair_t *pair);
-=======
 uint8_t pfwl_field_array_get_pair(pfwl_field_t *fields, pfwl_field_id_t id, size_t position, pfwl_pair_t *pair);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_http_get_header Extracts a specific HTTP header from the
@@ -1715,12 +1375,7 @@ uint8_t pfwl_field_array_get_pair(pfwl_field_t *fields, pfwl_field_id_t id, size
  * @return 0 if the http header was present, 1 otherwise. If 1 is returned,
  * 'header_value' is not set.
  */
-<<<<<<< HEAD
-uint8_t pfwl_http_get_header(pfwl_dissection_info_t *dissection_info,
-                             const char *header_name,
-=======
 uint8_t pfwl_http_get_header(pfwl_dissection_info_t *dissection_info, const char *header_name,
->>>>>>> SoftAtHome/master
                              pfwl_string_t *header_value);
 
 /**
@@ -1747,11 +1402,7 @@ uint8_t pfwl_http_get_header(pfwl_dissection_info_t *dissection_info, const char
  * @param protocol The L7 protocol.
  * @return 1 if the L7 protocol is carried by the flow, 0 otherwise.
  */
-<<<<<<< HEAD
-uint8_t pfwl_has_protocol_L7(pfwl_dissection_info_t* dissection_info, pfwl_protocol_l7_t protocol);
-=======
 uint8_t pfwl_has_protocol_L7(pfwl_dissection_info_t *dissection_info, pfwl_protocol_l7_t protocol);
->>>>>>> SoftAtHome/master
 
 /**
  * @brief pfwl_convert_pcap_dlt Converts a pcap datalink type (which can be
@@ -1765,20 +1416,12 @@ pfwl_protocol_l2_t pfwl_convert_pcap_dlt(int dlt);
 /**
  * Possible type of matchings when associating tags to packets.
  **/
-<<<<<<< HEAD
-typedef enum{
-=======
 typedef enum {
->>>>>>> SoftAtHome/master
   PFWL_FIELD_MATCHING_PREFIX, ///< Prefix matching.
   PFWL_FIELD_MATCHING_EXACT,  ///< Exact matching.
   PFWL_FIELD_MATCHING_SUFFIX, ///< Suffix matching.
   PFWL_FIELD_MATCHING_ERROR   ///< Invalid tag matching.
-<<<<<<< HEAD
-}pfwl_field_matching_t;
-=======
 } pfwl_field_matching_t;
->>>>>>> SoftAtHome/master
 
 /**
  * Loads the associations between fields values and user-defined tags.
@@ -1822,16 +1465,10 @@ typedef enum {
  *
  * The 'tags_file' argument can be NULL and the matching rules can be added later with the pfwl_*_tags_add calls.
  *
-<<<<<<< HEAD
- * @return 0 if the loading was successful, 1 otherwise (e.g. error while parsing the json file, non existing file, etc...)
- */
-int pfwl_field_tags_load_L7(pfwl_state_t* state, pfwl_field_id_t field, const char* tags_file);
-=======
  * @return 0 if the loading was successful, 1 otherwise (e.g. error while parsing the json file, non existing file,
  * etc...)
  */
 int pfwl_field_tags_load_L7(pfwl_state_t *state, pfwl_field_id_t field, const char *tags_file);
->>>>>>> SoftAtHome/master
 
 /**
  * Adds a tag matching rule for a specific string field.
@@ -1844,12 +1481,8 @@ int pfwl_field_tags_load_L7(pfwl_state_t *state, pfwl_field_id_t field, const ch
  * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
  * @param tag The tag to assign to the packet when the field matches with 'value'.
  */
-<<<<<<< HEAD
-void pfwl_field_string_tags_add_L7(pfwl_state_t* state, pfwl_field_id_t field, const char* value, pfwl_field_matching_t matchingType, const char* tag);
-=======
 void pfwl_field_string_tags_add_L7(pfwl_state_t *state, pfwl_field_id_t field, const char *value,
                                    pfwl_field_matching_t matchingType, const char *tag);
->>>>>>> SoftAtHome/master
 
 /**
  * Adds a tag matching rule for a specific multimap field.
@@ -1865,12 +1498,8 @@ void pfwl_field_string_tags_add_L7(pfwl_state_t *state, pfwl_field_id_t field, c
  * @param matchingType Can be 'PREFIX', 'EXACT' or 'SUFFIX'.
  * @param tag The tag to assign to the packet when the field matches with 'value'.
  */
-<<<<<<< HEAD
-void pfwl_field_mmap_tags_add_L7(pfwl_state_t* state, pfwl_field_id_t field, const char* key, const char* value, pfwl_field_matching_t matchingType, const char* tag);
-=======
 void pfwl_field_mmap_tags_add_L7(pfwl_state_t *state, pfwl_field_id_t field, const char *key, const char *value,
                                  pfwl_field_matching_t matchingType, const char *tag);
->>>>>>> SoftAtHome/master
 
 /**
  * Unloads the associations between fields values and user-defined tags.
@@ -1878,26 +1507,6 @@ void pfwl_field_mmap_tags_add_L7(pfwl_state_t *state, pfwl_field_id_t field, con
  * @param state   A pointer to the state of the library.
  * @param field   The field identifier.
  */
-<<<<<<< HEAD
-void pfwl_field_tags_unload_L7(pfwl_state_t* state, pfwl_field_id_t field);
-
-/// @cond MC
-pfwl_state_t *pfwl_init_stateful_num_partitions(uint32_t expected_flows,
-                                                uint8_t strict,
-                                                uint16_t num_table_partitions);
-
-pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state,
-                                      const unsigned char *p_pkt,
-                                      size_t p_length, double current_time,
-                                      int tid,
-                                      pfwl_dissection_info_t *dissection_info);
-
-pfwl_status_t
-mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *p_pkt,
-                        size_t p_length, double timestamp, int tid,
-                        pfwl_dissection_info_t *dissection_info,
-                        pfwl_flow_info_private_t **flow_info_private);
-=======
 void pfwl_field_tags_unload_L7(pfwl_state_t *state, pfwl_field_id_t field);
 
 /// @cond MC
@@ -1909,7 +1518,6 @@ pfwl_status_t mc_pfwl_parse_L3_header(pfwl_state_t *state, const unsigned char *
 pfwl_status_t mc_pfwl_parse_L4_header(pfwl_state_t *state, const unsigned char *p_pkt, size_t p_length,
                                       double timestamp, pfwl_dissection_info_t *dissection_info,
                                       pfwl_flow_info_private_t **flow_info_private);
->>>>>>> SoftAtHome/master
 /// @endcond
 
 /// @cond Private structures
@@ -1989,11 +1597,7 @@ typedef struct pfwl_state {
   pfwl_dissector_accuracy_t inspectors_accuracy[PFWL_PROTO_L7_NUM];
 
   /** Tags **/
-<<<<<<< HEAD
-  void* tags_matchers[PFWL_FIELDS_L7_NUM];
-=======
   void *tags_matchers[PFWL_FIELDS_L7_NUM];
->>>>>>> SoftAtHome/master
   size_t tags_matchers_num;
 
   /** Flow id when calling directly dissect_L7 **/
@@ -2001,11 +1605,7 @@ typedef struct pfwl_state {
 
   /** Scratchpad. Is used by dissectors and may be overwritten after the next
       packet is read. TODO: We need one scratchpad per thread. **/
-<<<<<<< HEAD
-  char scratchpad[1024*1024];
-=======
   char scratchpad[1024 * 1024];
->>>>>>> SoftAtHome/master
   size_t scratchpad_next_byte;
 
   /********************************************************************/
@@ -2051,10 +1651,6 @@ typedef struct pfwl_dissection_info_for_bindings {
   uint32_t flow_info_timestamp_last[2];
 } pfwl_dissection_info_for_bindings_t;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> SoftAtHome/master
 /// @endcond
 
 #ifdef __cplusplus
