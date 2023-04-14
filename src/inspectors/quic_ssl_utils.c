@@ -121,6 +121,9 @@ int aes_gcm_encrypt(unsigned char *plaintext, int plaintext_len, const EVP_CIPHE
   return ciphertext_len;
 }
 
+/*
+ * DecryptFinal returns 0
+ */
 int aes_gcm_decrypt(unsigned char *ciphertext, int ciphertext_len, const EVP_CIPHER *cipher_type, unsigned char *aad,
                     int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, int iv_len,
                     unsigned char *plaintext) {
@@ -189,6 +192,7 @@ int aes_gcm_decrypt(unsigned char *ciphertext, int ciphertext_len, const EVP_CIP
    * anything else is a failure - the plaintext is not trustworthy.
    */
   ret = EVP_DecryptFinal_ex(ctx, plaintext + len, &len);
+  ERR_print_errors(stderr);
 
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
@@ -199,6 +203,8 @@ int aes_gcm_decrypt(unsigned char *ciphertext, int ciphertext_len, const EVP_CIP
     return plaintext_len;
   } else {
     /* Verify failed */
+    ERR_print_errors(stderr);
+    printf("plaintext: %s\n", plaintext);
     return -1;
   }
 }

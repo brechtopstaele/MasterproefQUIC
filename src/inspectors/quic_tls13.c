@@ -405,10 +405,10 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 
   reassembled_state_t reassembled_state;
 
-  //TODO: waarom loopt dit mis en wat is het nut?
-  /* if (!reassembled_state_ctor(&reassembled_state, tls_data_length)) {
-    goto end_exit;
-  } */
+  //TODO: aaes_gcm_decrypt loopt mis
+  // if (!reassembled_state_ctor(&reassembled_state, tls_data_length)) {
+  //   goto end_exit;
+  // }
 
 //   while (tls_pointer < tls_data_length) {
 //     unsigned char tls_record_frame_type = tls_data[tls_pointer];
@@ -466,8 +466,6 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 //   tls_pointer += 3;
 
 	uint16_t tls_version = ntohs(*(uint16_t *)(&tls_data[tls_pointer]));
-	unsigned char tls_version_hex[4];
-    sprintf(tls_version_hex, "%04x", tls_version);
 	tls_pointer += 2;
 //   uint16_t tls_version = ntohs(*(uint16_t *) (&proper_tls_data[tls_pointer]));
 //   tls_pointer += 2;
@@ -559,7 +557,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 //     retval = PFWL_PROTOCOL_MATCHES;
 
 end:
-  reassembled_state_dtor(&reassembled_state);
+//  reassembled_state_dtor(&reassembled_state);
 
 end_exit:
 

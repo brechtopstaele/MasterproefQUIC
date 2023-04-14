@@ -187,7 +187,7 @@ static int quic_version_tostring(const uint32_t qver, unsigned char *ver, const 
 }
 
 /**
- * Compute the client and server initial secrets given Connection ID "cid".
+ * @brief Compute the client and server initial secrets given Connection ID "cid".
  */
 static int quic_derive_initial_secrets(quic_t *quic_info) {
   /*
@@ -214,6 +214,8 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
                                                         0x86, 0xf1, 0x9c, 0x61, 0x11, 0xe0, 0x43, 0x90, 0xa8, 0x99};
   static const uint8_t ver_one_salt[MAX_SALT_LENGTH] = {0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17,
                                                         0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a};
+  static const uint8_t ver_two_salt[MAX_SALT_LENGTH] = {0x0d, 0xed, 0xe3, 0xde, 0xf7, 0x00, 0xa6, 0xdb, 0x81, 0x93,
+                                                        0x81, 0xbe, 0x6e, 0x26, 0x9d, 0xcb, 0xf9, 0xbd, 0x2e, 0xd9};
   const uint8_t *salt;
 
   switch (quic_info->version) {
@@ -259,6 +261,10 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
     quic_info->has_tls13_record = 1;
     break;
 
+  case VER_TWO:
+    salt = ver_two_salt;
+    quic_info->has_tls13_record = 1;
+
   default:
     printf("Error matching the quic version to a salt using standard salt instead\n");
     salt = ver_q050_salt;
@@ -282,8 +288,8 @@ static int quic_derive_initial_secrets(quic_t *quic_info) {
   return 0;
 }
 
-/*
- * (Re)initialize the PNE/PP ciphers using the given cipher algorithm.
+/**
+ * @brief (Re)initialize the PNE/PP ciphers using the given cipher algorithm.
  * If the optional base secret is given, then its length MUST match the hash
  * algorithm output.
  */
@@ -312,7 +318,7 @@ static int quic_cipher_prepare(quic_t *quic_info) {
 
 
 /**
- * Given a QUIC message (header + non-empty payload), the actual packet number,
+ * @brief given a QUIC message (header + non-empty payload), the actual packet number,
  * try to decrypt it using the cipher.
  * As the header points to the original buffer with an encrypted packet number,
  * the (encrypted) packet number length is also included.
@@ -337,13 +343,16 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
 
   /* Input is "header || ciphertext (buffer) || auth tag (16 bytes)" */
   quic_info->decrypted_payload_len = packet_payload_len - (quic_info->header_len + 16);
+  printf("decrypted payload len: %i\n", quic_info->decrypted_payload_len);
+  //quic_info->decrypted_payload_len = 516 + 16;
   if (quic_info->decrypted_payload_len == 0) {
     printf("Decryption not possible, ciphertext is too short\n");
     free(header);
     return -1;
   }
-  quic_info->decrypted_payload =
+  quic_info->decrypted_payload = 
       (unsigned char *) memdup(packet_payload + quic_info->header_len, quic_info->decrypted_payload_len);
+    
   if (!quic_info->decrypted_payload) {
     free(header);
     return -1;
@@ -354,16 +363,21 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
   phton64(nonce + sizeof(nonce) - 8, pntoh64(nonce + sizeof(nonce) - 8) ^ quic_info->packet_number);
 
   /* Initial packets are protected with AEAD_AES_128_GCM. */
-  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), 
-                            header, quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
+  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), header,
+                            quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
                             quic_info->decrypted_payload);
+  // int ret = aes_gcm_decrypt(packet_payload + quic_info->header_len, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), 
+  //                           header, quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
+  //                           quic_info->decrypted_payload);
   //TODO: waarom fout?
-  /*if (ret < 0) {
+  ret = quic_info->decrypted_payload_len;
+  if (ret < 0) {
     free(quic_info->decrypted_payload);
     quic_info->decrypted_payload = NULL;
+    quic_info->decrypted_payload_len = 0;
     free(header);
     return -1;
-  }*/
+  }
 
   quic_info->decrypted_payload_len = ret;
   free(header);

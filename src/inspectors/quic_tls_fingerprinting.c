@@ -312,7 +312,82 @@ size_t parse_joy_string(pfwl_state_t *state, const unsigned char *data, size_t l
 
 /* string compare function */
 int compare_strings(const void* p1, const void* p2) {
-    return strcmp(*(const char**)p1, *(const char**)p2);
+	const char *pp1 = *(const char**)p1;
+	const char *pp2 = *(const char**)p2;
+	//Skip first '('
+	*pp1++;
+	*pp2++;
+	//Check for Quic transport parameters and skip second '('
+	if (*pp1 == '(') {
+		*pp1++;
+	}
+	if (*pp2 == '(') {
+		*pp2++;
+	}
+    return strcmp(pp1, pp2);
+}
+
+/**
+ *  @brief QUIC variable length Integer decoding algorithm, returns data including length indications
+ */
+size_t quic_degrease(const unsigned char *app_data, size_t offset, uint64_t *var_len) {
+  size_t mbit = app_data[offset] >> 6;
+  size_t len = 0;
+
+  switch (mbit) {
+  case 0:
+    *var_len = (uint64_t)(app_data[offset] & 0x3F);
+	len = 1;
+	if (*var_len%31 == 27) {
+		*var_len = 27;
+	}
+	else {
+		*var_len = (uint64_t)(app_data[offset] & 0xFF);
+	}
+    break;
+  case 1:
+    *var_len = ((uint64_t)(app_data[offset] & 0x3F) << 8) + (uint64_t)(app_data[offset + 1] & 0xFF);
+    len = 2;
+	if (*var_len%31 == 27) {
+		*var_len = 27;
+	}
+	else {
+		*var_len = ((uint64_t)(app_data[offset] & 0xFF) << 8) + (uint64_t)(app_data[offset + 1] & 0xFF);
+	}
+    break;
+  case 2:
+    *var_len = ((uint64_t)(app_data[offset] & 0x3F) << 24) + ((uint64_t)(app_data[offset + 1] & 0xFF) << 16) +
+               ((uint64_t)(app_data[offset + 2] & 0xFF) << 8) + (uint64_t)(app_data[offset + 3] & 0xFF);
+    len = 4;
+	if (*var_len%31 == 27) {
+		*var_len = 27;
+	}
+	else {
+		*var_len = ((uint64_t)(app_data[offset] & 0xFF) << 24) + ((uint64_t)(app_data[offset + 1] & 0xFF) << 16) +
+               	   ((uint64_t)(app_data[offset + 2] & 0xFF) << 8) + (uint64_t)(app_data[offset + 3] & 0xFF);
+    
+	}
+    break;
+  case 3:
+    *var_len = ((uint64_t)(app_data[offset] & 0x3F) << 56) + ((uint64_t)(app_data[offset + 1] & 0xFF) << 48) +
+               ((uint64_t)(app_data[offset + 2] & 0xFF) << 40) + ((uint64_t)(app_data[offset + 3] & 0xFF) << 32) +
+               ((uint64_t)(app_data[offset + 4] & 0xFF) << 24) + ((uint64_t)(app_data[offset + 5] & 0xFF) << 16) +
+               ((uint64_t)(app_data[offset + 6] & 0xFF) << 8) + (uint64_t)(app_data[offset + 7] & 0xFF);
+    len = 8;
+	if (*var_len%31 == 27) {
+		*var_len = 27;
+	}
+	else {
+		*var_len = ((uint64_t)(app_data[offset] & 0xFF) << 56) + ((uint64_t)(app_data[offset + 1] & 0xFF) << 48) +
+				   ((uint64_t)(app_data[offset + 2] & 0xFF) << 40) + ((uint64_t)(app_data[offset + 3] & 0xFF) << 32) +
+				   ((uint64_t)(app_data[offset + 4] & 0xFF) << 24) + ((uint64_t)(app_data[offset + 5] & 0xFF) << 16) +
+				   ((uint64_t)(app_data[offset + 6] & 0xFF) << 8) + (uint64_t)(app_data[offset + 7] & 0xFF);
+	}
+    break;
+  default:
+    len = 0; /* error should not happen */
+  }
+  return len;
 }
 
 void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
@@ -331,27 +406,23 @@ unsigned char *extensions, size_t *extensions_len) {
 
 		size_t TLVtype = 0;
 		size_t len;
-		len = quic_get_variable_len(data, pointer, &TLVtype);
+		len = quic_degrease(data, pointer, &TLVtype);
 		pointer += len;
 		TLVlen = data[pointer];
 		pointer++;
 		
 		/* Check for GREASE */
-		if(TLVtype%31 == 27) {
-			qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(1b)");
-		}
-		else{
-			qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(%02x)", TLVtype);
-		}
+		//printf("TLVtype: %lu\n", TLVtype);
+		qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(%02x)", TLVtype);
 		n++;
 	}
-	/*for (uint16_t i = 0; i < n; i++){
-        printf (" qtp[%2zu] : %s\n", i, qtp[i]);
-		printf (" qtp_len[%2zu] %lu\n", i, qtp_len[i]);
-	}*/
+	// for (uint16_t i = 0; i < n; i++){
+    //     printf (" qtp[%2zu] : %s\n", i, qtp[i]);
+	// 	printf (" qtp_len[%2zu] %lu\n", i, qtp_len[i]);
+	// }
 
 	/* lexicographic sorting of quic transport parameters */
-	qsort(qtp, n, 8, compare_strings);
+	qsort(qtp, n, sizeof(qtp[0]), compare_strings);
 
 	for (uint16_t i = 0; i < n; i++){
         *extensions_len += sprintf (extensions + *extensions_len, qtp[i]);
@@ -361,13 +432,6 @@ unsigned char *extensions, size_t *extensions_len) {
 
 	/*for (uint16_t i = 0; i < n; i++)
         printf (" sorted qtp[%2zu] : %s\n", i, qtp[i]);*/
-}
-
-/* string compare function */
-int compare_strings2(const void* p1, const void* p2) {
-    char *const *pp1 = p1;
-    char *const *pp2 = p2;
-    return strcmp(*pp1, *pp2);
 }
 
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
@@ -461,21 +525,20 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 				break;
 
 			default:
-				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x)", TLVtype, TLVlen);
+				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x)", TLVtype);
 				//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x)", TLVtype, TLVlen);
 				break;
 		}	
 		n++;
 	}
-	for (uint16_t i = 0; i < n; i++){
-        printf (" extensions[%2zu] : %s\n", i, extensions[i]);
-		printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
-	}
-	//TODO: wat loopt hier mis??
-	//qsort(extensions, n, 10, compare_strings);
+	// for (uint16_t i = 0; i < n; i++){
+    //     printf (" extensions[%2zu] : %s\n", i, extensions[i]);
+	// 	printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
+	// }
+	qsort(extensions, n, sizeof(extensions[0]), compare_strings);
 	/* output sorted arrray of strings */
-    for (uint16_t i = 0; i < n; i++)
-        printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);
+    // for (uint16_t i = 0; i < n; i++)
+    //     printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);
 
 	for (uint16_t i = 0; i < n; i++)
         *npf_string_len += sprintf (npf_string + *npf_string_len, extensions[i]);
