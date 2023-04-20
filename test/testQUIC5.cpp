@@ -38,6 +38,7 @@ TEST(QUICTest, ServerName) {
   checkSNI("./pcaps/quic-t51.pcap", "www.google.com", PFWL_FIELD_MATCHING_EXACT);
   checkSNI("./pcaps/quic-draft29.pcap", "ssl.gstatic.com", PFWL_FIELD_MATCHING_EXACT);
   checkSNI("./pcaps/quic-draft27-facebook.pcap", "scontent-bru2-1.xx.fbcdn.net", PFWL_FIELD_MATCHING_EXACT);
+  checkSNI("./pcaps/quic-1-double.pcap", "www.google.com", PFWL_FIELD_MATCHING_EXACT);
 }
 
 static void checkVersion(const char *pcap, const char *expectedVersion) {
@@ -63,6 +64,7 @@ TEST(QUICTest, Version) {
   checkVersion("./pcaps/quic-t51.pcap", "T051");
   checkVersion("./pcaps/quic-draft29.pcap", "draft-29");
   checkVersion("./pcaps/quic-draft27-facebook.pcap", "facebook mvfst draft-27");
+  checkVersion("./pcaps/quic-1-double.pcap", "1");
 }
 
 static void checkUserAgent(const char *pcap, const char *expectedUAID) {
@@ -89,4 +91,31 @@ TEST(QUICTest, Useragent) {
   checkUserAgent("./pcaps/quic-draft29.pcap", "Chrome/87.0.4280.88 Intel Mac OS X 10_15_7");
   /* NO UserAgent present in quic-draft27-facebook.pcap so no test for it */
 }
+
+static void checkJA3(const char *pcap, const char *ja3) {
+  std::vector<uint> protocols;
+  pfwl_state_t *state = pfwl_init();
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI);
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
+
+  bool foundja3 = false;
+
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+    pfwl_string_t field;
+    if (status >= PFWL_STATUS_OK && r.l7.protocol == PFWL_PROTO_L7_QUIC5) {
+      if (!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &field)) {
+        EXPECT_EQ(strncmp((const char *) field.value, ja3, field.length), 0);
+        foundja3 = true;
+      }
+    }
+  });
+  EXPECT_TRUE(foundja3);
+
+  pfwl_terminate(state);
+}
+
+TEST(QUICTest, JA3) {
+  checkJA3("./pcaps/quic-1-double.pcap", "b719940c5ab9a3373cb4475d8143ff88");
+}
+
 #endif

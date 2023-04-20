@@ -302,10 +302,12 @@ static int quic_cipher_prepare(quic_t *quic_info) {
  * The actual packet number must be constructed according to
  * https://tools.ietf.org/html/draft-ietf-quic-transport-22#section-12.3
  */
-static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload, uint32_t packet_payload_len) {
+static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload) {
   uint8_t *header;
   uint8_t nonce[TLS13_AEAD_NONCE_LENGTH];
   uint8_t atag[16];
+
+  const EVP_CIPHER *evp_cipher = EVP_aes_128_gcm();
 
   /* Copy header, but replace encrypted first byte and PKN by plaintext. */
   header = (uint8_t *) memdup(packet_payload, quic_info->header_len);
@@ -317,25 +319,24 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
   }
 
   /* Input is "header || ciphertext (buffer) || auth tag (16 bytes)" */
-  quic_info->decrypted_payload_len = packet_payload_len - (quic_info->header_len + 16);
-  if (quic_info->decrypted_payload_len == 0) {
+  if (quic_info->payload_len <= 16) {
     printf("Decryption not possible, ciphertext is too short\n");
     free(header);
     return -1;
   }
-  quic_info->decrypted_payload =
-      (unsigned char *) memdup(packet_payload + quic_info->header_len, quic_info->decrypted_payload_len);
+  /* must be big enough to receive the decrypted content */
+  quic_info->decrypted_payload = malloc(quic_info->payload_len + EVP_CIPHER_block_size(evp_cipher));
   if (!quic_info->decrypted_payload) {
     free(header);
     return -1;
   }
-  memcpy(atag, packet_payload + quic_info->header_len + quic_info->decrypted_payload_len, 16);
+  memcpy(atag, packet_payload + quic_info->header_len + quic_info->payload_len - 16u, 16);
   memcpy(nonce, quic_info->quic_iv, TLS13_AEAD_NONCE_LENGTH);
   /* Packet number is left-padded with zeroes and XORed with write_iv */
   phton64(nonce + sizeof(nonce) - 8, pntoh64(nonce + sizeof(nonce) - 8) ^ quic_info->packet_number);
 
   /* Initial packets are protected with AEAD_AES_128_GCM. */
-  int ret = aes_gcm_decrypt(quic_info->decrypted_payload, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), header,
+  int ret = aes_gcm_decrypt(packet_payload + quic_info->header_len, quic_info->payload_len - 16u, evp_cipher, header,
                             quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
                             quic_info->decrypted_payload);
   if (ret < 0) {
@@ -386,12 +387,14 @@ static int remove_header_protection(quic_t *quic_info, const unsigned char *app_
                                 << (8 * (quic_info->packet_number_len - 1 - i));
   }
   /* Increase header length with packet number length */
+  /* Also update payload_len to reflect the real payload (now without packet number) */
   quic_info->header_len += quic_info->packet_number_len;
+  quic_info->payload_len -= quic_info->packet_number_len;
   quic_info->first_byte = first_byte;
   return 0;
 }
 
-int decrypt_first_packet(quic_t *quic_info, const unsigned char *app_data, size_t data_length) {
+int decrypt_first_packet(quic_t *quic_info, const unsigned char *app_data) {
 
   if (0 > quic_derive_initial_secrets(quic_info)) {
     printf("Error quic_derive_initial_secrets\n");
@@ -408,7 +411,7 @@ int decrypt_first_packet(quic_t *quic_info, const unsigned char *app_data, size_
     return -1;
   }
 
-  if (0 > quic_decrypt_message(quic_info, app_data, data_length)) {
+  if (0 > quic_decrypt_message(quic_info, app_data)) {
     printf("Error decrypting message\n");
     return -1;
   }
@@ -486,11 +489,11 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
 
       quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.payload_len);
 
-      if (quic_info.header_len >= data_length) {
+      if ((quic_info.header_len >= data_length) || (quic_info.header_len + quic_info.payload_len > data_length)) {
         return PFWL_PROTOCOL_NO_MATCHES;
       }
 
-      if (0 > decrypt_first_packet(&quic_info, app_data, data_length)) {
+      if (0 > decrypt_first_packet(&quic_info, app_data)) {
         return PFWL_PROTOCOL_NO_MATCHES;
       }
 
