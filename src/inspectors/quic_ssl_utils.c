@@ -121,12 +121,9 @@ int aes_gcm_encrypt(unsigned char *plaintext, int plaintext_len, const EVP_CIPHE
   return ciphertext_len;
 }
 
-/*
- * DecryptFinal returns 0
- */
-int aes_gcm_decrypt(unsigned char *ciphertext, int ciphertext_len, const EVP_CIPHER *cipher_type, unsigned char *aad,
-                    int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, int iv_len,
-                    unsigned char *plaintext) {
+int aes_gcm_decrypt(const unsigned char *ciphertext, int ciphertext_len, const EVP_CIPHER *cipher_type,
+                    const unsigned char *aad, int aad_len, unsigned char *tag, const unsigned char *key,
+                    const unsigned char *iv, int iv_len, unsigned char *plaintext) {
   EVP_CIPHER_CTX *ctx;
   int len;
   int plaintext_len;

@@ -42,20 +42,13 @@ int aes_gcm_encrypt(unsigned char *plaintext, int plaintext_len, const EVP_CIPHE
  * 
  * @param ciphertext pointer to unsigned char buffer containing ciphertext
  * @param ciphertext_len length of the ciphertext buffer
- * @param cipher_type 
- * @param aad
- * @param aad_len
- * @param tag
- * @param key
- * @param iv
- * @param iv_len
  * @param plaintext pointer to unsigned char buffer to write plaintext to
  */
-int aes_gcm_decrypt(unsigned char *ciphertext, int ciphertext_len, const EVP_CIPHER *cipher_type,
-                unsigned char *aad, int aad_len,
+int aes_gcm_decrypt(const unsigned char* ciphertext, int ciphertext_len, const EVP_CIPHER *cipher_type,
+                const unsigned char* aad, int aad_len,
                 unsigned char *tag,
-                unsigned char *key,
-                unsigned char *iv, int iv_len,
+                const unsigned char* key,
+                const unsigned char* iv, int iv_len,
                 unsigned char *plaintext);
 
 /**
