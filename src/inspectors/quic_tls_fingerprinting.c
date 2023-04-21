@@ -592,15 +592,17 @@ size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t l
 	return npf_string_len;
 }
 
-char* parse_ja3_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *ja3_string, size_t *ja3_string_len){
-	char *md5sum = state->scratchpad + state->scratchpad_next_byte;
-	size_t md5sum_len = md5_digest_message(ja3_string, ja3_string_len, md5sum);
-        
-	pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, md5sum, md5sum_len);
-        state->scratchpad_next_byte += md5sum_len;
+size_t parse_ja3_hash(pfwl_state_t *state, unsigned char *ja3_string, size_t ja3_string_len, char *ja3_start){
+	unsigned char md5[16];
+    size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
 
-	//printf("JA3:");
-	//debug_print_rawfield(md5sum, 0, md5sum_len);
+    ja3_start = state->scratchpad + state->scratchpad_next_byte;
+
+    for (size_t n = 0; n < md5sum_len; n++) {
+      sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
+      state->scratchpad_next_byte += 2;
+    }
+	return md5sum_len*2;
 };
 
 char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string, size_t *joy_string_len){

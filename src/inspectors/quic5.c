@@ -363,11 +363,7 @@ static int quic_decrypt_message(quic_t *quic_info, const uint8_t *packet_payload
   int ret = aes_gcm_decrypt(packet_payload + quic_info->header_len, quic_info->payload_len - 16u, evp_cipher, header,
                             quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
                             quic_info->decrypted_payload);
-  // int ret = aes_gcm_decrypt(packet_payload + quic_info->header_len, quic_info->decrypted_payload_len, EVP_aes_128_gcm(), 
-  //                           header, quic_info->header_len, atag, quic_info->quic_key, nonce, sizeof(nonce),
-  //                           quic_info->decrypted_payload);
-  //TODO: waarom fout?
-  //ret = quic_info->decrypted_payload_len;
+  
   if (ret < 0) {
     free(quic_info->decrypted_payload);
     quic_info->decrypted_payload = NULL;
@@ -520,7 +516,6 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       }
 
       quic_info.header_len += quic_get_variable_len(app_data, quic_info.header_len, &quic_info.payload_len);
-      printf("Payload len: %u\n", quic_info.payload_len);
 
       if ((quic_info.header_len >= data_length) || (quic_info.header_len + quic_info.payload_len > data_length)) {
         return PFWL_PROTOCOL_NO_MATCHES;
