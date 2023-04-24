@@ -37,6 +37,10 @@
 #include "quic_tls13.h"
 #include "quic_utils.h"
 #include "quic_ssl_utils.h"
+#include <stdbool.h>
+
+#define MAX_EC 512
+#define MAX_ECPF 512
 
 /*
  *	 GREASE_TABLE Ref: 
@@ -72,68 +76,114 @@ static unsigned int is_grease(uint32_t x){
 	return 0;
 }
 
-void ja3_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
-	size_t		pointer = 0;
-	size_t 		TLVlen 	= 0;
-
-	size_t grps_len = ntohs(*(uint16_t *)(&data[pointer]));
-	pointer += 2;
-
-	for (pointer; pointer < grps_len+2; pointer += 2) {
-		size_t		supgrp = 0;
-		supgrp = ntohs(*(uint16_t *)(&data[pointer]));
-	 	*ja3_supgrps_string_len += sprintf(ja3_supgrps_string + *ja3_supgrps_string_len, "%u-", supgrp);
-	}
-
+static void parse_ec(const unsigned char *data, const unsigned char *data_end, uint16_t *ec, unsigned int *nbr_ec) {
+  // skip len
+  data += 2;
+  while (data + 1 < data_end && (*nbr_ec < MAX_EC)) {
+    uint16_t ec_value = ntohs(get_u16(data, 0));
+    ec[*nbr_ec] = ec_value;
+    (*nbr_ec)++;
+    data += 2;
+  }
 }
 
-void ja3_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
-	unsigned char *ja3_string, size_t *ja3_string_len, unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
-	size_t pointer;
-	size_t TLVlen;
+static void parse_ecpf(const unsigned char *data, const unsigned char *data_end, uint8_t *ecpf,
+                       unsigned int *nbr_ecpf) {
+  // skip len
+  data += 1;
+  while (data < data_end && (*nbr_ecpf < MAX_ECPF)) {
+    uint8_t ecpf_value = *data;
+    ecpf[*nbr_ecpf] = ecpf_value;
+    (*nbr_ecpf)++;
+    data += 1;
+  }
+}
 
-	for (pointer = 0; pointer < len; pointer += TLVlen) {
-		size_t TLVtype = ntohs(*(uint16_t *)(&data[pointer]));
-		pointer += 2;
-		TLVlen = ntohs(*(uint16_t *)(&data[pointer]));
-		pointer += 2;
+void ja3_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len,
+                            pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
+                            char *ja3_string, size_t *ja3_string_len) {
+  size_t pointer;
+  size_t TLVlen;
 
-		switch(TLVtype) {
-			/* skip grease values */
-			case 0x0a0a:
-			case 0x1a1a:
-			case 0x2a2a:
-			case 0x3a3a:
-                        case 0x4a4a:
-			case 0x5a5a:
-			case 0x6a6a:
-			case 0x7a7a:
-                        case 0x8a8a:
-			case 0x9a9a:
-			case 0xaaaa:
-			case 0xbaba:
-                        case 0xcaca:
-			case 0xdada:
-			case 0xeaea:
-			case 0xfafa:
-				/* Grease values must be ignored */
-				continue;
-				break;
+  // list of ext10, ext11 for ja3
+  uint16_t ec[MAX_EC];
+  uint8_t ecpf[MAX_ECPF];
 
-			/* supported_groups */
-			case 10:
-				ja3_parse_supported_groups(state, data + pointer, TLVlen, pkt_info, flow_info_private, ja3_supgrps_string, ja3_supgrps_string_len);
-				break; 
-			default:
-				break;
-		}	
-		*ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", TLVtype);
+  unsigned int nbr_ec = 0;
+  unsigned int nbr_ecpf = 0;
 
-	}
-	if (len) {
-		*ja3_string_len = *ja3_string_len - 1; //remove last dash (-) from ja3_string
-	}
+  for (pointer = 0; pointer < len; pointer += TLVlen) {
+    uint16_t TLVtype = ntohs(get_u16(data, pointer));
+    pointer += 2;
+    TLVlen = ntohs(get_u16(data, pointer));
+    pointer += 2;
+    // printf("TLV %02d TLV Size %02d\n", TLVtype, TLVlen);
+
+    switch (TLVtype) {
+    /* skip grease values */
+    case 0x0a0a:
+    case 0x1a1a:
+    case 0x2a2a:
+    case 0x3a3a:
+    case 0x4a4a:
+    case 0x5a5a:
+    case 0x6a6a:
+    case 0x7a7a:
+    case 0x8a8a:
+    case 0x9a9a:
+    case 0xaaaa:
+    case 0xbaba:
+    case 0xcaca:
+    case 0xdada:
+    case 0xeaea:
+    case 0xfafa:
+      /* Grease values must be ignored */
+      continue;
+      break;
+
+      /* Server Name */
+    case 0:
+      if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_SNI)) {
+        tls13_parse_servername(state, data + pointer, TLVlen, pkt_info, flow_info_private);
+      }
+      break;
+      /* Extension quic transport parameters */
+    case 10:
+      parse_ec(&data[pointer], &data[pointer + TLVlen], ec, &nbr_ec);
+      break;
+    case 11:
+      parse_ecpf(&data[pointer], &data[pointer + TLVlen], ecpf, &nbr_ecpf);
+      break;
+    case 65445:
+      tls13_parse_quic_transport_params(state, data + pointer, TLVlen, pkt_info, flow_info_private);
+      break;
+    default:
+      break;
+    }
+    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", TLVtype);
+  }
+  if (len) {
+    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
+  }
+
+  // add ext10
+  *ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
+  for (unsigned int i = 0; i < nbr_ec; ++i) {
+    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ec[i]);
+  }
+  if (nbr_ec) {
+    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
+  }
+
+  // add ext11
+  *ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
+  for (unsigned int i = 0; i < nbr_ecpf; ++i) {
+    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ecpf[i]);
+  }
+  if (nbr_ecpf) {
+    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
+  }
+  ja3_string[*ja3_string_len] = '\0';
 }
 
 size_t parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info,
@@ -143,28 +193,27 @@ size_t parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t l
       https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967/
     */
 
-    size_t pointer = 0;
 	size_t ja3_string_len;
 
-	unsigned char ja3_supgrps_string[100];
-	size_t ja3_supgrps_string_len = 0;
+	size_t pointer = 0;
 
 	/* Build JA3 string */
 	ja3_string_len = sprintf(ja3_string, "%d,", tls_version);
 
 	/* Cipher suites and length */
-	uint16_t cipher_suite_len = ntohs(*(uint16_t *)(&data[pointer]));
+	uint16_t cipher_suite_len = ntohs(get_u16(data, pointer));
 	pointer += 2;
 
 	/* use content of cipher suite for building the JA3 hash */
     for (size_t i = 0; i < cipher_suite_len; i += 2) {
-        uint16_t cipher_suite = ntohs(*(uint16_t *)(data + pointer + i));
+        uint16_t cipher_suite = ntohs(get_u16(data, pointer + i));
         if(is_grease(cipher_suite)) {
             continue; // skip grease value
         }
+		ja3_string_len += sprintf(ja3_string + ja3_string_len, "%d-", cipher_suite);
     }
     if (cipher_suite_len) {
-        ja3_string_len--; //remove last dash (-) from ja3_string
+        ja3_string_len--; // remove last dash (-) from ja3_string
     }
     ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
     pointer += cipher_suite_len;
@@ -177,22 +226,15 @@ size_t parse_ja3_string(pfwl_state_t *state, const unsigned char *data, size_t l
     pointer += compression_methods_len;
 
     /* Extension length */
-    uint16_t ext_len = ntohs(*(uint16_t *)(&data[pointer]));
+    uint16_t ext_len = ntohs(get_u16(data, pointer));
     pointer += 2;
 
     /* Add Extension length to the ja3 string */
     unsigned const char *ext_data = data + pointer;
 
     /* lets iterate over the exention list */
-    ja3_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len, ja3_supgrps_string, &ja3_supgrps_string_len);
-    ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
+    ja3_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
 
-    /* add supported groups to JA3 string */
-    ja3_string_len += sprintf(ja3_string + ja3_string_len, ja3_supgrps_string);
-    if(ja3_supgrps_string_len){
-        ja3_string_len--; //Remove last dash from supported groups string
-    }
-    ja3_string_len += sprintf(ja3_string + ja3_string_len, ",");
 	return ja3_string_len;
 }
 
