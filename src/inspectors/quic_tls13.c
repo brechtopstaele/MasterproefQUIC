@@ -3,6 +3,8 @@
  * quic_tls13.c
  *
  * TLS 1.3 record layer decoder for newer quic versions
+ * Note: check quic_tls_fingerprinting.c for tls extensions functionality
+ * which was removed in this file.
  *
  * =========================================================================
  * Copyright (c) 2016-2019 Daniele De Sensi (d.desensi.software@gmail.com)
@@ -129,58 +131,10 @@ void tls13_parse_servername(pfwl_state_t *state, const unsigned char *data, size
   state->scratchpad_next_byte += server_len;
 }
 
-// Elliptical curves extension renamed to supported groups in TLS 1.3
-static void parse_ec(const unsigned char *data, const unsigned char *data_end, uint16_t *ec, unsigned int *nbr_ec) {
-  // skip len
-  data += 2;
-  while (data + 1 < data_end && (*nbr_ec < MAX_EC)) {
-    uint16_t ec_value = ntohs(get_u16(data, 0));
-    ec[*nbr_ec] = ec_value;
-    (*nbr_ec)++;
-    data += 2;
-  }
-}
-
-static void parse_ecpf(const unsigned char *data, const unsigned char *data_end, uint8_t *ecpf,
-                       unsigned int *nbr_ecpf) {
-  // skip len
-  data += 1;
-  while (data < data_end && (*nbr_ecpf < MAX_ECPF)) {
-    uint8_t ecpf_value = *data;
-    ecpf[*nbr_ecpf] = ecpf_value;
-    (*nbr_ecpf)++;
-    data += 1;
-  }
-}
-
-// TODO: mag weg
-void tls13_parse_supported_groups(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *ja3_supgrps_string, size_t *ja3_supgrps_string_len) {
-	size_t		pointer = 0;
-	size_t 		TLVlen 	= 0;
-
-	size_t grps_len = ntohs(*(uint16_t *)(&data[pointer]));
-	pointer += 2;
-
-	for (pointer; pointer < grps_len+2; pointer += 2) {
-		size_t		supgrp = 0;
-		supgrp = ntohs(*(uint16_t *)(&data[pointer]));
-	 	*ja3_supgrps_string_len += sprintf(ja3_supgrps_string + *ja3_supgrps_string_len, "%u-", supgrp);
-	}
-}
-
 void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len,
-                            pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
-                            char *ja3_string, size_t *ja3_string_len) {
+                            pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private) {
   size_t pointer;
   size_t TLVlen;
-
-  // list of ext10, ext11 for ja3
-  uint16_t ec[MAX_EC];
-  uint8_t ecpf[MAX_ECPF];
-
-  unsigned int nbr_ec = 0;
-  unsigned int nbr_ecpf = 0;
 
   for (pointer = 0; pointer < len; pointer += TLVlen) {
     uint16_t TLVtype = ntohs(get_u16(data, pointer));
@@ -217,43 +171,13 @@ void tls13_parse_extensions(pfwl_state_t *state, const unsigned char *data, size
         tls13_parse_servername(state, data + pointer, TLVlen, pkt_info, flow_info_private);
       }
       break;
-      /* Extension quic transport parameters */
-    case 10:
-      parse_ec(&data[pointer], &data[pointer + TLVlen], ec, &nbr_ec);
-      break;
-    case 11:
-      parse_ecpf(&data[pointer], &data[pointer + TLVlen], ecpf, &nbr_ecpf);
-      break;
     case 65445:
       tls13_parse_quic_transport_params(state, data + pointer, TLVlen, pkt_info, flow_info_private);
       break;
     default:
       break;
     }
-    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", TLVtype);
   }
-  if (len) {
-    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
-  }
-
-  // add ext10
-  *ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
-  for (unsigned int i = 0; i < nbr_ec; ++i) {
-    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ec[i]);
-  }
-  if (nbr_ec) {
-    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
-  }
-
-  // add ext11
-  *ja3_string_len += sprintf(ja3_string + *ja3_string_len, ",");
-  for (unsigned int i = 0; i < nbr_ecpf; ++i) {
-    *ja3_string_len += sprintf(ja3_string + *ja3_string_len, "%u-", ecpf[i]);
-  }
-  if (nbr_ecpf) {
-    *ja3_string_len = *ja3_string_len - 1; // remove last dash (-) from ja3_string
-  }
-  ja3_string[*ja3_string_len] = '\0';
 }
 
 // return the actual size of the encoded value
@@ -451,57 +375,65 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		tls_pointer += 1;
 
     /* Fingerprinting */
-    unsigned char ja3_string[1024];
-    size_t ja3_string_len;
-    char *ja3_hash;
-    size_t ja3_hash_len;
+    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JA3)) {
+      unsigned char ja3_string[1024];
+      size_t ja3_string_len;
+      char *ja3_hash;
+      size_t ja3_hash_len;
 
-	  unsigned char joy_string[1024];
-	  size_t joy_string_len;
-
-	  unsigned char npf_string[1024];
-	  size_t npf_string_len;
-
-		ja3_string_len = parse_ja3_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
+      ja3_string_len = parse_ja3_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
                                       ja3_string, tls_version);
-    //ja3_hash_len = parse_ja3_hash(state, ja3_string, ja3_string_len, ja3_hash);
-    
-    unsigned char md5[16];
-    size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
+      //ja3_hash_len = parse_ja3_hash(state, ja3_string, ja3_string_len, ja3_hash);
+      
+      unsigned char md5[16];
+      size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
 
-    char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
+      char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
 
-    for (size_t n = 0; n < md5sum_len; n++) {
-      sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
-      state->scratchpad_next_byte += 2;
+      for (size_t n = 0; n < md5sum_len; n++) {
+        sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
+        state->scratchpad_next_byte += 2;
+      }
+
+      // printf("JA3 md5 %s\n", ja3_start);
+
+      if (ja3_string_len == 0) {
+        printf("JA3 Fingerprint failed");
+      } else {
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
+                              md5sum_len*2);
+      }
     }
 
-    // printf("JA3 md5 %s\n", ja3_start);
+    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JOY)) {
+      unsigned char joy_string[1024];
+      size_t joy_string_len;
 
-    if (ja3_string_len == 0) {
-      printf("JA3 Fingerprint failed");
-    } else {
-      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
-                            md5sum_len*2);
-    }
-		joy_string_len = parse_joy_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
+      joy_string_len = parse_joy_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
                                       joy_string, tls_version);
-    if (joy_string_len == 0) {
-      printf("Joy Fingerprint failed");
-    } else {
-      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JOY, joy_string, joy_string_len);
+      if (joy_string_len == 0) {
+        printf("Joy Fingerprint failed");
+      } else {
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JOY, joy_string, joy_string_len);
+      }
     }
-		npf_string_len = parse_npf_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
-                                      npf_string, tls_version, quic_version);
-    if (npf_string_len == 0) {
-      printf("NPF Fingerprint failed");
-    } else {
-      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_NPF, npf_string, npf_string_len);
+
+    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JOY)) {
+      unsigned char npf_string[1024];
+      size_t npf_string_len;
+
+      npf_string_len = parse_npf_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
+                                        npf_string, tls_version, quic_version);
+      if (npf_string_len == 0) {
+        printf("NPF Fingerprint failed");
+      } else {
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_NPF, npf_string, npf_string_len);
+      }
     }
     
-		// /* Cipher suites and length */
-    // uint16_t cipher_suite_len = ntohs(get_u16(proper_tls_data, tls_pointer));
-    // tls_pointer += 2;
+		/* Cipher suites and length */
+    uint16_t cipher_suite_len = ntohs(get_u16(proper_tls_data, tls_pointer));
+    tls_pointer += 2;
 
     // for (size_t i = 0; i < cipher_suite_len; i += 2) {
     //   uint16_t cipher_suite = ntohs(get_u16(proper_tls_data, tls_pointer + i));
@@ -509,24 +441,24 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
     //     continue; // skip grease value
     //   }
     // }
-    // tls_pointer += cipher_suite_len;
+    tls_pointer += cipher_suite_len;
 
-		// /* compression methods length */
-    // size_t compression_methods_len = proper_tls_data[tls_pointer];
-    // tls_pointer++;
+		/* compression methods length */
+    size_t compression_methods_len = proper_tls_data[tls_pointer];
+    tls_pointer++;
 
-		// /* Skip compression methods */
-    // tls_pointer += compression_methods_len;
+		/* Skip compression methods */
+    tls_pointer += compression_methods_len;
 
-		// /* Extension length */
-    // uint16_t ext_len = ntohs(get_u16(proper_tls_data, tls_pointer));
-    // tls_pointer += 2;
+		/* Extension length */
+    uint16_t ext_len = ntohs(get_u16(proper_tls_data, tls_pointer));
+    tls_pointer += 2;
 
-		// /* Add Extension length to the ja3 string */
-    // unsigned const char *ext_data = proper_tls_data + tls_pointer;
+		/* Add Extension length to the ja3 string */
+    unsigned const char *ext_data = proper_tls_data + tls_pointer;
 
-    // /* lets iterate over the exention list */
-    // tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private, ja3_string, &ja3_string_len);
+    /* lets iterate over the exention list */
+    tls13_parse_extensions(state, ext_data, ext_len, pkt_info, flow_info_private);
 	}
   if (reassembled_state.done)
     retval = PFWL_PROTOCOL_MATCHES;

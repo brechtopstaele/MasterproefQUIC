@@ -537,8 +537,20 @@ uint8_t check_quic5(pfwl_state_t *state, const unsigned char *app_data, size_t d
       state->scratchpad_next_byte += ver_str_len;
     }
 
+    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_TOKEN) &&
+       quic_info.token_len) {
+      scratchpad = state->scratchpad + state->scratchpad_next_byte;
+      memcpy(scratchpad, &quic_info.token, quic_info.token_len);
+      pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_TOKEN, scratchpad,
+                            quic_info.token_len);
+      state->scratchpad_next_byte += quic_info.token_len;
+		}
+
     if (pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_SNI) ||
-        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_UAID)) {
+        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_UAID) ||
+        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JA3) ||
+        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JOY) ||
+        pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_NPF)) {
       // unsigned int 	frame_type 		= quic_info.decrypted_payload[0];
       // unsigned int 	offset 			= quic_info.decrypted_payload[1];
 

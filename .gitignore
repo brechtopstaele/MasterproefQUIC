@@ -1,9 +1,11 @@
 *.o
 *.a
+*.d
 *.so
 *.gcov
 *.gcda
 *.gcno
+*.make
 proc.out
 /src/external/nornir/*
 /test/googletest/*
