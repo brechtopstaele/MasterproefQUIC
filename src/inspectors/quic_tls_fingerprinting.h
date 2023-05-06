@@ -49,7 +49,7 @@ void npf_qtp(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_di
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
 	unsigned char *npf_string, size_t *npf_string_len, uint16_t ext_len);
 size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private,
- unsigned char *npf_string, uint16_t tls_version, uint16_t quic_version);
+ unsigned char *npf_string, uint16_t tls_version, uint32_t quic_version);
 
 size_t parse_ja3_hash(pfwl_state_t *state, unsigned char *ja3_string, size_t ja3_string_len, char *ja3_start);
 char* parse_joy_hash(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *joy_string, size_t *joy_string_len);

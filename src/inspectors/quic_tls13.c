@@ -375,6 +375,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
 		tls_pointer += 1;
 
     /* Fingerprinting */
+    char *scratchpad = state->scratchpad + state->scratchpad_next_byte;
     if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JA3)) {
       unsigned char ja3_string[1024];
       size_t ja3_string_len;
@@ -388,7 +389,7 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
       unsigned char md5[16];
       size_t md5sum_len = md5_digest_message((const unsigned char *) ja3_string, ja3_string_len, md5);
 
-      char *ja3_start = state->scratchpad + state->scratchpad_next_byte;
+      scratchpad = state->scratchpad + state->scratchpad_next_byte;
 
       for (size_t n = 0; n < md5sum_len; n++) {
         sprintf(state->scratchpad + state->scratchpad_next_byte, "%02x", md5[n]);
@@ -398,9 +399,9 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
       // printf("JA3 md5 %s\n", ja3_start);
 
       if (ja3_string_len == 0) {
-        printf("JA3 Fingerprint failed");
+        printf("JA3 Fingerprint failed\n");
       } else {
-        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) ja3_start,
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, (const unsigned char *) scratchpad,
                               md5sum_len*2);
       }
     }
@@ -412,22 +413,29 @@ uint8_t check_tls13(pfwl_state_t *state, const unsigned char *tls_data, size_t t
       joy_string_len = parse_joy_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
                                       joy_string, tls_version);
       if (joy_string_len == 0) {
-        printf("Joy Fingerprint failed");
+        printf("Joy Fingerprint failed\n");
       } else {
-        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JOY, joy_string, joy_string_len);
+        
+        scratchpad = state->scratchpad + state->scratchpad_next_byte;
+        memcpy(scratchpad, joy_string, joy_string_len);
+        state->scratchpad_next_byte += joy_string_len;
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JOY, (const unsigned char *) scratchpad, joy_string_len);
       }
     }
 
-    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_JOY)) {
+    if(pfwl_protocol_field_required(state, flow_info_private, PFWL_FIELDS_L7_QUIC_NPF)) {
       unsigned char npf_string[1024];
       size_t npf_string_len;
 
       npf_string_len = parse_npf_string(state, proper_tls_data + tls_pointer, tls_data_length, pkt_info, flow_info_private,
                                         npf_string, tls_version, quic_version);
       if (npf_string_len == 0) {
-        printf("NPF Fingerprint failed");
+        printf("NPF Fingerprint failed\n");
       } else {
-        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_NPF, npf_string, npf_string_len);
+        scratchpad = state->scratchpad + state->scratchpad_next_byte;
+        memcpy(scratchpad, npf_string, npf_string_len);
+        state->scratchpad_next_byte += npf_string_len;
+        pfwl_field_string_set(pkt_info->l7.protocol_fields, PFWL_FIELDS_L7_QUIC_NPF, (const unsigned char *) scratchpad, npf_string_len);
       }
     }
     

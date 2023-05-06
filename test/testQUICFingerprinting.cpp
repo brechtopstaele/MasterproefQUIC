@@ -4,89 +4,83 @@
 #include "common.h"
 
 #ifdef HAVE_OPENSSL
-TEST(QUICTest, Generic) {
-  std::vector<uint> protocols;
-  getProtocols("./pcaps/quic-050.pcap", protocols);
-  EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 65);
-  getProtocols("./pcaps/quic-t51.pcap", protocols);
-  EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 642);
-  getProtocols("./pcaps/quic-draft29.pcap", protocols);
-  EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 9);
-  getProtocols("./pcaps/quic-draft27-facebook.pcap", protocols);
-  EXPECT_EQ(protocols[PFWL_PROTO_L7_QUIC5], (uint) 1);
-}
 
-static void checkSNI(const char *pcap, const char *sni, pfwl_field_matching_t matchType) {
+static void checkJA3(const char *pcap, const char *ja3) {
+  std::vector<uint> protocols;
   pfwl_state_t *state = pfwl_init();
-  pfwl_field_string_tags_add_L7(state, PFWL_FIELDS_L7_QUIC_SNI, sni, matchType, "TAG");
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JA3);
 
-  std::vector<uint> protocols;
-  bool foundSni = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
-    for (size_t i = 0; i < r.l7.tags_num; i++) {
-      if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 && r.l7.tags_num && !strcmp(r.l7.tags[i], "TAG")) {
-        foundSni = true;
+  bool foundja3 = false;
+
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+    pfwl_string_t field;
+    if (status >= PFWL_STATUS_OK && r.l7.protocol == PFWL_PROTO_L7_QUIC5) {
+      if (!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JA3, &field)) {
+        EXPECT_EQ(strncmp((const char *) field.value, ja3, field.length), 0);
+        foundja3 = true;
       }
     }
   });
-  EXPECT_TRUE(foundSni);
+  EXPECT_TRUE(foundja3);
+
   pfwl_terminate(state);
 }
 
-TEST(QUICTest, ServerName) {
-  checkSNI("./pcaps/quic-050.pcap", "www.google.com", PFWL_FIELD_MATCHING_EXACT);
-  checkSNI("./pcaps/quic-t51.pcap", "www.google.com", PFWL_FIELD_MATCHING_EXACT);
-  checkSNI("./pcaps/quic-draft29.pcap", "ssl.gstatic.com", PFWL_FIELD_MATCHING_EXACT);
-  checkSNI("./pcaps/quic-draft27-facebook.pcap", "scontent-bru2-1.xx.fbcdn.net", PFWL_FIELD_MATCHING_EXACT);
+TEST(QUICTest, JA3) {
+  checkJA3("./test/pcaps/quic-draft29.pcap", "dc45c41224f2d966d2c8378bc3e1f0d2");
+  checkJA3("./test/pcaps/quic-1-double.pcap", "b719940c5ab9a3373cb4475d8143ff88");
 }
 
-static void checkVersion(const char *pcap, const char *expectedVersion) {
-  pfwl_state_t *state = pfwl_init();
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_VERSION);
-
+static void checkJOY(const char *pcap, const char *joy) {
   std::vector<uint> protocols;
-  bool foundVersion = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
-    pfwl_string_t version;
-    if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
-        !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_VERSION, &version) &&
-        !strncmp((const char *) version.value, expectedVersion, version.length)) {
-      foundVersion = true;
+  pfwl_state_t *state = pfwl_init();
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_JOY);
+
+  bool foundjoy = false;
+
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+    pfwl_string_t field;
+    if (status >= PFWL_STATUS_OK && r.l7.protocol == PFWL_PROTO_L7_QUIC5) {
+      if (!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_JOY, &field)) {
+        EXPECT_EQ(strncmp((const char *) field.value, joy, field.length), 0);
+        foundjoy = true;
+      }
     }
   });
-  EXPECT_TRUE(foundVersion);
+  EXPECT_TRUE(foundjoy);
+
   pfwl_terminate(state);
 }
 
-TEST(QUICTest, Version) {
-  checkVersion("./pcaps/quic-050.pcap", "Q050");
-  checkVersion("./pcaps/quic-t51.pcap", "T051");
-  checkVersion("./pcaps/quic-draft29.pcap", "draft-29");
-  checkVersion("./pcaps/quic-draft27-facebook.pcap", "facebook mvfst draft-27");
-}
+// TODO: get a working Joy verification
+// TEST(QUICTest, JOY) {
+//   checkJOY("./pcaps/quic-draft29.pcap", "dc45c41224f2d966d2c8378bc3e1f0d2");
+//   checkJOY("./pcaps/quic-1-double.pcap", "b719940c5ab9a3373cb4475d8143ff88");
+// }
 
-static void checkUserAgent(const char *pcap, const char *expectedUAID) {
-  pfwl_state_t *state = pfwl_init();
-  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_UAID);
-
+static void checkNPF(const char *pcap, const char *npf) {
   std::vector<uint> protocols;
-  bool foundVersion = false;
-  getProtocols(pcap, protocols, state, [&](pfwl_status_t, pfwl_dissection_info_t r) {
-    pfwl_string_t uaid;
-    if (r.l7.protocol == PFWL_PROTO_L7_QUIC5 &&
-        !pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_UAID, &uaid) &&
-        !strncmp((const char *) uaid.value, expectedUAID, uaid.length)) {
-      foundVersion = true;
+  pfwl_state_t *state = pfwl_init();
+  pfwl_field_add_L7(state, PFWL_FIELDS_L7_QUIC_NPF);
+
+  bool foundnpf = false;
+
+  getProtocols(pcap, protocols, state, [&](pfwl_status_t status, pfwl_dissection_info_t r) {
+    pfwl_string_t field;
+    if (status >= PFWL_STATUS_OK && r.l7.protocol == PFWL_PROTO_L7_QUIC5) {
+      if (!pfwl_field_string_get(r.l7.protocol_fields, PFWL_FIELDS_L7_QUIC_NPF, &field)) {
+        EXPECT_EQ(strncmp((const char *) field.value, npf, field.length), 0);
+        foundnpf = true;
+      }
     }
   });
-  EXPECT_TRUE(foundVersion);
+  EXPECT_TRUE(foundnpf);
+
   pfwl_terminate(state);
 }
 
-TEST(QUICTest, Useragent) {
-  checkUserAgent("./pcaps/quic-050.pcap", "Chrome/86.0.4240.198 Intel Mac OS X 10_15_7");
-  checkUserAgent("./pcaps/quic-t51.pcap", "dev Chrome/86.0.4240.9 Windows NT 6.1; Win64; x64");
-  checkUserAgent("./pcaps/quic-draft29.pcap", "Chrome/87.0.4280.88 Intel Mac OS X 10_15_7");
-  /* NO UserAgent present in quic-draft27-facebook.pcap so no test for it */
+TEST(QUICTest, NPF) {
+  checkNPF("./test/pcaps/quic-draft29.pcap", "quic/(ff00001d)(0303)(130113021303)[(0000)(000a00080006001d00170018)(000d00140012040308040401050308050501080606010201)(0010000800060568332d3239)(0029)(002a)(002b0003020304)(002d00020101)(0033)((ffa5)[(01)(03)(04)(05)(06)(07)(08)(09)(0f)(1b)(20)(7127)(7129)(712b)(80004752)])]");
+  checkNPF("./test/pcaps/quic-1-double.pcap", "quic/(00000001)(0303)(130113031302)[(0000)(000500050100000000)(000a00140012001d00170018001901000101010201030104)(000d0018001604030503060302030804080508060401050106010201)(001000050003026833)(0015)(0017)(001c00024001)(0022)(002b0003020304)(002d00020101)(0033)((0039)[(01)(04)(05)(06)(07)(08)(09)(0b)(0c)(0e)(0f)(1b)(20)(6ab2)(80ff73db)])(ff01)]");
 }
 #endif

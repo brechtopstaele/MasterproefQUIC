@@ -587,7 +587,7 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 }
 
 size_t parse_npf_string(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, unsigned char *npf_string,
- uint16_t tls_version, uint16_t quic_version){
+ uint16_t tls_version, uint32_t quic_version){
 	/*NPF Finger printing 
       Documentation:
       https://github.com/cisco/mercury/blob/main/doc/npf.md
