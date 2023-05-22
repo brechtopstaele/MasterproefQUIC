@@ -369,6 +369,21 @@ int compare_strings(const void* p1, const void* p2) {
     return strcmp(pp1, pp2);
 }
 
+int find_grease(char* text, int len_text) {
+	int pos_text = 0;
+	char var = text[pos_text];
+	for (pos_text = 1; pos_text < len_text - 3; pos_text++ ) {
+		if (text[pos_text] == 'a' && text[pos_text + 1] == var && text[pos_text + 2] == 'a') {
+			//match
+			return pos_text - 1;
+		} else {
+			var = text[pos_text];
+		}
+	}
+	//no match
+	return 0;
+}
+
 /**
  *  @brief QUIC variable length Integer decoding algorithm, returns data including length indications
  */
@@ -454,14 +469,9 @@ unsigned char *extensions, size_t *extensions_len) {
 		pointer++;
 		
 		/* Check for GREASE */
-		//printf("TLVtype: %lu\n", TLVtype);
 		qtp_len[n] += sprintf(qtp[n] + qtp_len[n], "(%02x)", TLVtype);
 		n++;
 	}
-	// for (uint16_t i = 0; i < n; i++){
-    //     printf (" qtp[%2zu] : %s\n", i, qtp[i]);
-	// 	printf (" qtp_len[%2zu] %lu\n", i, qtp_len[i]);
-	// }
 
 	/* lexicographic sorting of quic transport parameters */
 	qsort(qtp, n, sizeof(qtp[0]), compare_strings);
@@ -472,8 +482,6 @@ unsigned char *extensions, size_t *extensions_len) {
 	}
 	*extensions_len += sprintf(extensions + *extensions_len, "])");
 
-	/*for (uint16_t i = 0; i < n; i++)
-        printf (" sorted qtp[%2zu] : %s\n", i, qtp[i]);*/
 }
 
 void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t len, pfwl_dissection_info_t *pkt_info, pfwl_flow_info_private_t *flow_info_private, 
@@ -490,7 +498,6 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 		TLVlen = ntohs(*(uint16_t *)(&data[pointer]));
 		pointer += 2;
 
-		//extensions[i] = malloc(TLVlen*2 + 1);
 		//TODO: find max length of extension
 		extensions[n] = malloc(200);
 		extensions_len[n] = 0;
@@ -515,7 +522,6 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0xfafa:
 				/* Grease values must normalized to 0a0a */
                 extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(0a0a)");
-                //*npf_string_len += sprintf(npf_string + *npf_string_len, "(0a0a)");
 			    break;
 
 			/* TLS_EXT_FIXED */
@@ -526,24 +532,22 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 			case 0x0009:
 			case 0x000a:
 			case 0x000b:
-			case 0x000d:
+			 case 0x000d:
 			case 0x000f:
 			case 0x0010:
 			case 0x0011:
 			case 0x0018:
 			case 0x001b:
 			case 0x001c:
-			case 0x002b:
-			case 0x002d:
+			 case 0x002b:
+			 case 0x002d:
 			case 0x0032:
 			case 0x5500:
 			{
 				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x", TLVtype, TLVlen);
-				//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x", TLVtype, TLVlen);
 				for (int i = 0; i<TLVlen; i+=2) {
 					size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
 					extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%04x", content);
-					//*npf_string_len += sprintf(npf_string + *npf_string_len, "%04x", content);
 				}
 				/* If length of the extension is uneven, remove last extra byte */
 				if (TLVlen%2) {
@@ -553,35 +557,72 @@ void npf_parse_extensions(pfwl_state_t *state, const unsigned char *data, size_t
 				else {
 					extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")");
 				}
-				//*npf_string_len += sprintf(npf_string + *npf_string_len, ")", TLVtype, TLVlen);
+				int pos = find_grease(extensions[n], extensions_len[n]);
+				if (pos) {
+					strncpy(extensions[n] + pos, "0a0a", 4);
+				}
                 break;
 			}
+
+			/* TLS_EXT_FIXED with possible GREASE */
+			// case 0x000d:
+			// {
+			// 	extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x", TLVtype, TLVlen);
+			// 	size_t intern_len = ntohs(*(uint16_t *)(&data[pointer]));
+			// 	extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%04x", intern_len);
+			// 	for (int i = 2; i<TLVlen; i+=2) {
+			// 		size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
+			// 		if (is_grease(content)) {
+			// 			content = 0x0a0a;
+			// 		}
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%04x", content);
+			// 	}
+			// 	if (TLVlen%2) {
+			// 		extensions_len[n] -= 2;
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")\0");
+			// 	}
+			// 	else {
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")");
+			// 	}
+			// }
+			// case 0x002b:
+			// case 0x002d:
+			// {
+			// 	extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x%04x", TLVtype, TLVlen);
+			// 	size_t intern_len = ntohs(*(uint8_t *)(&data[pointer]));
+			// 	extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%02x", intern_len);
+			// 	for (int i = 1; i<TLVlen; i+=2) {
+			// 		size_t content = ntohs(*(uint16_t *)(&data[pointer+i]));
+			// 		if (is_grease(content)) {
+			// 			content = 0x0a0a;
+			// 		}
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "%04x", content);
+			// 	}
+			// 	if (TLVlen%2) {
+			// 		extensions_len[n] -= 2;
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")\0");
+			// 	}
+			// 	else {
+			// 		extensions_len[n] += sprintf(extensions[n] + extensions_len[n], ")");
+			// 	}
+			// }
 
 			/* QUIC transport parameters */
 			case 0x0039:
 			case 0xffa5:
 				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "((%04x)[", TLVtype);
-				//*npf_string_len += sprintf(npf_string + *npf_string_len, "((%04x)[", TLVtype);
 				npf_qtp(state, data + pointer, TLVlen, pkt_info, flow_info_private, extensions[n], &extensions_len[n]);
-				//*npf_string_len += sprintf(npf_string + *npf_string_len, "])");
 				break;
 
 			default:
 				extensions_len[n] += sprintf(extensions[n] + extensions_len[n], "(%04x)", TLVtype);
-				//*npf_string_len += sprintf(npf_string + *npf_string_len, "(%04x%04x)", TLVtype, TLVlen);
 				break;
 		}	
 		n++;
 	}
-	// for (uint16_t i = 0; i < n; i++){
-    //     printf (" extensions[%2zu] : %s\n", i, extensions[i]);
-	// 	printf (" extensions_len[%2zu] : %lu\n", i, extensions_len[i]);
-	// }
-	qsort(extensions, n, sizeof(extensions[0]), compare_strings);
-	/* output sorted arrray of strings */
-    // for (uint16_t i = 0; i < n; i++)
-    //     printf (" sorted extensions[%2zu] : %s\n", i, extensions[i]);
 
+	qsort(extensions, n, sizeof(extensions[0]), compare_strings);
+    
 	for (uint16_t i = 0; i < n; i++)
         *npf_string_len += sprintf (npf_string + *npf_string_len, extensions[i]);
 }
